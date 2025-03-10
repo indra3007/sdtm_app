@@ -1,0 +1,97 @@
+
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep  6 12:33:12 2024
+
+@author: inarisetty
+"""
+import pandas as pd
+from openpyxl import load_workbook
+
+def specs_transform(study, excel_file):
+    # Load the workbook and TOC sheet
+    workbook = load_workbook(excel_file)
+    toc_sheet_name = 'TOC'
+    
+    if toc_sheet_name not in workbook.sheetnames:
+        raise ValueError(f"Sheet '{toc_sheet_name}' not found in the Excel file.")
+    
+    # Convert the TOC sheet to a DataFrame
+    toc_sheet = workbook[toc_sheet_name]
+    toc_data = toc_sheet.values
+    toc_columns = next(toc_data)[0:]
+    toc_df = pd.DataFrame(toc_data, columns=toc_columns)
+    
+    # Filter the TOC DataFrame for Active = "Y"
+    active_datasets = toc_df[toc_df['Active'] == 'Y']['Dataset'].unique()
+    
+    # Define the specific datasets that should be stacked last
+    special_datasets = ['TA', 'TD', 'TV', 'TE', 'TM', 'TS', 'TI']
+    
+    # Function to convert a sheet to a DataFrame and add a 'Sheet' column
+    def sheet_to_dataframe(sheet, sheet_name):
+        data = sheet.values
+        columns = next(data)[0:]
+        df = pd.DataFrame(data, columns=columns)
+        df.insert(0, 'Sheet', sheet_name)  # Add the 'Sheet' column
+        return df
+    
+    # Read all active sheets and store them in lists
+    df_list = []
+    special_df_list = []
+    
+    for sheet_name in active_datasets:
+        if sheet_name in workbook.sheetnames:
+            sheet = workbook[sheet_name]
+            df = sheet_to_dataframe(sheet, sheet_name)
+            if sheet_name in special_datasets:
+                special_df_list.append(df)
+            else:
+                df_list.append(df)
+        else:
+            print(f"Warning: Sheet '{sheet_name}' listed in TOC not found in the Excel file.")
+    
+# =============================================================================
+#     # Print columns of each DataFrame for debugging
+#     for idx, df in enumerate(df_list):
+#         print(f"DataFrame {idx} - Columns: {df.columns.tolist()}")
+#     
+#     for idx, df in enumerate(special_df_list):
+#         print(f"Special DataFrame {idx} - Columns: {df.columns.tolist()}")
+# =============================================================================
+    
+    # Keep only the specified columns in each DataFrame
+    columns_to_keep = ['Sheet', 'Dataset', 'Label', 'Class', 'Display Order', 'Input Datasets', 'Variable','Input Variables','Mapping Action','Implemented SAS Code','Mapping Rule']
+    
+    # Filter columns dynamically, checking for existence
+    def filter_columns(df):
+        available_columns = [col for col in columns_to_keep if col in df.columns]
+        return df[available_columns]
+
+    df_list = [filter_columns(df) for df in df_list]
+    special_df_list = [filter_columns(df) for df in special_df_list]
+
+    # Reset index before concatenation
+    df_list = [df.reset_index(drop=True) for df in df_list]
+    special_df_list = [df.reset_index(drop=True) for df in special_df_list]
+
+    # Concatenate all DataFrames, stacking special datasets last
+    combined_df = pd.concat(df_list + special_df_list, ignore_index=True)
+    
+    # Drop the 'Display Format' column from combined_df if it exists
+    if 'Display Format' in combined_df.columns:
+        combined_df = combined_df.drop(columns=['Display Format'])
+    
+    # Select relevant columns from TOC for merging
+    toc_columns_to_merge = toc_df[['Dataset', 'Label', 'Class', 'Display Order', 'Input Datasets']]
+    
+    # Rename columns in TOC for merging
+    toc_columns_to_merge = toc_columns_to_merge.rename(columns={'Dataset': 'Sheet'})
+    
+    # Merge combined_df with the TOC columns
+    combined_df = combined_df.merge(toc_columns_to_merge, on='Sheet', how='left')
+    combined_df = combined_df[combined_df['Variable'].notnull() & (combined_df['Variable'].str.strip() != '')]
+    
+    output_file_path = f'combined_data_{study}.xlsx'
+    combined_df.to_excel(output_file_path, index=False)
+    return combined_df
