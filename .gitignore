@@ -1,0 +1,17 @@
+__pycache__
+venv*
+.venv
+bin
+dist
+build
+bin
+cdisc
+assets
+etc
+share
+include
+lib
+lib64
+*.xlsx
+*.html
+*.pyc
