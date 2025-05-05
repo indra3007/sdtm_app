@@ -59,9 +59,9 @@ try:
         print(df_db.head())  # Print the first few rows of the DataFrame
 
     # Save the results to an Excel file
-    output_excel_path = "df_db_output.xlsx"  # Specify the output file path
-    df_db.to_excel(output_excel_path, index=False, engine='openpyxl')
-    print(f"Data saved to {output_excel_path}")
+    #output_excel_path = "df_db_output.xlsx"  # Specify the output file path
+    #df_db.to_excel(output_excel_path, index=False, engine='openpyxl')
+    #print(f"Data saved to {output_excel_path}")
 except Exception as e:
     print(f"Failed to execute query or save data: {e}")
 
@@ -102,15 +102,15 @@ df_db = df_db.drop_duplicates(subset=['study', 'project', 'source', 'analysis_ta
     #(df_db['project'].str.contains("s6216463", case=False, na=False)) &
     #(df_db['analysis_task'].str.contains("csdtm_dev", case=False, na=False))
 #]
-df_db.to_excel("test_studies.xlsx", index=False, engine='openpyxl')
+#df_db.to_excel("test_studies.xlsx", index=False, engine='openpyxl')
 subset_df = df_db[
 	df_db['study'].notna() &
     df_db['study'].str.contains("p627|p624|p592", case=False, na=False) 
     #df_db['project'].str.contains("s21", case=False, na=False)
     #(df_db['analysis_task'].str.contains("csdtm_dev", case=False, na=False))
 ]
-output_excel_path = "df_db_output.xlsx"  # Specify the output file path
-subset_df.to_excel(output_excel_path, index=False, engine='openpyxl')
+#output_excel_path = "df_db_output.xlsx"  # Specify the output file path
+#subset_df.to_excel(output_excel_path, index=False, engine='openpyxl')
 #project = "p621"
 #study = "s6216463"
 #data_path = f"G:/projects/{project}/{study}/csdtm_dev/draft1/sdtmdata" #use specstor_spec
