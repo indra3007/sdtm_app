@@ -44,7 +44,7 @@ def check_lb_lbdtc_after_dd(data_path):
     ae_file_path = os.path.join(data_path, "ae.sas7bdat")
     if  os.path.exists(ae_file_path):
         AE = load_data(data_path, 'ae')
-        required_ae_columns = ["USUBJID", "AESTDTC", "AEDECOD", "AETERM"]
+        required_ae_columns = ["USUBJID", "AESTDTC", "AEDECOD", "AETERM","AESDTH", "AEOUT"]
     else:
         return pd.DataFrame({
             "CHECK": [check_description],

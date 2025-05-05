@@ -1,0 +1,5 @@
+unixodbc
+unixodbc-dev
+build-essential
+manpages-dev
+openssl

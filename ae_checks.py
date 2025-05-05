@@ -1353,6 +1353,10 @@ def check_ae_withdr_ds_discon(data_path, preproc=lambda df: df, **kwargs):
         })
 
     # Check if required variables exist in DS
+    required_ds_columns = ["DSSCAT", "DSDECOD", "DSCAT"]
+    empty_check_DS = check_empty_dataset(AE,"DS",datasets,check_description)
+    if empty_check_DS is not None:
+        return empty_check_DS
     if not set(required_ds_columns).issubset(DS.columns):
         missing = set(required_ds_columns) - set(DS.columns)
         return pd.DataFrame({
@@ -1400,7 +1404,7 @@ def check_ae_withdr_ds_discon(data_path, preproc=lambda df: df, **kwargs):
         # Find matching patients in DS
         ds0 = DS[DS["USUBJID"].isin(ae0["USUBJID"])]
         ds1 = ds0[(ds0["DSSCAT"].str.contains("DISCON", case=False, na=False) |
-                   ds0["DSSCAT"].str.upper().contains(['TREATMENT COMPLETION/EARLY DISCONTINUATION', 'TREATMENT EARLY DISCONTINUATION/COMPLETION', 'STUDY TREATMENT'])) &
+                   ds0["DSSCAT"].str.contains(r'TREATMENT COMPLETION/EARLY DISCONTINUATION|TREATMENT EARLY DISCONTINUATION/COMPLETION|STUDY TREATMENT', case=False, na=False)) &
                   (ds0["DSDECOD"].str.upper() != "COMPLETED") &
                   (ds0["DSCAT"].str.contains("DISPO", case=False, na=False))][["USUBJID", "DSSCAT", "DSCAT"]]
 

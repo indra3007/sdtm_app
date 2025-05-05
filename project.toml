@@ -1,0 +1,7 @@
+[scripts]
+predeploy = "setup_pyodbc"
+
+[build]
+[[build.env]]
+name = 'BP_CPYTHON_VERSION'
+value = '3.9.*'

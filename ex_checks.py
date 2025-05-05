@@ -339,7 +339,7 @@ def check_ex_exstdtc_after_dd(data_path):
             "Datasets": [datasets],
             "Data": [pd.DataFrame()]  # Return an empty DataFrame
         })
-    required_ae_columns = ["USUBJID", "AESTDTC", "AEDECOD", "AETERM"]
+    required_ae_columns = ["USUBJID", "AESTDTC", "AEDECOD", "AETERM","AESDTH", "AEOUT"]
     if not set(required_ae_columns).issubset(AE.columns):
         missing = set(required_ae_columns) - set(AE.columns)
         return pd.DataFrame({

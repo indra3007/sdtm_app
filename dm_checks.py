@@ -18,7 +18,15 @@ def check_dm_actarm_arm(data_path):
     datasets = "DM"
     DM = load_data(data_path, 'dm')
     required_columns = ["USUBJID", "ARM", "ACTARM", "ARMNRS"]
-
+    check_description = "This check looks for DM entries where ARM is not equal to ACTARM"
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist
     missing = set(required_columns) - set(DM.columns)
     if missing:
@@ -137,7 +145,15 @@ def check_dm_age_missing(data_path):
     datasets = "DM"
     DM = load_data(data_path, 'dm')
     required_columns = ["USUBJID", "AGE","ARM","ACTARM"]
-
+    check_description = "Check for missing or suspicious age values in DM, Checking age <18 and >=90, if study allow, ignore this check"
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -176,9 +192,17 @@ def check_dm_age_missing(data_path):
 
 def check_dm_armnrs_missing(data_path):
     datasets = "DM"
+    check_description = "Check for ARMNRS Variable if ARMCD = SCRNFAIL"
     DM = load_data(data_path, 'dm')
     required_columns = ["USUBJID","ARM","ARMCD"]
-
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -222,9 +246,17 @@ def check_dm_armnrs_missing(data_path):
     })
 def check_dm_armcd(data_path):
     datasets = "DM"
+    check_description = "Check for missing ARM or ARMCD values in DM"
     DM = load_data(data_path, 'dm')  # Ensure load_data function is defined
     required_columns = ["USUBJID", "ARM", "ARMCD", "ARMNRS"]
-
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM 
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -267,9 +299,17 @@ def check_dm_armcd(data_path):
 
 def check_dm_arm_scrnfl(data_path):
     datasets = "DM"
+    check_description = "Check for missing ARM or ARMCD values in DM"
     DM = load_data(data_path, 'dm')
     required_columns = ["USUBJID", "ARM", "ARMCD"]
-
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -319,7 +359,15 @@ def check_dm_dthfl_dthdtc(data_path):
     DM = load_data(data_path, 'dm')
     datasets = "DM"
     required_columns = ["USUBJID", "DTHFL", "DTHDTC"]
-
+    check_description = "Check for consistency between DTHFL and DTHDTC in DM"
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -358,7 +406,15 @@ def check_dm_usubjid_ae_usubjid(data_path):
     required_ae_columns = ["USUBJID","AETERM","AESTDTC"]
     required_ds_columns = ["USUBJID", "DSSTDTC", "DSDECOD"]
     required_ex_columns = ["USUBJID", "EXSTDTC", "EXDOSE", "EXTRT"]
-    
+    check_description = "Check for consistency of USUBJID across DM, AE, DS, and EX"
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM, AE, DS, and EX
     if not set(required_dm_columns).issubset(DM.columns):
         missing = set(required_dm_columns) - set(DM.columns)
@@ -453,7 +509,15 @@ def check_dm_usubjid_dup(data_path):
     DM = load_data(data_path, 'dm')
     datasets = "DM"
     required_columns = ["USUBJID"]
-
+    check_description = "Check for consistency of USUBJID across DM, AE, DS, and EX"
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -497,6 +561,15 @@ def check_dm_ds_icdtc(data_path):
     datasets = "DM, DS"
     required_columns = ["USUBJID", "RFICDTC"]
     required_columns_ds = ["USUBJID", "DSTERM", 'DSSTDTC']
+    check_description = "Check for consistency Informed consent dates between RFICDTC and DSSTDTC"
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -541,7 +614,15 @@ def check_dm_rficdtc(data_path):
     datasets = "DM"
     DM = load_data(data_path, 'dm')  # Ensure load_data function is defined
     required_columns = ["USUBJID", "RFICDTC", "ARMCD", "ARM"]
-
+    check_description = "Check for missing RFICDTC values in DM"
+    if DM.empty:
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": ["DM dataset is empty. No checks performed."],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
     # Check if required variables exist in DM 
     if not set(required_columns).issubset(DM.columns):
         missing = set(required_columns) - set(DM.columns)
@@ -560,7 +641,7 @@ def check_dm_rficdtc(data_path):
         # If any records do not pass the check, return a failure message
     if not missing_rficdtc.empty:
         notes = f"Total number of patients with missing RFICDTC values is {len(missing_rficdtc)}."
-        return fail_check("Check for missing RFICDTC values in DM", datasets, notes, missing_rficdtc[["USUBJID", "RFICDTC", "ARM", "ARMCD", "ARMNRS"]].reset_index(drop=True))
+        return fail_check("Check for missing RFICDTC values in DM", datasets, notes, missing_rficdtc[["USUBJID", "RFICDTC", "ARM", "ARMCD"]].reset_index(drop=True))
     else:
         # Pass if no invalid records are found
         return pass_check("Check for missing RFICDTC values in DM", datasets)

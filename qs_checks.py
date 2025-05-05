@@ -59,7 +59,7 @@ def check_qs_qsdtc_after_dd(data_path):
     qs_file_path = os.path.join(data_path, "qs.sas7bdat")
     if  os.path.exists(qs_file_path):
         QS = load_data(data_path, 'qs')
-        required_qs_columns = ["USUBJID", "QSDTC", "QSCAT", "QSORRES"]
+        required_qs_columns = ["USUBJID", "QSDTC", "QSCAT", "QSORRES", "VISIT"]
     else:
         return pd.DataFrame({
             "CHECK": [check_description],
@@ -270,12 +270,11 @@ def check_qs_qsstat_qsreasnd(data_path):
         ) 
 def check_qs_qsstat_qsstresc(data_path):
     check_description = "Check for QS records with QSSTAT 'NOT DONE' but QSSTRESC not missing"
-    datasets= "QS"
+    datasets = "QS"
     qs_file_path = os.path.join(data_path, "qs.sas7bdat")
-    if  os.path.exists(qs_file_path):
-        QS = load_data(data_path, 'qs')
-        required_columns = ["USUBJID", "QSSTRESC", "VISIT", "QSSTAT", "QSCAT", "QSDTC", "QSTESTCD"]
-    else:
+
+    # Check if QS file exists
+    if not os.path.exists(qs_file_path):
         return pd.DataFrame({
             "CHECK": [check_description],
             "Message": [f"Check stopped running due to QS dataset not found at the specified location: {qs_file_path}"],
@@ -283,40 +282,61 @@ def check_qs_qsstat_qsstresc(data_path):
             "Datasets": [datasets],
             "Data": [pd.DataFrame()]  # Return an empty DataFrame
         })
-    
 
+    # Load QS dataset
+    QS = load_data(data_path, 'qs')
+    #print(f"Columns in QS: {list(QS.columns)}")  # Debugging: Print the columns in QS
 
-    # Check if required variables exist in QS
-
-    if not set(required_columns).issubset(QS.columns):
-        missing = set(required_columns) - set(QS.columns)
+    # Check if QS is empty
+    if QS.empty:
+        print("QS dataset is empty.")  # Debugging: Print a message if QS is empty
         return pd.DataFrame({
             "CHECK": [check_description],
-            "Message": [f"Missing columns in QS: {', '.join(missing)}"],
+            "Message": ["QS dataset is empty. No checks performed."],
             "Notes": [""],
             "Datasets": [datasets],
             "Data": [pd.DataFrame()]  # Return an empty DataFrame
         })
-    
 
+    # Define required columns
+    required_columns = ["USUBJID", "QSSTRESC", "QSSTAT", "QSCAT", "QSDTC", "QSTESTCD"]
 
+    # Add VISIT to required columns if it exists
+    if "VISIT" in QS.columns:
+        required_columns.append("VISIT")
+
+    # Check for missing columns
+    missing_columns = set(required_columns) - set(QS.columns)
+    if missing_columns:
+        print(f"Missing columns in QS: {missing_columns}")  # Debugging: Print missing columns
+        return pd.DataFrame({
+            "CHECK": [check_description],
+            "Message": [f"Missing columns in QS: {', '.join(missing_columns)}"],
+            "Notes": [""],
+            "Datasets": [datasets],
+            "Data": [pd.DataFrame()]  # Return an empty DataFrame
+        })
 
     # Subset QS to rows where QSSTAT = NOT DONE and QSTESTCD = QSALL
-    qsND = QS[(QS["QSSTAT"] == "NOT DONE") & (QS["QSTESTCD"] == "QSALL")][["USUBJID", "QSSTRESC", "VISIT", "QSSTAT", "QSCAT", "QSDTC"]]
+    qsND = QS[(QS["QSSTAT"] == "NOT DONE") & (QS["QSTESTCD"] == "QSALL")][required_columns]
 
     # Subset QS to rows where QSSTRESC is not missing
-    qsANS = QS[~QS["QSSTRESC"].apply(is_null_or_empty)][["USUBJID", "QSSTRESC", "VISIT", "QSSTAT", "QSCAT", "QSDTC"]]
+    qsANS = QS[~QS["QSSTRESC"].apply(is_null_or_empty)][required_columns]
 
-    # Merge the datasets on USUBJID, VISIT, QSCAT, and QSDTC
+    # Merge the datasets on common columns
+    merge_columns = ["USUBJID", "QSCAT", "QSDTC"]
+    if "VISIT" in QS.columns:
+        merge_columns.append("VISIT")
+
     qsPREP = pd.merge(
-        qsND[["USUBJID", "VISIT", "QSSTAT", "QSCAT", "QSDTC"]],
-        qsANS[["USUBJID", "VISIT", "QSSTRESC", "QSCAT", "QSDTC"]],
-        on=["USUBJID", "VISIT", "QSCAT", "QSDTC"],
+        qsND[merge_columns + ["QSSTAT"]],
+        qsANS[merge_columns + ["QSSTRESC"]],
+        on=merge_columns,
         how="left"
     )
 
     # Filter the merged dataset to find records with issues
-    mydf = qsPREP[(qsPREP["QSSTAT"] == "NOT DONE") & (~qsPREP["QSSTRESC"].apply(is_null_or_empty))][["USUBJID", "VISIT", "QSCAT", "QSDTC", "QSSTAT", "QSSTRESC"]]
+    mydf = qsPREP[(qsPREP["QSSTAT"] == "NOT DONE") & (~qsPREP["QSSTRESC"].apply(is_null_or_empty))]
 
     # Remove duplicates
     mydf = mydf.drop_duplicates().reset_index(drop=True)

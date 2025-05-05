@@ -27,7 +27,7 @@ def check_dd_ae_aedthdtc_ds_dsstdtc(data_path, preproc=lambda df: df, **kwargs):
                 "Datasets": [datasets]
             })
     
-    required_ae_columns = ["USUBJID", "AESTDTC"]
+    required_ae_columns = ["USUBJID", "AESTDTC","AESDTH", "AEOUT"]
     required_ds_columns = ["USUBJID", "DSDECOD", "DSSTDTC"]
     
     if AE.empty:
@@ -176,7 +176,7 @@ def check_dd_death_date(data_path, preproc=lambda df: df, **kwargs):
     AE = load_data(data_path, 'ae')
     DS = load_data(data_path, 'ds')
     datasets = "AE, DS"
-    required_ae_columns = ["USUBJID", "AESTDTC"]
+    required_ae_columns = ["USUBJID", "AESTDTC","AESDTH", "AEOUT"]
     required_ds_columns = ["USUBJID", "DSDECOD", "DSTERM"]
     if AE.empty:
         return pd.DataFrame({

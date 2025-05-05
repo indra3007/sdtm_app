@@ -156,7 +156,7 @@ def check_vs_vsdtc_after_dd(data_path):
 
 
     # Check if required columns exist in AE
-    required_ae_columns = ["USUBJID",  "AESTDTC", "AEDECOD", "AETERM"]
+    required_ae_columns = ["USUBJID",  "AESTDTC", "AEDECOD", "AETERM", "AESDTH", "AEOUT"]
     if not set(required_ae_columns).issubset(AE.columns):
         missing = set(required_ae_columns) - set(AE.columns)
         return pd.DataFrame({
