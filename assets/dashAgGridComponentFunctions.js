@@ -5,7 +5,7 @@ dagcomponentfuncs.ProtocolLink = function (props) {
     return React.createElement(
         'a',
         {
-            href: '/project/' + props.value, // Updated to navigate to the Project page
+            href: './project/' + props.value, // Updated to navigate to the Project page
             target: '_self',
             onClick: function () {
                 // Clear selection after click
@@ -22,7 +22,7 @@ dagcomponentfuncs.ProjectLink = function (props) {
     return React.createElement(
         'a',
         {
-            href: '/analysis-task/' + props.value, // Navigate to the Analysis Task page
+            href: './analysis-task/' + props.value, // Navigate to the Analysis Task page
             target: '_self',
             onClick: function () {
                 // Clear selection after click
@@ -39,7 +39,7 @@ dagcomponentfuncs.TaskLink = function (props) {
     return React.createElement(
         'a',
         {
-            href: '/analysis-version/' + props.value,
+            href: './analysis-version/' + props.value,
             target: '_self',
             onClick: function () {
                 // Clear selection after click
@@ -57,7 +57,7 @@ dagcomponentfuncs.VersionLink = function (props) {
     return React.createElement(
         'a',
         {
-            href: '/display-table/' + props.context.selectedTask + '/' + props.value,
+            href: './display-table/' + props.context.selectedTask + '/' + props.value,
             target: '_self',
             onClick: function () {
                 // Clear selection after click

@@ -1,14 +1,20 @@
+from datetime import datetime
+import os
+
 from dash import Dash, html, Input, Output, dcc
 import dash_ag_grid as dag
+
 import pandas as pd
-from datetime import datetime
-from connection import get_engine
 from dash.dependencies import State
 from dash import dcc, html
 import dash
 from openpyxl import load_workbook
-import os
 from flask import jsonify
+
+from loguru import logger
+
+
+from connection import get_engine
 
 
 external_stylesheets = [
@@ -92,7 +98,7 @@ def header():
             html.Div(
                 [
                     html.Img(
-                        src="/assets/gilead_logo.png",  # Path to the logo in the assets folder
+                        src="./assets/gilead_logo.png",  # Path to the logo in the assets folder
                         className="logo",
                     ),
                     html.Div("cSDTM Quality Checks", className="header-title"),
@@ -916,7 +922,7 @@ selected_version = None
 )
 def display_page(pathname):
     global selected_protocol, selected_project, selected_task, selected_version  # Use global variables
-    print(f"{pathname=}")
+    logger.debug(f"{pathname=}")
     if pathname in ("/", "/sdtmchecks/"):
         return protocol_page()
 
