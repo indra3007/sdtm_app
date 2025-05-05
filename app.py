@@ -26,6 +26,7 @@ app = Dash(
     __name__,
     external_stylesheets=external_stylesheets,
     suppress_callback_exceptions=True,
+    routes_pathname_prefix="/sdtmchecks/",
 )
 server = app.server
 
