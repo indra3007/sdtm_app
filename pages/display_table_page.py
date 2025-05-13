@@ -1,13 +1,15 @@
-from pages.header import header
-from pages.home import home_section
+from os import path
+
+from dash import dcc, html
 import dash_ag_grid as dag
 import pandas as pd
-import dash
-from dash import dcc, html
-import os
-from dash import Dash, html, Input, Output, dcc
 
-def display_table_page(selected_prot, selected_project, selected_task, selected_version, summary_df):
+from pages.home import home_section
+
+
+def display_table_page(
+    selected_prot, selected_project, selected_task, selected_version, summary_df
+):
     # Filter the DataFrame for the selected task and version
     filtered_df = summary_df[
         (summary_df["Protocol"] == selected_prot)
@@ -18,6 +20,7 @@ def display_table_page(selected_prot, selected_project, selected_task, selected_
     writer = pd.ExcelWriter("testing_table_version.xlsx", engine="xlsxwriter")
     filtered_df.to_excel(writer, sheet_name="Summary", index=False)
     writer.close()  # Save and close the file
+
     # Generate the path for the quality checks file
     def generate_quality_checks_path():
         if not filtered_df.empty:
@@ -26,9 +29,9 @@ def display_table_page(selected_prot, selected_project, selected_task, selected_
             if "biometrics" in original_path.lower():
                 original_path = original_path.lower().replace("biometrics", "G:")
             # Go two steps back in the path
-            two_steps_back = os.path.normpath(os.path.join(original_path, "../"))
+            two_steps_back = path.normpath(path.join(original_path, "../"))
             # Append the new path structure
-            new_path = os.path.join(two_steps_back, f"docs/sdtm")
+            new_path = path.join(two_steps_back, f"docs/sdtm")
             # Replace backslashes with forward slashes and remove the leading "/"
             return new_path.replace("\\", "/").lstrip("/")
         return None
@@ -114,7 +117,6 @@ def display_table_page(selected_prot, selected_project, selected_task, selected_
 
     # Create the layout
     layout = [
-        header(),
         home_section(),
         # Add the pie chart and bar chart side by side
         html.Div(

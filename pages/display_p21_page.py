@@ -1,11 +1,11 @@
-from pages.header import header
-from pages.home import home_section
+from dash import html
 import dash_ag_grid as dag
+
 import pandas as pd
-import dash
-from dash import dcc, html
-import os
-from dash import Dash, html, Input, Output, dcc
+
+from connection import get_engine
+from pages.home import home_section
+
 
 def display_pinnacle_21_page(
     selected_prot, selected_project, selected_task, selected_version
@@ -42,7 +42,6 @@ def display_pinnacle_21_page(
         # Return the layout for the Pinnacle 21 page
         return html.Div(
             [
-                header(),
                 home_section(),
                 html.Div(
                     [

@@ -1,13 +1,13 @@
-from pages.header import header
-from pages.home import home_section
+from dash import html
 import dash_ag_grid as dag
-import pandas as pd
-import dash
-from dash import dcc, html
-import os
-from dash import Dash, html, Input, Output, dcc
+
+from pages.home import home_section
+
+
 def analysis_task_page(selected_protocol, selected_project, summary_df):
-    print(f"Generating analysis_task_page for Protocol: {selected_protocol}, Project: {selected_project}")
+    print(
+        f"Generating analysis_task_page for Protocol: {selected_protocol}, Project: {selected_project}"
+    )
     print(selected_protocol, selected_project)
     # Ensure case-insensitivity and strip whitespace
     selected_protocol = selected_protocol.strip().lower()
@@ -19,10 +19,10 @@ def analysis_task_page(selected_protocol, selected_project, summary_df):
 
     # Filter the DataFrame
     filtered_df = summary_df[
-        (summary_df["Protocol"] == selected_protocol) &
-        (summary_df["Project"] == selected_project)
+        (summary_df["Protocol"] == selected_protocol)
+        & (summary_df["Project"] == selected_project)
     ]
-    #print(f"Filtered DataFrame:\n{filtered_df}")
+    # print(f"Filtered DataFrame:\n{filtered_df}")
 
     if filtered_df.empty:
         print("No rows found for the selected protocol and project.")
@@ -34,7 +34,6 @@ def analysis_task_page(selected_protocol, selected_project, summary_df):
     )
     return html.Div(
         [
-            header(),
             home_section(),
             html.Div(
                 [

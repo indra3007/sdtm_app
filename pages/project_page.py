@@ -1,22 +1,19 @@
-from pages.header import header
-from pages.home import home_section
 import dash_ag_grid as dag
-import pandas as pd
-import dash
-from dash import dcc, html
-import os
-from dash import Dash, html, Input, Output, dcc
+from dash import html
+
+from pages.home import home_section
+
+
 def project_page(selected_protocol, summary_df):
     # Filter the DataFrame for the selected protocol
     filtered_df = summary_df[summary_df["Protocol"] == selected_protocol]
- 
+
     project_df = (
         filtered_df.groupby("Project").agg({"Data_Path": "first"}).reset_index()
     )
 
     return html.Div(
         [
-            header(),  # Include the shared header
             home_section(),
             html.Div(
                 [

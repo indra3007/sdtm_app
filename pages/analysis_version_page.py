@@ -1,12 +1,15 @@
-from pages.header import header
-from pages.home import home_section
+from os import path
+
+from dash import html
 import dash_ag_grid as dag
 import pandas as pd
-import dash
-from dash import dcc, html
-import os
-from dash import Dash, html, Input, Output, dcc
-def analysis_version_page(selected_protocol, selected_project, selected_task, summary_df):
+
+from pages.home import home_section
+
+
+def analysis_version_page(
+    selected_protocol, selected_project, selected_task, summary_df
+):
     # Filter the DataFrame for the selected protocol, project, and task
     filtered_df = summary_df[
         (
@@ -31,9 +34,9 @@ def analysis_version_page(selected_protocol, selected_project, selected_task, su
         # Get the original Data_Path
         original_path = row["Data_Path"]
         # Go two steps back in the path
-        two_steps_back = os.path.normpath(os.path.join(original_path, "../"))
+        two_steps_back = path.normpath(path.join(original_path, "../"))
         # Append the new path structure
-        new_path = os.path.join(
+        new_path = path.join(
             two_steps_back,
             f"docs/sdtm/{row['Project']}_{row['Analysis_Task']}_sdtm_mapping.xlsx",
         )
@@ -71,7 +74,6 @@ def analysis_version_page(selected_protocol, selected_project, selected_task, su
     writer.close()  # Save and close the file
     return html.Div(
         [
-            header(),
             home_section(),
             html.Div(
                 [

@@ -1,10 +1,8 @@
-from pages.header import header
-from pages.home import home_section
 import dash_ag_grid as dag
-import pandas as pd
-import dash
-from dash import dcc, html
-import os
+from dash import html
+
+from pages.home import home_section
+
 
 def protocol_page(summary_df):
     protocol_df = (
@@ -15,7 +13,6 @@ def protocol_page(summary_df):
 
     return html.Div(
         [
-            header(),  # Shared header
             home_section(),
             html.Div(
                 [
@@ -74,7 +71,7 @@ def protocol_page(summary_df):
                     dashGridOptions={
                         "pagination": True,
                         "paginationPageSize": 30,
-                        "rowSelection": "single"
+                        "rowSelection": "single",
                     },
                     defaultColDef={
                         "sortable": True,
