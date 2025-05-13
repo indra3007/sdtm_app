@@ -3,19 +3,24 @@ import os
 
 from dash import Dash, html, Input, Output, dcc
 import dash_ag_grid as dag
-
 import pandas as pd
 from dash.dependencies import State
 from dash import dcc, html
 import dash
 from openpyxl import load_workbook
 from flask import jsonify
-
+from pages.header import header
 from loguru import logger
 
 
 from connection import get_engine
-
+# Import pages
+from pages.header import header
+from pages.protocol_page import protocol_page
+from pages.project_page import project_page
+from pages.analysis_task_page import analysis_task_page
+from pages.analysis_version_page import analysis_version_page
+from pages.display_table_page import display_table_page
 
 external_stylesheets = [
     "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css",  # Bootstrap CSS
@@ -76,96 +81,21 @@ def open_folder():
 
 # Add a "Date" column for demonstration purposes
 summary_df["Date"] = datetime.today().strftime("%Y-%m-%d")
+# Update the app layout
+# Update the app layout
+# Update the app layout
+# filepath: c:\Users\inarisetty\sdtm_local\sdtm_checks\app.py
+
 app.layout = html.Div(
     [
-        dcc.Location(id="url", refresh=False),  # Tracks the current page
-        dcc.Store(id="store-selected-protocol"),  # Store for selected_protocol
-        dcc.Store(id="store-selected-project"),  # Store for selected_project
-        html.Div(id="page-content"),  # Content of the current page
+        dcc.Location(id="url", refresh=False),
+        dcc.Store(id="store-selected-protocol", storage_type="session"),
+        dcc.Store(id="store-selected-project", storage_type="session"),
+        dcc.Store(id="store-selected-task", storage_type="session"),
+        dcc.Store(id="store-selected-version", storage_type="session"),
+        html.Div(id="page-content"),
     ]
 )
-# App layout
-app.layout = html.Div(
-    [
-        dcc.Location(id="url", refresh=False),  # Tracks the current page
-        html.Div(id="page-content"),  # Content of the current page
-    ]
-)
-
-
-def header():
-    return html.Div(
-        [
-            html.Div(
-                [
-                    html.Img(
-                        src="./assets/gilead_logo.png",  # Path to the logo in the assets folder
-                        className="logo",
-                    ),
-                    html.Div("cSDTM Quality Checks", className="header-title"),
-                ],
-                className="header-container",
-            )
-        ]
-    )
-
-
-def home_section():
-    return html.Div(
-        [
-            html.A(
-                html.Button(
-                    [html.I(className="bi bi-house"), " Home"],  # Icon and text
-                    className="home-button",
-                ),
-                href="/",
-                className="home-link",
-            ),
-            dcc.Link(
-                html.Button(
-                    [html.I(className="bi bi-arrow-left"), " Back"],  # Icon and text
-                    className="back-button",
-                ),
-                href="#",  # Placeholder, updated dynamically by the callback
-                id="back-link",  # Add an ID for the Back link
-            ),
-            html.Div(
-                [
-                    html.Button(
-                        [
-                            html.I(className="bi bi-info-circle"),
-                            " Info",
-                        ],  # Icon and text
-                        className="info-button",
-                        id="info-button",
-                    ),
-                    html.Div(
-                        [
-                            html.P(
-                                "Important Information: The checks are intended to assist with cSDTM TA Head review. "
-                                "Some checks marked as 'Fail' may be acceptable depending on the data collection process, "
-                                "SDTM IG version, and protocol-specific requirements. Please consult the relevant documentation "
-                                "or team for clarification.",
-                                className="info-text",
-                            ),
-                            html.Button(
-                                "OK",
-                                className="ok-button",
-                                id="ok-button",  # Add an ID for the OK button
-                            ),
-                        ],
-                        id="info-popup",
-                        className="info-popup",
-                        style={"display": "none"},
-                    ),  # Initially hidden
-                ],
-                className="info-container",
-            ),  # Container for the info button and popup
-        ],
-        className="home-container",
-    )
-
-
 @app.callback(
     Output("info-popup", "style"),  # Toggle the popup's visibility
     [
@@ -185,990 +115,224 @@ def toggle_info_popup(info_clicks, ok_clicks):
         return {"display": "none"}
     return {"display": "none"}
 
-
-# Page 1: Protocol Table
-def protocol_page():
-    protocol_df = (
-        summary_df.groupby("Protocol")
-        .agg({"Data_Path": "first", "Date": "first"})
-        .reset_index()
-    )
-
-    return html.Div(
-        [
-            header(),  # Include the shared header
-            home_section(),
-            html.Div(
-                [
-                    html.I(
-                        className="bi bi-folder-fill folder-icon",
-                        style={
-                            "marginLeft": "25px",
-                            "marginRight": "10px",
-                            "color": "#007bff",
-                            "fontSize": "1.5rem",
-                            "marginBottom": "10px",
-                        },
-                    ),
-                    html.H1(
-                        "Protocols",
-                        style={
-                            "display": "inline-block",
-                            "color": "#007bff",
-                            "fontFamily": "Arial, sans-serif",
-                            "fontWeight": "bold",
-                            "fontSize": "1.5rem",
-                        },
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                    "marginTop": "20px",
-                    "marginBottom": "10px",
-                    "marginRight": "25px",
-                },
-            ),
-            html.Div(
-                dag.AgGrid(
-                    id="protocol-grid",
-                    rowData=protocol_df.to_dict("records"),
-                    columnDefs=[
-                        {
-                            "headerName": "Protocol",
-                            "field": "Protocol",
-                            "cellRenderer": "ProtocolLink",
-                            "width": 800,
-                        },
-                        {
-                            "headerName": "Study Path",
-                            "field": "Data_Path",
-                            "width": 1200,
-                        },
-                        {"headerName": "Latest Date", "field": "Date", "width": 500},
-                    ],
-                    dashGridOptions={"pagination": True, "paginationPageSize": 30},
-                    defaultColDef={
-                        "sortable": True,
-                        "filter": True,
-                        "resizable": True,
-                        "editable": False,
-                    },
-                    style={"height": "1000px", "width": "100%"},
-                ),
-                className="grid-container",
-            ),
-        ],
-        className="page-container",
-    )
-
-
-# Page 2: Project Table
-# Page 2: Project Table
-def project_page(selected_protocol):
-    # Filter the DataFrame for the selected protocol
-    filtered_df = summary_df[summary_df["Protocol"] == selected_protocol]
-    # Write the filtered DataFrame to an Excel file
-    # writer = pd.ExcelWriter("testing_project.xlsx", engine="xlsxwriter")
-    # filtered_df.to_excel(writer, sheet_name="Summary", index=False)
-    # writer.close()  # Save and close the file
-
-    project_df = (
-        filtered_df.groupby("Project").agg({"Data_Path": "first"}).reset_index()
-    )
-
-    return html.Div(
-        [
-            header(),  # Include the shared header
-            home_section(),
-            html.Div(
-                [
-                    html.I(
-                        className="bi bi-folder-fill",
-                        style={
-                            "marginLeft": "25px",
-                            "marginRight": "10px",
-                            "color": "#007bff",
-                            "fontSize": "1.5rem",
-                            "marginBottom": "10px",
-                        },
-                    ),
-                    html.H1(
-                        f"Projects for Protocol: {selected_protocol}",
-                        style={
-                            "display": "inline-block",
-                            "color": "#007bff",
-                            "fontFamily": "Arial, sans-serif",
-                            "fontWeight": "bold",
-                            "fontSize": "1.5rem",
-                        },
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                    "marginTop": "20px",
-                    "marginBottom": "10px",
-                },
-            ),
-            html.Div(
-                dag.AgGrid(
-                    id="project-grid",
-                    rowData=project_df.to_dict("records"),
-                    columnDefs=[
-                        {
-                            "headerName": "Project",
-                            "field": "Project",
-                            "cellRenderer": "ProjectLink",  # Use the ProjectLink renderer
-                            "width": 400,
-                        },
-                        {"headerName": "Path", "field": "Data_Path", "width": 800},
-                    ],
-                    dashGridOptions={
-                        "pagination": True,
-                        "paginationPageSize": 30,
-                        "frameworkComponents": {
-                            "ProjectLink": "ProjectLink"  # Register the ProjectLink renderer
-                        },
-                    },
-                    defaultColDef={
-                        "sortable": True,
-                        "filter": True,
-                        "resizable": True,
-                        "editable": False,
-                    },
-                    style={"height": "1000px", "width": "100%"},
-                ),
-                className="grid-container",
-            ),
-        ],
-        className="page-container",
-    )
-
-
-# Page 2: Analysis Task Table
-# Page 3: Analysis Task Table
-def analysis_task_page(selected_protocol, selected_project):
-    # Filter the DataFrame for the selected protocol and project
-    filtered_df = summary_df[
-        (summary_df["Protocol"] == selected_protocol)
-        & (summary_df["Project"] == selected_project)
-    ]
-    task_df = (
-        filtered_df.groupby("Analysis_Task").agg({"Data_Path": "first"}).reset_index()
-    )
-
-    return html.Div(
-        [
-            header(),
-            home_section(),
-            html.Div(
-                [
-                    html.I(
-                        className="bi bi-list-task",
-                        style={
-                            "marginLeft": "25px",
-                            "marginRight": "10px",
-                            "color": "#007bff",
-                            "fontSize": "1.5rem",
-                            "marginBottom": "10px",
-                        },
-                    ),
-                    html.H1(
-                        f"Analysis Tasks for Protocol: {selected_protocol}, Project: {selected_project}",
-                        style={
-                            "display": "inline-block",
-                            "color": "#007bff",
-                            "fontFamily": "Arial, sans-serif",
-                            "fontWeight": "bold",
-                            "fontSize": "1.5rem",
-                        },
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                    "marginTop": "20px",
-                    "marginBottom": "10px",
-                },
-            ),
-            html.Div(
-                dag.AgGrid(
-                    id="task-grid",
-                    rowData=task_df.to_dict("records"),
-                    columnDefs=[
-                        {
-                            "headerName": "Task",
-                            "field": "Analysis_Task",
-                            "cellRenderer": "TaskLink",  # Custom renderer for clickable links
-                            "width": 400,
-                        },
-                        {"headerName": "Path", "field": "Data_Path", "width": 800},
-                    ],
-                    dashGridOptions={"pagination": True, "paginationPageSize": 30},
-                    defaultColDef={
-                        "sortable": True,
-                        "filter": True,
-                        "resizable": True,
-                        "editable": False,
-                    },
-                    style={"height": "1000px", "width": "100%"},
-                ),
-                className="grid-container",
-            ),
-        ],
-        className="page-container",
-    )
-
-
-# Page 3: Analysis Version Table
-import os  # Import the os module for path manipulation
-
-
-def analysis_version_page(selected_protocol, selected_project, selected_task):
-    # Filter the DataFrame for the selected protocol, project, and task
-    filtered_df = summary_df[
-        (
-            summary_df["Protocol"].str.strip().str.lower()
-            == selected_protocol.strip().lower()
-        )
-        & (
-            summary_df["Project"].str.strip().str.lower()
-            == selected_project.strip().lower()
-        )
-        & (
-            summary_df["Analysis_Task"].str.strip().str.lower()
-            == selected_task.strip().lower()
-        )
-    ]
-
-    if filtered_df.empty:
-        return html.Div("No data available for the selected filters.")
-
-    # Add a new column for the modified path
-    def generate_sdtm_path(row):
-        # Get the original Data_Path
-        original_path = row["Data_Path"]
-        # Go two steps back in the path
-        two_steps_back = os.path.normpath(os.path.join(original_path, "../"))
-        # Append the new path structure
-        new_path = os.path.join(
-            two_steps_back,
-            f"docs/sdtm/{row['Project']}_{row['Analysis_Task']}_sdtm_mapping.xlsx",
-        )
-        # Replace backslashes with forward slashes
-        return new_path.replace("\\", "/")
-
-    # Generate the SDTM_Path
-    filtered_df["SDTM_Path"] = filtered_df.apply(generate_sdtm_path, axis=1)
-
-    # Attach the base_url to make it a full hyperlink
-    base_url = "https://gdash-ds.gilead.com/specstor/detail?path="
-    filtered_df["SDTM_Spec"] = filtered_df["SDTM_Path"].apply(
-        lambda path: f"{base_url}{path}"
-    )
-
-    # writer = pd.ExcelWriter("testing_analysis_version.xlsx", engine="xlsxwriter")
-    # filtered_df.to_excel(writer, sheet_name="Summary", index=False)
-    # writer.close()  # Save and close the file
-    # Group by Protocol, Project, and Analysis_Version if needed
-    version_df = (
-        filtered_df.groupby(
-            [
-                "Protocol",
-                "Project",
-                "Analysis_Version",
-                "SDTM_Spec",
-                "Max_Modified_Date",
-            ]
-        )
-        .agg({"Data_Path": "first"})
-        .reset_index()
-    )
-    writer = pd.ExcelWriter("testing_analysis_version.xlsx", engine="xlsxwriter")
-    version_df.to_excel(writer, sheet_name="Summary", index=False)
-    writer.close()  # Save and close the file
-    return html.Div(
-        [
-            header(),
-            home_section(),
-            html.Div(
-                [
-                    html.I(
-                        className="bi bi-bar-chart-fill",
-                        style={
-                            "marginLeft": "25px",
-                            "marginRight": "10px",
-                            "color": "#007bff",
-                            "fontSize": "1.5rem",
-                            "marginBottom": "10px",
-                        },
-                    ),
-                    html.H1(
-                        f"Analysis Versions for Protocol: {selected_protocol}, Project: {selected_project}, Task: {selected_task}",
-                        style={
-                            "display": "inline-block",
-                            "color": "#007bff",
-                            "fontFamily": "Arial, sans-serif",
-                            "fontWeight": "bold",
-                            "fontSize": "1.5rem",
-                        },
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                    "marginTop": "20px",
-                    "marginBottom": "10px",
-                },
-            ),
-            html.Div(
-                dag.AgGrid(
-                    id="version-grid",
-                    rowData=version_df.to_dict("records"),
-                    columnDefs=[
-                        {
-                            "headerName": "Version",
-                            "field": "Analysis_Version",
-                            "cellRenderer": "VersionLink",  # Custom renderer for clickable links
-                            "width": 400,
-                        },
-                        {"headerName": "Path", "field": "Data_Path", "width": 800},
-                        {
-                            "headerName": "SDTM Specification",
-                            "field": "SDTM_Spec",
-                            "cellRenderer": "LinkCellRenderer",  # Use the new LinkCellRenderer
-                            "width": 800,
-                        },
-                        {
-                            "headerName": "SDTM Run Date",
-                            "field": "Max_Modified_Date",
-                            "width": 200,
-                        },
-                    ],
-                    dashGridOptions={
-                        "pagination": True,
-                        "paginationPageSize": 10,
-                        "frameworkComponents": {
-                            "VersionLink": "VersionLink",  # Register the VersionLink renderer
-                            "LinkCellRenderer": "LinkCellRenderer",  # Register the LinkCellRenderer for hyperlinks
-                        },
-                        "context": {  # Pass the selectedTask value to the context
-                            "selectedTask": selected_task
-                        },
-                    },
-                    defaultColDef={
-                        "sortable": True,
-                        "filter": True,
-                        "resizable": True,
-                        "editable": False,
-                    },
-                    style={"height": "400px", "width": "100%"},
-                ),
-                className="grid-container",
-            ),
-        ],
-        className="page-container",
-    )
-
-
-# Page 4: Display Table
-def display_table_page(
-    selected_prot, selected_project, selected_task, selected_version
-):
-    # Filter the DataFrame for the selected task and version
-    filtered_df = summary_df[
-        (summary_df["Protocol"] == selected_prot)
-        & (summary_df["Project"] == selected_project)
-        & (summary_df["Analysis_Task"] == selected_task)
-        & (summary_df["Analysis_Version"] == selected_version)
-    ].copy()
-
-    # Generate the path for the quality checks file
-    def generate_quality_checks_path():
-        if not filtered_df.empty:
-            original_path = filtered_df.iloc[0]["Data_Path"]
-            # Replace "biometrics" with "G:" if present
-            if "biometrics" in original_path.lower():
-                original_path = original_path.lower().replace("biometrics", "G:")
-            # Go two steps back in the path
-            two_steps_back = os.path.normpath(os.path.join(original_path, "../"))
-            # Append the new path structure
-            new_path = os.path.join(two_steps_back, f"docs/sdtm")
-            # Replace backslashes with forward slashes and remove the leading "/"
-            return new_path.replace("\\", "/").lstrip("/")
-        return None
-
-    # Get the quality checks file path
-    quality_checks_path = generate_quality_checks_path()
-
-    # Define the column definitions for the grid
-    column_defs = [
-        {"headerName": "Protocol", "field": "Protocol", "width": 110},
-        {"headerName": "Project", "field": "Project", "width": 150},
-        {"headerName": "Analysis Task", "field": "Analysis_Task", "width": 150},
-        {"headerName": "Analysis Version", "field": "Analysis_Version", "width": 150},
-        {"headerName": "CHECK", "field": "CHECK", "width": 800},
-        {"headerName": "Message", "field": "Message", "width": 400},
-        {"headerName": "Notes", "field": "Notes", "width": 550},
-        {"headerName": "Datasets", "field": "Datasets", "width": 180},
-    ]
-
-    # Create a copy of the "Message" column for plotting purposes
-    plot_message = filtered_df["Message"].apply(
-        lambda x: x if x in ["Pass", "Fail"] else "Other"
-    )
-
-    # Aggregate data for the pie chart
-    pie_data = plot_message.value_counts().reset_index()
-    pie_data.columns = ["Status", "Count"]
-
-    # Create the pie chart
-    pie_chart = dcc.Graph(
-        id="pie-chart",
-        figure={
-            "data": [
-                {
-                    "labels": pie_data["Status"],
-                    "values": pie_data["Count"],
-                    "type": "pie",
-                    "hole": 0.4,  # Optional: Makes it a donut chart
-                }
-            ],
-            "layout": {
-                "title": "Pass/Fail Distribution",  # Add a title for the pie chart
-                "margin": {"l": 10, "r": 10, "t": 30, "b": 10},
-                "plot_bgcolor": "rgba(0,0,0,0)",  # Transparent plot background
-                "paper_bgcolor": "rgba(0,0,0,0)",  # Transparent paper background
-                "legend": {
-                    "orientation": "h",  # Horizontal legend
-                    "x": 0.5,  # Center the legend horizontally
-                    "xanchor": "center",  # Anchor the legend at the center
-                    "y": -0.2,  # Position the legend below the chart
-                },
-            },
-        },
-        style={"height": "300px", "width": "100%"},  # Adjust size as needed
-    )
-
-    # Aggregate data for the bar chart
-    dataset_counts = filtered_df["Datasets"].value_counts().reset_index()
-    dataset_counts.columns = ["Dataset", "Count"]
-
-    # Create the bar chart
-    bar_chart = dcc.Graph(
-        id="bar-chart",
-        figure={
-            "data": [
-                {
-                    "x": dataset_counts["Dataset"],
-                    "y": dataset_counts["Count"],
-                    "type": "bar",
-                    "marker": {"color": "#007bff"},
-                }
-            ],
-            "layout": {
-                "title": "Dataset Distribution",  # Add a title for the bar chart
-                "xaxis": {"title": "Datasets"},
-                "yaxis": {"title": "Count"},
-                "plot_bgcolor": "rgba(0,0,0,0)",
-                "paper_bgcolor": "rgba(0,0,0,0)",
-            },
-        },
-        style={"height": "300px", "width": "100%"},  # Adjust size as needed
-    )
-
-    # Create the layout
-    layout = [
-        header(),
-        home_section(),
-        # Add the pie chart and bar chart side by side
-        html.Div(
-            [
-                # Pie chart with border
-                html.Div(
-                    pie_chart,
-                    style={
-                        "flex": "1",
-                        "marginRight": "10px",
-                        "border": "2px solid #6a0dad",  # Purple border
-                        "borderRadius": "8px",  # Rounded corners
-                        "padding": "10px",  # Padding inside the border
-                        "backgroundColor": "#f9f9f9",  # Optional: Light background color
-                    },
-                ),
-                # Bar chart with border
-                html.Div(
-                    bar_chart,
-                    style={
-                        "flex": "1",
-                        "marginLeft": "10px",
-                        "border": "2px solid #6a0dad",  # Purple border
-                        "borderRadius": "8px",  # Rounded corners
-                        "padding": "10px",  # Padding inside the border
-                        "backgroundColor": "#f9f9f9",  # Optional: Light background color
-                    },
-                ),
-            ],
-            style={
-                "display": "flex",
-                "justifyContent": "space-between",
-                "marginBottom": "20px",
-            },
-        ),
-        # Add the "Table for Task" section below the charts
-        html.Div(
-            [
-                html.I(
-                    className="bi bi-table",
-                    style={
-                        "marginLeft": "25px",
-                        "marginRight": "10px",
-                        "color": "#007bff",
-                        "fontSize": "1.5rem",
-                        "marginBottom": "10px",
-                    },
-                ),
-                html.H1(
-                    f"Table for Task: {selected_task}, Version: {selected_version}",
-                    style={
-                        "display": "inline-block",
-                        "color": "#007bff",
-                        "fontFamily": "Arial, sans-serif",
-                        "fontWeight": "bold",
-                        "fontSize": "1.5rem",
-                    },
-                ),
-            ],
-            style={
-                "display": "flex",
-                "alignItems": "center",
-                "marginTop": "20px",
-                "marginBottom": "10px",
-            },
-        ),
-        # Add the data grid
-        html.Div(
-            [
-                dag.AgGrid(
-                    rowData=filtered_df.to_dict("records"),
-                    columnDefs=column_defs,
-                    dashGridOptions={
-                        "pagination": True,
-                        "paginationPageSize": 30,
-                        "rowHeight": 25,
-                    },
-                    defaultColDef={
-                        "sortable": True,
-                        "filter": True,
-                        "resizable": True,
-                        "editable": False,
-                        "cellStyle": {
-                            "color": "#333333",
-                            "fontSize": "14px",
-                            "border": "1px solid #A2D2A2",
-                            "backgroundColor": "#F9F9F9",
-                        },
-                    },
-                    style={"height": "700px", "width": "100%", "marginTop": "10px"},
-                ),
-            ],
-            className="grid-container",
-        ),
-    ]
-
-    # Conditionally add the "Quality Checks File" button if the task is "csdtm_dev"
-    if selected_task.strip().lower() == "csdtm_dev":
-        layout.append(
-            html.Div(
-                [
-                    html.Button(
-                        "Quality Checks File",
-                        id="quality-checks-button",
-                        style={
-                            "backgroundColor": "#6a0dad",
-                            "color": "white",
-                            "border": "none",
-                            "padding": "10px 20px",
-                            "cursor": "pointer",
-                            "fontSize": "16px",
-                            "marginTop": "10px",
-                            "borderRadius": "12px",
-                        },
-                    ),
-                    dcc.Store(
-                        id="quality-checks-path", data=quality_checks_path
-                    ),  # Store the folder path
-                    html.Div(
-                        id="quality-checks-message",
-                        style={"marginTop": "10px", "color": "red"},
-                    ),  # Message display
-                ],
-                style={"textAlign": "center"},
-            )
-        )
-
-    return html.Div(layout)
-
-
-# Callback to handle Pinnacle 21 button click
-selected_protocol = None
-selected_project = None
-selected_task = None
-selected_version = None
-
-
-def display_pinnacle_21_page(
-    selected_prot, selected_project, selected_task, selected_version
-):
-    try:
-        # Use the passed arguments directly instead of declaring them as global
-        # Your logic to fetch and display the Pinnacle 21 page
-        engine = get_engine()
-        query = f"""
-            SELECT * FROM "Combined P21 checks"
-            WHERE "Protocol" = '{selected_prot}'
-            AND "Project" = '{selected_project}'
-            AND "Analysis_Task" = '{selected_task}'
-            AND "Analysis_Version" = '{selected_version}'
-        """
-        with engine.connect() as connection:
-            p21_df = pd.read_sql(query, connection)
-
-        # Define column definitions for the grid
-        column_defs = [
-            {"headerName": "Protocol", "field": "Protocol", "width": 110},
-            {"headerName": "Project", "field": "Project", "width": 150},
-            {"headerName": "Analysis Task", "field": "Analysis_Task", "width": 150},
-            {
-                "headerName": "Analysis Version",
-                "field": "Analysis_Version",
-                "width": 150,
-            },
-            {"headerName": "Check Name", "field": "Check_Name", "width": 300},
-            {"headerName": "Message", "field": "Message", "width": 400},
-            {"headerName": "Details", "field": "Details", "width": 550},
-        ]
-
-        # Return the layout for the Pinnacle 21 page
-        return html.Div(
-            [
-                header(),
-                home_section(),
-                html.Div(
-                    [
-                        html.H1(
-                            f"Pinnacle 21 Checks for Protocol: {selected_prot}, Project: {selected_project}, Task: {selected_task}, Version: {selected_version}",
-                            style={
-                                "color": "#007bff",
-                                "fontFamily": "Arial, sans-serif",
-                                "fontWeight": "bold",
-                                "fontSize": "1.5rem",
-                                "marginBottom": "20px",
-                            },
-                        ),
-                    ],
-                    style={"textAlign": "center"},
-                ),
-                # Add the data grid
-                html.Div(
-                    [
-                        dag.AgGrid(
-                            rowData=p21_df.to_dict("records"),
-                            columnDefs=column_defs,
-                            dashGridOptions={
-                                "pagination": True,
-                                "paginationPageSize": 30,
-                                "rowHeight": 25,
-                            },
-                            defaultColDef={
-                                "sortable": True,
-                                "filter": True,
-                                "resizable": True,
-                                "editable": False,
-                                "cellStyle": {
-                                    "color": "#333333",
-                                    "fontSize": "14px",
-                                    "border": "1px solid #A2D2A2",
-                                    "backgroundColor": "#F9F9F9",
-                                },
-                            },
-                            style={
-                                "height": "700px",
-                                "width": "100%",
-                                "marginTop": "10px",
-                            },
-                        ),
-                    ],
-                    className="grid-container",
-                ),
-            ]
-        )
-    except Exception as e:
-        return html.Div(f"Error fetching Pinnacle 21 data: {e}")
-
-
-# Callback to update the page content based on the URL
-
-# Define global variables
-selected_protocol = None
-selected_project = None
-selected_task = None
-selected_version = None
-
-
 @app.callback(
-    Output("page-content", "children"),
-    Input("url", "pathname"),
+    [
+        Output("store-selected-protocol", "data"),
+        Output("store-selected-project", "data"),
+    ],
+    Input("protocol-grid", "selectedRows"),
 )
-def display_page(pathname):
-    global selected_protocol, selected_project, selected_task, selected_version  # Use global variables
-    logger.debug(f"{pathname=}")
-    if pathname in ("/", "/sdtmchecks/"):
-        return protocol_page()
+def update_protocol_state(selectedRows):
+    if selectedRows and len(selectedRows) > 0:
+        row = selectedRows[0]
+        selected_protocol = row.get("Protocol", "").strip().lower()
+        selected_project = row.get("Project", "").strip().lower() if "Project" in row else None
+        print(f"update_protocol_state: protocol={selected_protocol}, project={selected_project}")
+        if selected_protocol and selected_project:
+            return selected_protocol, selected_project
+        else:
+            return dash.no_update, dash.no_update
+    return dash.no_update, dash.no_update
+@app.callback(
+    [
+        Output("page-content", "children"),
+        Output("store-selected-protocol", "data", allow_duplicate=True),
+        Output("store-selected-project", "data", allow_duplicate=True),
+        Output("store-selected-task", "data"),
+        Output("store-selected-version", "data"),
+    ],
+    [Input("url", "pathname")],
+    [
+        State("store-selected-protocol", "data"),
+        State("store-selected-project", "data"),
+    ],
+    prevent_initial_call="initial_duplicate"  # Allow duplicate outputs on initial call
+)
+def display_page(pathname, stored_protocol, stored_project):
+    # Initialize default values from storage (these should be set on previous pages)
+    selected_protocol = stored_protocol
+    selected_project = stored_project
+    selected_task = None
+    selected_version = None
 
-    elif pathname.startswith("/project/"):
-        selected_protocol = pathname.split("/")[-1]
-        return project_page(selected_protocol)
+    # Remove the prefix if present
+    prefix = "/sdtmchecks/"
+    if pathname.startswith(prefix):
+        pathname = pathname[len(prefix):]
+    print(f"Processed Pathname: {pathname}")
 
-    elif pathname.startswith("/analysis-task/"):
-        parts = pathname.strip("/").split("/")
-        print(f"URL Parts: {parts}")  # Debugging: Print the URL parts
+    # Handle the root path (protocol page)
+    if pathname == "":
+        return protocol_page(summary_df), None, None, None, None
 
-        # Handle 2-part URLs (e.g., /analysis-task/<project>)
-        if len(parts) == 2:
-            selected_project = parts[1]
+    # Analysis-version display-table branch
+    elif pathname.startswith("project/analysis-task/analysis-version/display-table/"):
+        prefix = "project/analysis-task/analysis-version/display-table/"
+        parts = [part for part in pathname[len(prefix):].split("/") if part]
+        print(f"URL Parts display-table: {parts}")
+
+        if len(parts) == 2:  # URL structure: /display-table/<task>/<version>
+            selected_task = parts[0].strip().lower()
+            selected_version = parts[1].strip().lower()
+            if not selected_protocol or not selected_project:
+                return (html.Div("State missing: Please re‑select your Protocol and Project."),
+                        None, None, None, None)
+            protocol_row = summary_df[
+                (summary_df["Protocol"] == selected_protocol) &
+                (summary_df["Project"] == selected_project) &
+                (summary_df["Analysis_Task"].str.strip().str.lower() == selected_task) &
+                (summary_df["Analysis_Version"].str.strip().str.lower() == selected_version)
+            ]
+            if protocol_row.empty:
+                return (html.Div(
+                    f"Invalid URL: No match for Task {selected_task} and Version {selected_version} under Protocol {selected_protocol} and Project {selected_project}."
+                ), None, None, None, None)
+        elif len(parts) == 4:  # URL structure: /display-table/<protocol>/<project>/<task>/<version>
+            selected_protocol = parts[0].strip().lower()
+            selected_project = parts[1].strip().lower()
+            selected_task = parts[2].strip().lower()
+            selected_version = parts[3].strip().lower()
+        else:
+            return (html.Div(
+                f"Invalid URL structure for display-table. Expected 2 or 4 parts, got {len(parts)}: {parts}"
+            ), None, None, None, None)
+
+        return (display_table_page(selected_protocol, selected_project, selected_task, selected_version, summary_df),
+                selected_protocol, selected_project, selected_task, selected_version)
+
+    # Analysis-version branch (without display-table)
+    elif pathname.startswith("project/analysis-task/analysis-version/"):
+        parts = [part for part in pathname[len("project/analysis-task/analysis-version/"):].split("/") if part]
+        print(f"URL Parts analysis-version: {parts}")
+
+        if len(parts) == 1:  # URL: /analysis-version/<analysis_task>
+            selected_task = parts[0].strip().lower()
+            print(f"Selected Task: {selected_task}")
+            if not selected_protocol or not selected_project:
+                return (html.Div("State missing: Please re‑select your Protocol and Project."),
+                        None, None, None, None)
+            task_row = summary_df[
+                (summary_df["Analysis_Task"].str.strip().str.lower() == selected_task) &
+                (summary_df["Protocol"] == selected_protocol) &
+                (summary_df["Project"] == selected_project)
+            ]
+            if task_row.empty:
+                return (html.Div(
+                    f"Invalid URL: {selected_task} is not valid for Protocol {selected_protocol} and Project {selected_project}."
+                ), None, None, None, None)
+        elif len(parts) == 3:  # URL: /analysis-version/<protocol>/<project>/<analysis_task>
+            selected_protocol = parts[0].strip().lower()
+            selected_project = parts[1].strip().lower()
+            selected_task = parts[2].strip().lower()
+            print(f"Selected Protocol: {selected_protocol}, Project: {selected_project}, Task: {selected_task}")
+        else:
+            return (html.Div(
+                f"Invalid URL structure for analysis-version. Expected 1 or 3 parts, got {len(parts)}: {parts}"
+            ), None, None, None, None)
+        return (analysis_version_page(selected_protocol, selected_project, selected_task, summary_df),
+                selected_protocol, selected_project, selected_task, None)
+
+    # Analysis-task branch – URL structure: /project/analysis-task/<project> or /analysis-task/<protocol>/<project>
+    elif pathname.startswith("project/analysis-task/"):
+        parts = [part for part in pathname[len("project/analysis-task/"):].split("/") if part]
+        print(f"URL Parts analysis-task: {parts}")
+        if len(parts) == 1:
+            selected_project = parts[0].strip().lower()
+            print(f"Selected Project (from URL): {selected_project}")
             protocol_row = summary_df[summary_df["Project"] == selected_project]
             if not protocol_row.empty:
                 selected_protocol = protocol_row["Protocol"].iloc[0]
+                print(f"Inferred Protocol (from summary_df): {selected_protocol}")
             else:
-                return html.Div(
-                    f"Invalid URL: Protocol could not be determined for Project {selected_project}."
-                )
-        # Handle 3-part URLs (e.g., /analysis-task/<protocol>/<project>)
-        elif len(parts) == 3:
-            selected_protocol = parts[1]
-            selected_project = parts[2]
+                return (html.Div(f"Invalid URL: Could not determine Protocol for Project {selected_project}."),
+                        None, None, None, None)
+        elif len(parts) == 2:
+            selected_protocol = parts[0].strip().lower()
+            selected_project = parts[1].strip().lower()
+            print(f"Selected Protocol and Project (from URL): {selected_protocol}, {selected_project}")
         else:
-            return html.Div("Invalid URL structure for analysis-task.")
+            return (html.Div(
+                f"Invalid URL structure for analysis-task. Expected 1 or 2 parts, got {len(parts)}: {parts}"
+            ), None, None, None, None)
+        return (analysis_task_page(selected_protocol, selected_project, summary_df),
+                selected_protocol, selected_project, None, None)
 
-        return analysis_task_page(selected_protocol, selected_project)
-
-    elif pathname.startswith("/analysis-version/"):
-        parts = pathname.strip("/").split("/")
-        print(f"URL Parts: {parts}")  # Debugging: Print the URL parts
-
-        # Handle 2-part URLs (e.g., /analysis-version/<analysis_task>)
-        if len(parts) == 2:
-            value = parts[1].strip().lower()
-            print(f"value print: {value}")
-
-            # Use global `selected_protocol` and `selected_project`
-            task_row = summary_df[
-                (summary_df["Analysis_Task"].str.strip().str.lower() == value)
-                & (summary_df["Protocol"] == selected_protocol)
-                & (
-                    summary_df["Project"] == selected_project
-                )  # Filter by global protocol
-            ]
-            print(f"Filtered DataFrame for Analysis Task {value}:")
-            # print(task_row)
-
-            if not task_row.empty:
-                selected_task = value
-                selected_project = task_row["Project"].iloc[0]
-                print(
-                    f"Resolved as Analysis Task: {selected_task}, Protocol: {selected_protocol}, Project: {selected_project}"
-                )
-                return analysis_version_page(
-                    selected_protocol, selected_project, selected_task
-                )
-
-            return html.Div(
-                f"Invalid URL: {value} is not valid for the current Protocol."
-            )
-
-        # Handle 4-part URLs (e.g., /analysis-version/<protocol>/<project>/<task>)
-        elif len(parts) == 4:
-            selected_protocol = parts[1].strip().lower()
-            selected_project = parts[2].strip().lower()
-            selected_task = parts[3].strip().lower()
-            print(
-                f"Resolved 4-part URL - Protocol: {selected_protocol}, Project: {selected_project}, Task: {selected_task}"
-            )
+    # Project branch – URL structure: /project/<protocol>
+    elif pathname.startswith("project/"):
+        parts = [part for part in pathname[len("project/"):].split("/") if part]
+        print(f"URL Parts project: {parts}")
+        if len(parts) == 1:
+            selected_protocol = parts[0].strip().lower()
+            return project_page(selected_protocol, summary_df), selected_protocol, None, None, None
         else:
-            return html.Div("Invalid URL structure for analysis-version.")
-
-        return analysis_version_page(selected_protocol, selected_project, selected_task)
-
-    elif pathname.startswith("/display-table/"):
-        parts = pathname.strip("/").split("/")
-        print(f"URL Parts: {parts}")  # Debugging: Print the URL parts
-
-        # Handle 3-part URLs (e.g., /display-table/<task>/<version>)
-        if len(parts) == 3:
-            selected_task = parts[1].strip().lower()
-            selected_version = parts[2].strip().lower()
-
-            # Use global `selected_protocol` and `selected_project`
-            protocol_row = summary_df[
-                (
-                    summary_df["Protocol"] == selected_protocol
-                )  # Filter by global protocol
-                & (summary_df["Project"] == selected_project)
-                & (summary_df["Analysis_Task"].str.strip().str.lower() == selected_task)
-                & (
-                    summary_df["Analysis_Version"].str.strip().str.lower()
-                    == selected_version
-                )
-            ]
-            print(
-                f"Filtered DataFrame for Protocol {selected_protocol} and Project {selected_project} and Task {selected_task} and Version {selected_version} "
-            )
-            # print(protocol_row)
-
-            if not protocol_row.empty:
-                selected_project = protocol_row["Project"].iloc[0]
-            else:
-                return html.Div(
-                    f"Invalid URL: Protocol or Project could not be determined for Task {selected_task} and Version {selected_version}."
-                )
-        # Handle 5-part URLs (e.g., /display-table/<protocol>/<project>/<task>/<version>)
-        elif len(parts) == 5:
-            # selected_protocol = parts[1].strip().lower()
-            # selected_project = parts[2].strip().lower()
-            selected_task = parts[3].strip().lower()
-            selected_version = parts[4].strip().lower()
-        else:
-            return html.Div("Invalid URL structure for display-table.")
-
-        print(
-            f"Resolved Values - Protocol: {selected_protocol}, Project: {selected_project}, Task: {selected_task}, Version: {selected_version}"
-        )  # Debugging
-        return display_table_page(
-            selected_protocol, selected_project, selected_task, selected_version
-        )
+            return (html.Div(
+                f"Invalid URL structure for project. Expected 1 part, got {len(parts)}: {parts}"
+            ), None, None, None, None)
 
     else:
-        return protocol_page()
-        # return html.Div("404: Page not found")
-
+        return (html.Div("404: Page not found"), None, None, None, None)
 
 # from dash.dependencies import State
-selected_protocol = None
-selected_project = None
-selected_task = None
-selected_version = None
-
-
 @app.callback(
-    Output("back-link", "href"),  # Update the href of the Back button
-    Input("url", "pathname"),  # Get the current pathname
+    Output("back-link", "href"),
+    Input("url", "pathname"),
+    State("store-selected-protocol", "data"),
+    State("store-selected-project", "data"),
 )
-def update_back_link(pathname):
-    global selected_protocol, selected_project, selected_task, selected_version
+def update_back_link(pathname, stored_protocol, stored_project):
+    # Remove the initial prefix
+    prefix = "/sdtmchecks/"
+    relative = pathname[len(prefix):] if pathname.startswith(prefix) else pathname
+    print(f"Relative URL for back link: {relative}")
 
-    if pathname.startswith("/project/"):
-        selected_protocol = pathname.split("/")[-1]
-        return "/"
-
-    elif pathname.startswith("/analysis-task/"):
-        parts = pathname.strip("/").split("/")
-        print(f"URL Parts: {parts}")  # Debugging: Print the URL parts
-
-        # Handle 2-part URLs (e.g., /analysis-task/<project>)
+    # Level 1: Display-table page (child of analysis-version)
+    if relative.startswith("project/analysis-task/analysis-version/display-table/"):
+        # Expected structure: display-table/<task>/<version>
+        suffix = relative[len("project/analysis-task/analysis-version/display-table/"):]
+        parts = [p for p in suffix.split("/") if p]
+        if len(parts) >= 1:
+            task = parts[0].strip().lower()
+            # Return to analysis-version page for that task (Level 2)
+            return f"/sdtmchecks/project/analysis-task/analysis-version/{task}"
+        else:
+            return "/sdtmchecks/"
+    
+    # Level 2: Analysis-version page -> go back to analysis-task page
+    elif relative.startswith("project/analysis-task/analysis-version/"):
+        # Ideally, we want to go up one level to analysis-task.
+        # We can use stored_protocol and stored_project to build the analysis-task URL.
+        if stored_protocol and stored_project:
+            # Assuming the analysis-task URL follows the format: /project/analysis-task/<protocol>/<project>
+            return f"/sdtmchecks/project/analysis-task/{stored_protocol}/{stored_project}"
+        else:
+            # Fallback: remove the analysis-version piece
+            return "/sdtmchecks/project/analysis-task/"
+    
+    # Level 3: Analysis-task page -> go back to project level
+    elif relative.startswith("project/analysis-task/"):
+        # Analysis-task URL could be either: <project> or <protocol>/<project>
+        parts = [p for p in relative[len("project/analysis-task/"):].split("/") if p]
         if len(parts) == 2:
-            selected_project = parts[1]
-            protocol_row = summary_df[summary_df["Project"] == selected_project]
-            if not protocol_row.empty:
-                selected_protocol = protocol_row["Protocol"].iloc[0]
+            # e.g., /project/analysis-task/<protocol>/<project>
+            protocol = parts[0].strip().lower()
+            return f"/sdtmchecks/project/{protocol}"
+        elif len(parts) == 1:
+            # e.g., /project/analysis-task/<project>
+            # Use stored_protocol if available to return to full projects page
+            if stored_protocol:
+                return f"/sdtmchecks/project/{stored_protocol}"
             else:
-                return html.Div(
-                    f"Invalid URL: Protocol could not be determined for Project {selected_project}."
-                )
-        # Handle 3-part URLs (e.g., /analysis-task/<protocol>/<project>)
-        elif len(parts) == 3:
-            selected_protocol = parts[1]
-            selected_project = parts[2]
+                return f"/sdtmchecks/project/{parts[0].strip().lower()}"
         else:
-            return html.Div("Invalid URL structure for analysis-task.")
-
-        return f"/project/{selected_protocol}"
-    elif pathname.startswith("/analysis-version/"):
-        parts = pathname.strip("/").split("/")
-        print(f"URL Parts: {parts}")  # Debugging: Print the URL parts
-
-        # Handle 2-part URLs (e.g., /analysis-version/<analysis_task>)
-        if len(parts) == 2:
-            value = parts[1].strip().lower()
-            print(f"value print: {value}")
-
-            # Use global `selected_protocol` and `selected_project`
-            task_row = summary_df[
-                (summary_df["Analysis_Task"].str.strip().str.lower() == value)
-                & (
-                    summary_df["Protocol"] == selected_protocol
-                )  # Filter by global protocol
-                & (summary_df["Project"] == selected_project)
-            ]
-            print(f"Filtered DataFrame for Analysis Task {value}:")
-            # print(task_row)
-
-            if not task_row.empty:
-                selected_task = value
-                selected_project = task_row["Project"].iloc[0]
-                print(
-                    f"Resolved as Analysis Task: {selected_task}, Protocol: {selected_protocol}, Project: {selected_project}"
-                )
-                return f"/analysis-task/{selected_project}"
-        else:
-            return "/"
-    elif pathname.startswith("/display-table/"):
-        parts = pathname.strip("/").split("/")
-        print(f"URL Parts: {parts}")  # Debugging: Print the URL parts
-
-        # Handle 3-part URLs (e.g., /display-table/<task>/<version>)
-        if len(parts) == 3:
-            selected_task = parts[1].strip().lower()
-            selected_version = parts[2].strip().lower()
-
-            # Use global `selected_protocol` and `selected_project`
-            protocol_row = summary_df[
-                (
-                    summary_df["Protocol"] == selected_protocol
-                )  # Filter by global protocol
-                & (summary_df["Project"] == selected_project)
-                & (summary_df["Analysis_Task"].str.strip().str.lower() == selected_task)
-                & (
-                    summary_df["Analysis_Version"].str.strip().str.lower()
-                    == selected_version
-                )
-            ]
-            print(
-                f"Filtered DataFrame for Task {selected_task} and Version {selected_version}:"
-            )
-            # print(protocol_row)
-
-            if not protocol_row.empty:
-                selected_project = protocol_row["Project"].iloc[0]
-            else:
-                return html.Div(
-                    f"Invalid URL: Protocol or Project could not be determined for Task {selected_task} and Version {selected_version}."
-                )
-        # Handle 5-part URLs (e.g., /display-table/<protocol>/<project>/<task>/<version>)
-        elif len(parts) == 5:
-            selected_protocol = parts[1].strip().lower()
-            selected_project = parts[2].strip().lower()
-            selected_task = parts[3].strip().lower()
-            selected_version = parts[4].strip().lower()
-        else:
-            return html.Div("Invalid URL structure for display-table.")
-
-        return f"/analysis-version/{selected_task}"
+            return "/sdtmchecks/project/"
+    
+    # Level 4: Project page -> go back to protocol landing page
+    elif relative.startswith("project/"):
+        return "/sdtmchecks/"
+    
+    # Default fallback
     else:
-        return "/"
-
-
+        return "/sdtmchecks/"
 @app.callback(
     Output("quality-checks-message", "children"),
     Input("quality-checks-button", "n_clicks"),
@@ -1177,15 +341,13 @@ def update_back_link(pathname):
 )
 def handle_quality_checks_button(n_clicks, folder_path):
     import requests
-
     if folder_path:
         try:
-            # Send a POST request to the backend to open the folder
+            # Updated URL to match the registered route.
             response = requests.post(
                 "http://127.0.0.1:8050/open-folder", json={"folder_path": folder_path}
             )
             response_data = response.json()
-
             if response_data.get("success"):
                 return f"Folder opened: {folder_path}"
             else:
