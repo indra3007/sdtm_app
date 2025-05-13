@@ -1,8 +1,9 @@
 from datetime import datetime
-from os import path, startfile
+from os import path
 
 from dash import callback_context, Dash, dcc, html, Input, no_update, Output, State
 from flask import jsonify
+from loguru import logger
 import pandas as pd
 
 from connection import get_engine
@@ -60,7 +61,8 @@ def open_folder():
 
     if folder_path and path.exists(folder_path):
         try:
-            startfile(folder_path)  # Open the folder in Windows Explorer
+            # startfile(folder_path)  # Open the folder in Windows Explorer
+            logger.warning("cannot open Windows Explorer on remote client")
             return jsonify(
                 {"success": True, "message": f"Opened folder: {folder_path}"}
             )
