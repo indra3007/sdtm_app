@@ -34,7 +34,7 @@ def analysis_task_page(selected_protocol, selected_project, summary_df):
     )
     return html.Div(
         [
-            home_section(),
+            home_section(is_protocol=False),
             html.Div(
                 [
                     html.I(

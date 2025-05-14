@@ -14,7 +14,7 @@ def project_page(selected_protocol, summary_df):
 
     return html.Div(
         [
-            home_section(),
+            home_section(is_protocol=False),
             html.Div(
                 [
                     html.I(

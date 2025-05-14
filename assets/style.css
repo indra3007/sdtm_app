@@ -375,23 +375,37 @@ code {
 }
 /* Info Button */
 
+/* Info Button */
 .info-button {
     border: none;
     background: none;
-    color: #007bff; /* Blue color for the icon */
+    color: #007bff; /* Blue color */
     cursor: pointer;
     font-weight: bold;
     font-size: 1.2rem; 
-    margin-left: 10px;/* Adjust font size */
-    display: inline-flex; /* Keep icon and text inline */
+    margin-left: 10px;
+    display: inline-flex;
     align-items: center;
-    gap: 5px; /* Add spacing between icon and text */
+    gap: 5px;
+    padding: 5px 10px;
+    transition: color 0.3s ease;
 }
 
 .info-button:hover {
     color: #0056b3; /* Darker blue on hover */
 }
-
+.info-button:focus,
+.info-button:active {
+    background: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* .info-button:hover {
+    color: #0056b3; /* Darker blue on hover */
+/*} */
+.info-button:hover {
+    background-color: transparent !important;
+}
 /* Info Popup */
 .info-popup {
     position: absolute;
@@ -432,4 +446,48 @@ code {
 
 .ok-button:hover {
     background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Fancy Title: Red text with a light rainbow underline */
+.fancy-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: red;  /* Title text in red */
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.fancy-title::after {
+    content: "";
+    display: block;
+    height: 4px;
+    /* Light rainbow underline */
+    background: linear-gradient(90deg, #ffcccc, #ffe6cc, #ffffcc, #e6ffcc, #ccffff, #cce6ff, #e6ccff);
+    border-radius: 2px;
+    width: 90%;
+    margin: 8px auto 0;
+}
+
+/* Increase width of the popup (if additional styling is needed) */
+.submit-query-popup {
+    width: 51% !important;
+}
+
+/* Fancy Input and Textarea Fields */
+.fancy-input,
+.fancy-textarea {
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 1rem;
+    width: 100%;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fancy-input:focus,
+.fancy-textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }

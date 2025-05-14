@@ -1,10 +1,12 @@
 from datetime import datetime
 from os import path
-
+import dash
 from dash import callback_context, Dash, dcc, html, Input, no_update, Output, State
 from flask import jsonify
 from loguru import logger
 import pandas as pd
+from sqlalchemy import text
+from dash import callback_context
 
 from connection import get_engine
 from pages.header import header
@@ -14,7 +16,25 @@ from pages.analysis_task_page import analysis_task_page
 from pages.analysis_version_page import analysis_version_page
 from pages.display_table_page import display_table_page
 
+engine = get_engine()
 
+# Ensure the table exists (create if not exists)
+create_table_query = text("""
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'query_submit_sdtm_checks')
+BEGIN
+    CREATE TABLE query_submit_sdtm_checks (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(255),
+        domain NVARCHAR(255),
+        description NVARCHAR(MAX),
+        [rule] NVARCHAR(MAX),
+        submission_date DATETIME DEFAULT GETDATE()
+    )
+END
+""")
+with engine.begin() as conn:
+    conn.execute(create_table_query)
+    print("Table 'query_submit_sdtm_checks' is ready!")
 external_stylesheets = [
     "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css",  # Bootstrap CSS
     "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css",  # Bootstrap Icons
@@ -76,9 +96,7 @@ def open_folder():
 # Add a "Date" column for demonstration purposes
 summary_df["Date"] = datetime.today().strftime("%Y-%m-%d")
 # Update the app layout
-# Update the app layout
-# Update the app layout
-# filepath: c:\Users\inarisetty\sdtm_local\sdtm_checks\app.py
+
 
 app.layout = html.Div(
     [
@@ -87,31 +105,45 @@ app.layout = html.Div(
         dcc.Store(id="store-selected-project", storage_type="session"),
         dcc.Store(id="store-selected-task", storage_type="session"),
         dcc.Store(id="store-selected-version", storage_type="session"),
+        # Add a div for query status messages
+        html.Div(id="query-status", style={"textAlign": "center", "margin": "20px 0"}),
         header(),
         html.Div(id="page-content"),
     ]
 )
 
-
 @app.callback(
-    Output("info-popup", "style"),  # Toggle the popup's visibility
+    Output("info-popup", "style"),
     [
         Input("info-button", "n_clicks"),
         Input("ok-button", "n_clicks"),
-    ],  # Triggered by Info or OK button
-    prevent_initial_call=True,  # Prevent callback from firing on page load
+    ],
+    prevent_initial_call=True
 )
 def toggle_info_popup(info_clicks, ok_clicks):
-    ctx = callback_context
+    ctx = dash.callback_context
+    # If nothing triggered, hide the popup.
     if not ctx.triggered:
         return {"display": "none"}
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if triggered_id == "info-button":
-        return {"display": "block"}
-    elif triggered_id == "ok-button":
+    # When Info button is clicked, show the popup.
+    if triggered_id == "info-button" and info_clicks:
+        return {
+            "display": "block",
+            "position": "fixed",
+            "top": "20%",
+            "left": "50%",
+            "transform": "translateX(-50%)",
+            "backgroundColor": "#fff",
+            "padding": "20px",
+            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            "zIndex": 1000,
+        }
+    # When OK button is clicked, hide the popup.
+    elif triggered_id == "ok-button" and ok_clicks:
         return {"display": "none"}
+    # Default: hide the popup.
     return {"display": "none"}
-
 
 @app.callback(
     [
@@ -136,6 +168,37 @@ def update_protocol_state(selectedRows):
             return no_update, no_update
     return no_update, no_update
 
+import re
+
+def sanitize_analysis_url(parts):
+    """
+    Given a raw parts list from an analysis-version display-table URL that may contain duplicate segments,
+    this function returns a sanitized list in the expected format:
+      [protocol, "analysis-version", "display-table", task, version]
+    
+    It assumes:
+      - parts[0] is the protocol,
+      - parts[1] is "analysis-version",
+      - parts[2] is "display-table",
+      - parts[3] is the intended task,
+      - and parts[-1] is the intended version.
+    
+    For example, if parts is:
+      ['p627', 'analysis-version', 'display-table', 'drc', 'display-table', 'drc', 'version1']
+    then it returns:
+      ['p627', 'analysis-version', 'display-table', 'drc', 'version1']
+    """
+    try:
+        if len(parts) >= 5 and parts[1] == "analysis-version" and parts[2] == "display-table":
+            protocol = parts[0]
+            task = parts[3]
+            version = parts[-1]  # take the last token as the version
+            return [protocol, "analysis-version", "display-table", task, version]
+        else:
+            return parts
+    except Exception as e:
+        print(f"Error in sanitize_analysis_url: {e}")
+        return parts
 
 @app.callback(
     [
@@ -150,218 +213,213 @@ def update_protocol_state(selectedRows):
         State("store-selected-protocol", "data"),
         State("store-selected-project", "data"),
     ],
-    prevent_initial_call="initial_duplicate",  # Allow duplicate outputs on initial call
+    prevent_initial_call="initial_duplicate",
 )
 def display_page(pathname, stored_protocol, stored_project):
-    # Initialize default values from storage (these should be set on previous pages)
+    # Initialize from stored state
     selected_protocol = stored_protocol
     selected_project = stored_project
     selected_task = None
     selected_version = None
 
-    # Remove the prefix if present
     prefix = "/sdtmchecks/"
     if pathname.startswith(prefix):
-        pathname = pathname[len(prefix) :]
+        pathname = pathname[len(prefix):]
     print(f"Processed Pathname: {pathname}")
 
-    # Handle the root path (protocol page)
+    # Root path: Protocol page
     if pathname == "":
         return protocol_page(summary_df), None, None, None, None
 
-    # Analysis-version display-table branch
-    elif pathname.startswith("project/analysis-task/analysis-version/display-table/"):
-        prefix = "project/analysis-task/analysis-version/display-table/"
-        parts = [part for part in pathname[len(prefix) :].split("/") if part]
+    # Branch for display-table URLs (analysis-version display)
+    if pathname.startswith("project/analysis-task/analysis-version/display-table/"):
+        dt_prefix = "project/analysis-task/analysis-version/display-table/"
+        parts = [part.strip().lower() for part in pathname[len(dt_prefix):].split("/") if part]
         print(f"URL Parts display-table: {parts}")
-
-        if len(parts) == 2:  # URL structure: /display-table/<task>/<version>
-            selected_task = parts[0].strip().lower()
-            selected_version = parts[1].strip().lower()
+        if len(parts) == 2:  # /display-table/<task>/<version>
+            selected_task = parts[0]
+            selected_version = parts[1]
             if not selected_protocol or not selected_project:
                 return (
-                    html.Div(
-                        "State missing: Please re‑select your Protocol and Project."
-                    ),
-                    None,
-                    None,
-                    None,
-                    None,
+                    html.Div("State missing: Please re‑select your Protocol and Project."),
+                    None, None, None, None,
                 )
             protocol_row = summary_df[
-                (summary_df["Protocol"] == selected_protocol)
-                & (summary_df["Project"] == selected_project)
+                (summary_df["Protocol"].str.strip().str.lower() == selected_protocol)
+                & (summary_df["Project"].str.strip().str.lower() == selected_project)
                 & (summary_df["Analysis_Task"].str.strip().str.lower() == selected_task)
-                & (
-                    summary_df["Analysis_Version"].str.strip().str.lower()
-                    == selected_version
-                )
+                & (summary_df["Analysis_Version"].str.strip().str.lower() == selected_version)
             ]
             if protocol_row.empty:
                 return (
                     html.Div(
                         f"Invalid URL: No match for Task {selected_task} and Version {selected_version} under Protocol {selected_protocol} and Project {selected_project}."
                     ),
-                    None,
-                    None,
-                    None,
-                    None,
+                    None, None, None, None,
                 )
-        elif (
-            len(parts) == 4
-        ):  # URL structure: /display-table/<protocol>/<project>/<task>/<version>
-            selected_protocol = parts[0].strip().lower()
-            selected_project = parts[1].strip().lower()
-            selected_task = parts[2].strip().lower()
-            selected_version = parts[3].strip().lower()
+        elif len(parts) == 4:  # /display-table/<protocol>/<project>/<task>/<version>
+            selected_protocol = parts[0]
+            selected_project = parts[1]
+            selected_task = parts[2]
+            selected_version = parts[3]
         else:
             return (
-                html.Div(
-                    f"Invalid URL structure for display-table. Expected 2 or 4 parts, got {len(parts)}: {parts}"
-                ),
-                None,
-                None,
-                None,
-                None,
+                html.Div(f"Invalid URL structure for display-table. Expected 2 or 4 parts, got {len(parts)}: {parts}"),
+                None, None, None, None,
             )
-
         return (
-            display_table_page(
-                selected_protocol,
-                selected_project,
-                selected_task,
-                selected_version,
-                summary_df,
-            ),
+            display_table_page(selected_protocol, selected_project, selected_task, selected_version, summary_df),
             selected_protocol,
             selected_project,
             selected_task,
             selected_version,
         )
 
-    # Analysis-version branch (without display-table)
+    # Branch for analysis-version (non-display-table)
     elif pathname.startswith("project/analysis-task/analysis-version/"):
-        parts = [
-            part
-            for part in pathname[
-                len("project/analysis-task/analysis-version/") :
-            ].split("/")
-            if part
-        ]
+        av_prefix = "project/analysis-task/analysis-version/"
+        parts = [part.strip().lower() for part in pathname[len(av_prefix):].split("/") if part]
         print(f"URL Parts analysis-version: {parts}")
-
-        if len(parts) == 1:  # URL: /analysis-version/<analysis_task>
-            selected_task = parts[0].strip().lower()
-            print(f"Selected Task: {selected_task}")
+        if len(parts) == 1:  # /analysis-version/<task>
+            selected_task = parts[0]
             if not selected_protocol or not selected_project:
                 return (
-                    html.Div(
-                        "State missing: Please re‑select your Protocol and Project."
-                    ),
-                    None,
-                    None,
-                    None,
-                    None,
+                    html.Div("State missing: Please re‑select your Protocol and Project."),
+                    None, None, None, None,
                 )
             task_row = summary_df[
-                (summary_df["Analysis_Task"].str.strip().str.lower() == selected_task)
-                & (summary_df["Protocol"] == selected_protocol)
-                & (summary_df["Project"] == selected_project)
+                (summary_df["Analysis_Task"].str.strip().str.lower() == selected_task) &
+                (summary_df["Protocol"].str.strip().str.lower() == selected_protocol) &
+                (summary_df["Project"].str.strip().str.lower() == selected_project)
             ]
             if task_row.empty:
                 return (
                     html.Div(
                         f"Invalid URL: {selected_task} is not valid for Protocol {selected_protocol} and Project {selected_project}."
                     ),
-                    None,
-                    None,
-                    None,
-                    None,
+                    None, None, None, None,
                 )
-        elif (
-            len(parts) == 3
-        ):  # URL: /analysis-version/<protocol>/<project>/<analysis_task>
-            selected_protocol = parts[0].strip().lower()
-            selected_project = parts[1].strip().lower()
-            selected_task = parts[2].strip().lower()
-            print(
-                f"Selected Protocol: {selected_protocol}, Project: {selected_project}, Task: {selected_task}"
-            )
+        elif len(parts) == 3:  # /analysis-version/<protocol>/<project>/<task>
+            selected_protocol = parts[0]
+            selected_project = parts[1]
+            selected_task = parts[2]
+            print(f"Selected Protocol: {selected_protocol}, Project: {selected_project}, Task: {selected_task}")
         else:
             return (
-                html.Div(
-                    f"Invalid URL structure for analysis-version. Expected 1 or 3 parts, got {len(parts)}: {parts}"
-                ),
-                None,
-                None,
-                None,
-                None,
+                html.Div(f"Invalid URL structure for analysis-version. Expected 1 or 3 parts, got {len(parts)}: {parts}"),
+                None, None, None, None,
             )
         return (
-            analysis_version_page(
-                selected_protocol, selected_project, selected_task, summary_df
-            ),
+            analysis_version_page(selected_protocol, selected_project, selected_task, summary_df),
             selected_protocol,
             selected_project,
             selected_task,
             None,
         )
 
-    # Analysis-task branch – URL structure: /project/analysis-task/<project> or /analysis-task/<protocol>/<project>
+    # Branch for analysis-task pages (under project/analysis-task/)
     elif pathname.startswith("project/analysis-task/"):
-        parts = [
-            part
-            for part in pathname[len("project/analysis-task/") :].split("/")
-            if part
-        ]
-        print(f"URL Parts analysis-task: {parts}")
-        if len(parts) == 1:
-            selected_project = parts[0].strip().lower()
+        parts = [part.strip().lower() for part in pathname[len("project/analysis-task/"):].split("/") if part]
+        print(f"URL Parts analysis-task (raw): {parts}")
+        # Branch for analysis-version display-table URLs with extra segments
+        if len(parts) >= 5 and parts[1] == "analysis-version" and parts[2] == "display-table":
+            parts = sanitize_analysis_url(parts)
+            print(f"Sanitized URL Parts: {parts}")
+            selected_protocol = parts[0]
+            if stored_project:
+                selected_project = stored_project
+            else:
+                proj_rows = summary_df[
+                    summary_df["Protocol"].str.strip().str.lower() == selected_protocol
+                ]
+                if not proj_rows.empty:
+                    selected_project = proj_rows["Project"].iloc[0].strip().lower()
+                    print(f"Inferred Project (from summary_df): {selected_project}")
+                else:
+                    return (
+                        html.Div(f"Invalid URL: Could not determine Project for Protocol {selected_protocol}."),
+                        None, None, None, None,
+                    )
+            selected_task = parts[3]
+            selected_version = parts[4]
+            return (
+                display_table_page(selected_protocol, selected_project, selected_task, selected_version, summary_df),
+                selected_protocol,
+                selected_project,
+                selected_task,
+                selected_version,
+            )
+        # Branch for 3-part URLs: /project/analysis-task/<project>/analysis-version/<task>
+        elif len(parts) == 3 and parts[1] == "analysis-version":
+            selected_project = stored_project if stored_project else parts[0]
+            selected_task = parts[2]
+            if stored_protocol:
+                selected_protocol = stored_protocol
+            else:
+                protocol_row = summary_df[
+                    summary_df["Project"].str.strip().str.lower() == selected_project
+                ]
+                if not protocol_row.empty:
+                    selected_protocol = protocol_row["Protocol"].iloc[0].strip().lower()
+                    print(f"Inferred Protocol (from summary_df): {selected_protocol}")
+                else:
+                    return (
+                        html.Div(f"Invalid URL: Could not determine Protocol for Project {selected_project}."),
+                        None, None, None, None,
+                    )
+            return (
+                analysis_version_page(selected_protocol, selected_project, selected_task, summary_df),
+                selected_protocol,
+                selected_project,
+                selected_task,
+                None,
+            )
+        # Branch for URLs with 1 part: /project/analysis-task/<project>
+        elif len(parts) == 1:
+            selected_project = parts[0]
             print(f"Selected Project (from URL): {selected_project}")
-            protocol_row = summary_df[summary_df["Project"] == selected_project]
+            protocol_row = summary_df[
+                summary_df["Project"].str.strip().str.lower() == selected_project
+            ]
             if not protocol_row.empty:
-                selected_protocol = protocol_row["Protocol"].iloc[0]
+                selected_protocol = protocol_row["Protocol"].iloc[0].strip().lower()
                 print(f"Inferred Protocol (from summary_df): {selected_protocol}")
             else:
                 return (
-                    html.Div(
-                        f"Invalid URL: Could not determine Protocol for Project {selected_project}."
-                    ),
-                    None,
-                    None,
-                    None,
-                    None,
+                    html.Div(f"Invalid URL: Could not determine Protocol for Project {selected_project}."),
+                    None, None, None, None,
                 )
+            return (
+                analysis_task_page(selected_protocol, selected_project, summary_df),
+                selected_protocol,
+                selected_project,
+                None,
+                None,
+            )
+        # Branch for URLs with 2 parts: /project/analysis-task/<protocol>/<project>
         elif len(parts) == 2:
-            selected_protocol = parts[0].strip().lower()
-            selected_project = parts[1].strip().lower()
-            print(
-                f"Selected Protocol and Project (from URL): {selected_protocol}, {selected_project}"
+            selected_protocol = parts[0]
+            selected_project = parts[1]
+            print(f"Selected Protocol and Project (from URL): {selected_protocol}, {selected_project}")
+            return (
+                analysis_task_page(selected_protocol, selected_project, summary_df),
+                selected_protocol,
+                selected_project,
+                None,
+                None,
             )
         else:
             return (
-                html.Div(
-                    f"Invalid URL structure for analysis-task. Expected 1 or 2 parts, got {len(parts)}: {parts}"
-                ),
-                None,
-                None,
-                None,
-                None,
+                html.Div(f"Invalid URL structure for analysis-task. Expected 1, 2, or a structured 5 parts if analysis-version is used, got {len(parts)}: {parts}"),
+                None, None, None, None,
             )
-        return (
-            analysis_task_page(selected_protocol, selected_project, summary_df),
-            selected_protocol,
-            selected_project,
-            None,
-            None,
-        )
 
-    # Project branch – URL structure: /project/<protocol>
+    # Branch for project pages: /project/<protocol>
     elif pathname.startswith("project/"):
-        parts = [part for part in pathname[len("project/") :].split("/") if part]
+        parts = [part.strip().lower() for part in pathname[len("project/") :].split("/") if part]
         print(f"URL Parts project: {parts}")
         if len(parts) == 1:
-            selected_protocol = parts[0].strip().lower()
+            selected_protocol = parts[0]
             return (
                 project_page(selected_protocol, summary_df),
                 selected_protocol,
@@ -371,110 +429,176 @@ def display_page(pathname, stored_protocol, stored_project):
             )
         else:
             return (
-                html.Div(
-                    f"Invalid URL structure for project. Expected 1 part, got {len(parts)}: {parts}"
-                ),
-                None,
-                None,
-                None,
-                None,
+                html.Div(f"Invalid URL structure for project. Expected 1 part, got {len(parts)}: {parts}"),
+                None, None, None, None,
             )
-
     else:
         return (html.Div("404: Page not found"), None, None, None, None)
-
 
 # from dash.dependencies import State
 @app.callback(
     Output("back-link", "href"),
-    Input("url", "pathname"),
-    State("store-selected-protocol", "data"),
-    State("store-selected-project", "data"),
+    [Input("url", "pathname")],
+    [
+        State("store-selected-protocol", "data"),
+        State("store-selected-project", "data"),
+        State("store-selected-task", "data"),
+        State("store-selected-version", "data"),
+    ],
 )
-def update_back_link(pathname, stored_protocol, stored_project):
-    # Remove the initial prefix
+def update_back_link(pathname, stored_protocol, stored_project, stored_task, stored_version):
     prefix = "/sdtmchecks/"
-    relative = pathname[len(prefix) :] if pathname.startswith(prefix) else pathname
+    # Strip off the prefix to work with a relative URL.
+    relative = pathname[len(prefix):] if pathname.startswith(prefix) else pathname
     print(f"Relative URL for back link: {relative}")
-
-    # Level 1: Display-table page (child of analysis-version)
-    if relative.startswith("project/analysis-task/analysis-version/display-table/"):
-        # Expected structure: display-table/<task>/<version>
-        suffix = relative[
-            len("project/analysis-task/analysis-version/display-table/") :
-        ]
-        parts = [p for p in suffix.split("/") if p]
-        if len(parts) >= 1:
-            task = parts[0].strip().lower()
-            # Return to analysis-version page for that task (Level 2)
-            return f"/sdtmchecks/project/analysis-task/analysis-version/{task}"
+    
+    # If you're on a display-table page (i.e. the URL contains "display-table"),
+    # we want to step back to the analysis-version page for that task.
+    if "display-table" in relative:
+        if stored_task:
+            # Back to the analysis-version selection for the given task.
+            return f"/sdtmchecks/project/analysis-task/analysis-version/{stored_task}"
+        elif stored_protocol and stored_project:
+            # Fallback: go to the analysis-task page.
+            return f"/sdtmchecks/project/analysis-task/{stored_protocol}/{stored_project}"
         else:
             return "/sdtmchecks/"
-
-    # Level 2: Analysis-version page -> go back to analysis-task page
-    elif relative.startswith("project/analysis-task/analysis-version/"):
-        # Ideally, we want to go up one level to analysis-task.
-        # We can use stored_protocol and stored_project to build the analysis-task URL.
+    
+    # If on an analysis-version page (without "display-table"), go back to the analysis-task page.
+    elif "analysis-version" in relative:
         if stored_protocol and stored_project:
-            # Assuming the analysis-task URL follows the format: /project/analysis-task/<protocol>/<project>
-            return (
-                f"/sdtmchecks/project/analysis-task/{stored_protocol}/{stored_project}"
-            )
+            return f"/sdtmchecks/project/analysis-task/{stored_protocol}/{stored_project}"
         else:
-            # Fallback: remove the analysis-version piece
-            return "/sdtmchecks/project/analysis-task/"
-
-    # Level 3: Analysis-task page -> go back to project level
+            return "/sdtmchecks/"
+    
+    # If on an analysis-task page, return to the project page.
     elif relative.startswith("project/analysis-task/"):
-        # Analysis-task URL could be either: <project> or <protocol>/<project>
-        parts = [p for p in relative[len("project/analysis-task/") :].split("/") if p]
-        if len(parts) == 2:
-            # e.g., /project/analysis-task/<protocol>/<project>
-            protocol = parts[0].strip().lower()
-            return f"/sdtmchecks/project/{protocol}"
-        elif len(parts) == 1:
-            # e.g., /project/analysis-task/<project>
-            # Use stored_protocol if available to return to full projects page
-            if stored_protocol:
-                return f"/sdtmchecks/project/{stored_protocol}"
-            else:
-                return f"/sdtmchecks/project/{parts[0].strip().lower()}"
+        if stored_protocol:
+            return f"/sdtmchecks/project/{stored_protocol}"
         else:
-            return "/sdtmchecks/project/"
-
-    # Level 4: Project page -> go back to protocol landing page
+            return "/sdtmchecks/"
+    
+    # If on a project page, return to the main page.
     elif relative.startswith("project/"):
         return "/sdtmchecks/"
-
-    # Default fallback
+    
+    # Default fallback:
     else:
         return "/sdtmchecks/"
 
+app.clientside_callback(
+    """
+    function(n_clicks, folder_path) {
+        if (n_clicks && folder_path) {
+            navigator.clipboard.writeText(folder_path);
+            return "For more information: " + folder_path;
+        }
+        return "";
+    }
+    """,
+    Output("quality-checks-message", "children"),
+    [Input("copy-clipboard-element", "n_clicks")],
+    [State("quality-checks-path", "data")]
+)
+app.clientside_callback(
+    """
+    function(n_clicks, folder_path) {
+        if (n_clicks && folder_path) {
+            navigator.clipboard.writeText(folder_path);
+            return "For more information: " + folder_path;
+        }
+        return "";
+    }
+    """,
+    Output("back-link", "children", allow_duplicate=True),
+    Input("back-btn", "n_clicks"),
+    State("quality-checks-path", "data"),
+    prevent_initial_call="initial_duplicate"  # set this as required
+)
+@app.callback(
+    [
+        Output("query-status", "children"),
+        Output("submit-query-popup", "style")
+    ],
+    [
+        Input("submit-query-button", "n_clicks"),
+        Input("query-cancel-btn", "n_clicks"),
+        Input("query-submit-btn", "n_clicks")
+    ],
+    [
+        State("query-name", "value"),
+        State("query-domain", "value"),
+        State("query-description", "value"),
+        State("query-rule", "value")
+    ],
+    prevent_initial_call=True
+)
+# Callback to toggle the Submit Query popup
+def combined_popup_action(n_submit, n_cancel, n_form, name, domain, description, rule):
+    ctx = callback_context
+    # If no clicks yet, ensure popup is hidden.
+    if not ctx.triggered or (n_submit is None and n_cancel is None and n_form is None):
+        return "", {"display": "none"}
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    # Open popup ONLY if the submit query button was clicked and its n_clicks is > 0.
+    if triggered_id == "submit-query-button" and n_submit:
+        return "", {
+            "display": "block",
+            "position": "fixed",
+            "top": "20%",
+            "left": "50%",
+            "transform": "translateX(-50%)",
+            "backgroundColor": "#fff",
+            "padding": "20px",
+            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            "zIndex": 1000,
+        }
+    # If cancel button is clicked, hide the popup.
+    elif triggered_id == "query-cancel-btn" and n_cancel:
+        return "", {"display": "none"}
+    # Process the form submit button.
+    elif triggered_id == "query-submit-btn" and n_form:
+        insert_query = text("""
+            INSERT INTO query_submit_sdtm_checks (name, domain, description, [rule])
+            VALUES (:name, :domain, :description, :rule)
+        """)
+        try:
+            with engine.begin() as conn:
+                conn.execute(insert_query, {
+                    "name": name,
+                    "domain": domain,
+                    "description": description,
+                    "rule": rule
+                })
+            # On success, show a success message and close the popup.
+            return "Query successfully submitted!", {"display": "none"}
+        except Exception as e:
+            # On error, remain visible.
+            return f"Error submitting query: {str(e)}", {
+                "display": "block",
+                "position": "fixed",
+                "top": "20%",
+                "left": "50%",
+                "transform": "translateX(-50%)",
+                "backgroundColor": "#fff",
+                "padding": "20px",
+                "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+                "zIndex": 1000,
+            }
+    # For any other trigger, ensure the popup is hidden.
+    else:
+        return "", {"display": "none"}
 
 @app.callback(
-    Output("quality-checks-message", "children"),
-    Input("quality-checks-button", "n_clicks"),
-    State("quality-checks-path", "data"),
+    Output("url", "pathname"),
+    [Input("gilead-logo", "n_clicks")],
     prevent_initial_call=True,
 )
-def handle_quality_checks_button(n_clicks, folder_path):
-    import requests
-
-    if folder_path:
-        try:
-            # Updated URL to match the registered route.
-            response = requests.post(
-                "http://127.0.0.1:8050/open-folder", json={"folder_path": folder_path}
-            )
-            response_data = response.json()
-            if response_data.get("success"):
-                return f"Folder opened: {folder_path}"
-            else:
-                return f"Error: {response_data.get('message')}"
-        except Exception as e:
-            return f"Error: {str(e)}"
-    return "Invalid folder path."
-
+def go_home(n_clicks):
+    if n_clicks:
+        return "/sdtmchecks/"  # home page route
+    return no_update
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -69,12 +69,12 @@ def analysis_version_page(
         .agg({"Data_Path": "first"})
         .reset_index()
     )
-    writer = pd.ExcelWriter("testing_analysis_version.xlsx", engine="xlsxwriter")
-    version_df.to_excel(writer, sheet_name="Summary", index=False)
-    writer.close()  # Save and close the file
+    #writer = pd.ExcelWriter("testing_analysis_version.xlsx", engine="xlsxwriter")
+    #ersion_df.to_excel(writer, sheet_name="Summary", index=False)
+    #writer.close()  # Save and close the file
     return html.Div(
         [
-            home_section(),
+            home_section(is_protocol=False),
             html.Div(
                 [
                     html.I(

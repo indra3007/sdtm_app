@@ -1,55 +1,161 @@
-from dash import Dash, html, Input, Output, dcc
-def home_section():
+from dash import html, dcc
+
+def home_section(is_protocol=True):
     return html.Div(
         [
-            html.A(
-                html.Button(
-                    [html.I(className="bi bi-house"), " Home"],  # Icon and text
-                    className="home-button",
-                ),
-                href="/sdtmchecks/",
-                className="home-link",
-            ),
-            dcc.Link(
-                html.Button(
-                    [html.I(className="bi bi-arrow-left"), " Back"],  # Icon and text
-                    className="back-button",
-                ),
-                href="#",  # Placeholder, updated dynamically by the callback
-                id="back-link",  # Add an ID for the Back link
-            ),
+            # Header Row.
             html.Div(
                 [
-                    html.Button(
+                    # Left Group: Home, Back, and Info buttons.
+                    html.Div(
                         [
-                            html.I(className="bi bi-info-circle"),
-                            " Info",
-                        ],  # Icon and text
-                        className="info-button",
-                        id="info-button",
+                            html.A(
+                                html.Button(
+                                    [html.I(className="bi bi-house"), " Home"],
+                                    className="home-button",
+                                ),
+                                href="/sdtmchecks/",
+                                className="home-link",
+                            ),
+                            dcc.Link(
+                                html.Button(
+                                    [html.I(className="bi bi-arrow-left"), " Back"],
+                                    className="back-button",
+                                ),
+                                href="#",
+                                id="back-link",
+                            ),
+                            html.Button(
+                                [html.I(className="bi bi-info-circle"), " Info"],
+                                id="info-button",
+                                className="info-button btn btn-primary",
+                                style={"marginLeft": "10px"},
+                            ),
+                        ],
+                        style={"display": "flex", "alignItems": "center"},
+                    ),
+                    # Center Group: Welcome message (conditionally displayed)
+                    html.Div(
+                        "Welcome to the cSDTM Quality Checks Home Page!" if is_protocol else "",
+                        className="home-content",
+                        style={
+                            "flex": "1",
+                            "textAlign": "center",
+                            "fontSize": "32px",
+                            "color": "#2E8B57",  # SeaGreen color
+                            "fontWeight": "bold",
+                            "animation": "flash 1s infinite",  # Flashing animation
+                        },
+                    ),
+                    # Right Group: Submit Query button.
+                    html.Div(
+                        html.Button(
+                            [html.I(className="bi bi-send"), " Submit Query"],
+                            id="submit-query-button",
+                            className="btn btn-info",
+                        ),
+                        style={"display": "flex", "alignItems": "center"},
+                    ),
+                ],
+                style={
+                    "display": "flex",
+                    "alignItems": "center",
+                    "width": "100%",
+                    "marginBottom": "20px",
+                },
+            ),
+
+            # Info Popup.
+            html.Div(
+                [
+                    html.H4("Submit Query", className="fancy-title"),
+                    html.Div(
+                        [
+                            html.Label("Name: ", className="fancy-label"),
+                            dcc.Input(
+                                id="query-name",
+                                type="text",
+                                placeholder="Enter your name",
+                                className="fancy-input",
+                            ),
+                        ],
+                        style={"marginBottom": "10px"},
                     ),
                     html.Div(
                         [
-                            html.P(
-                                "Important Information: The checks are intended to assist with cSDTM TA Head review. "
-                                "Some checks marked as 'Fail' may be acceptable depending on the data collection process, "
-                                "SDTM IG version, and protocol-specific requirements. Please consult the relevant documentation "
-                                "or team for clarification.",
-                                className="info-text",
-                            ),
-                            html.Button(
-                                "OK",
-                                className="ok-button",
-                                id="ok-button",  # Add an ID for the OK button
+                            html.Label("Email: ", className="fancy-label"),
+                            dcc.Input(
+                                id="query-email",
+                                type="email",
+                                placeholder="Enter your email",
+                                className="fancy-input",
                             ),
                         ],
-                        id="info-popup",
-                        className="info-popup",
-                        style={"display": "none"},
-                    ),  # Initially hidden
+                        style={"marginBottom": "10px"},
+                    ),
+                    html.Div(
+                        [
+                            html.Label("Domain: ", className="fancy-label"),
+                            dcc.Input(
+                                id="query-domain",
+                                type="text",
+                                placeholder="Enter domain",
+                                className="fancy-input",
+                            ),
+                        ],
+                        style={"marginBottom": "10px"},
+                    ),
+                    html.Div(
+                        [
+                            html.Label("Query Description: ", className="fancy-label"),
+                            dcc.Textarea(
+                                id="query-description",
+                                placeholder="Describe your query",
+                                className="fancy-textarea",
+                            ),
+                        ],
+                        style={"marginBottom": "10px"},
+                    ),
+                    html.Div(
+                        [
+                            html.Label("Query Rule / Code: ", className="fancy-label"),
+                            dcc.Textarea(
+                                id="query-rule",
+                                placeholder="Enter query rule or code",
+                                className="fancy-textarea",
+                            ),
+                        ],
+                        style={"marginBottom": "10px"},
+                    ),
+                    html.Button(
+                        "Submit",
+                        id="query-submit-btn",
+                        className="btn btn-success",
+                    ),
+                    html.Button(
+                        "Cancel",
+                        id="query-cancel-btn",
+                        className="btn btn-secondary",
+                        style={"marginLeft": "10px"},
+                    ),
                 ],
-                className="info-container",
-            ),  # Container for the info button and popup
-        ],
-        className="home-container",
+                id="submit-query-popup",
+                className="submit-query-popup",
+                draggable="false",  # JavaScript will handle drag events
+                style={
+                    "display": "none",
+                    "position": "fixed",
+                    "top": "20%",
+                    "left": "50%",
+                    "transform": "translateX(-50%)",
+                    "backgroundColor": "#fff",
+                    "padding": "20px",
+                    "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+                    "zIndex": 1000,
+                    "width": "43%",    # Adjusted width as desired
+                    "cursor": "move",
+                    "borderRadius": "8px",
+                },
+            ),
+        ]
     )

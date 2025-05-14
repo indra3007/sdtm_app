@@ -17,9 +17,9 @@ def display_table_page(
         & (summary_df["Analysis_Task"] == selected_task)
         & (summary_df["Analysis_Version"] == selected_version)
     ].copy()
-    writer = pd.ExcelWriter("testing_table_version.xlsx", engine="xlsxwriter")
-    filtered_df.to_excel(writer, sheet_name="Summary", index=False)
-    writer.close()  # Save and close the file
+    #writer = pd.ExcelWriter("testing_table_version.xlsx", engine="xlsxwriter")
+    #filtered_df.to_excel(writer, sheet_name="Summary", index=False)
+    #writer.close()  # Save and close the file
 
     # Generate the path for the quality checks file
     def generate_quality_checks_path():
@@ -115,13 +115,87 @@ def display_table_page(
         style={"height": "300px", "width": "100%"},  # Adjust size as needed
     )
 
+    # Create the header row with conditionally inserted "Copy Path"
+    header_row = html.Div(
+        children=
+            [  # Start a list for the first two elements
+                html.I(
+                    className="bi bi-table",
+                    style={
+                        "marginLeft": "25px",
+                        "marginRight": "10px",
+                        "color": "#007bff",
+                        "fontSize": "1.5rem",
+                        "marginBottom": "10px",
+                    },
+                ),
+                html.H1(
+                    f"Table for Task: {selected_task}, Version: {selected_version}",
+                    style={
+                        "display": "inline-block",
+                        "color": "#007bff",
+                        "fontFamily": "Arial, sans-serif",
+                        "fontWeight": "bold",
+                        "fontSize": "1.5rem",
+                    },
+                ),
+            ]
+            + (
+                # Only insert these elements if selected_task is "csdtm_dev"
+                [
+                    html.Span(
+                        "For detailed information; ",
+                        style={
+                            "display": "inline-block",
+                            "marginLeft": "20px",
+                            "color": "#007bff",
+                            "fontSize": "1rem",
+                        },
+                    ),
+                    html.Span(
+                        [html.I(className="bi bi-clipboard"), " Copy Path"],
+                        id="copy-clipboard-element",
+                        style={
+                            "backgroundColor": "#6a0dad",
+                            "color": "white",
+                            "padding": "5px 10px",
+                            "cursor": "pointer",
+                            "fontSize": "16px",
+                            "borderRadius": "12px",
+                            "marginLeft": "5px",
+                            "display": "inline-block",
+                        },
+                    ),
+                    dcc.Store(id="quality-checks-path", data=quality_checks_path),
+                    html.Div(
+                        id="quality-checks-message",
+                        style={
+                            "marginLeft": "10px",
+                            "color": "red",
+                            "fontSize": "14px",
+                            "display": "inline-block",
+                        },
+                    ),
+                ]
+                if selected_task.strip().lower() == "csdtm_dev"
+                else []
+            ),
+        style={
+            "display": "flex",
+            "alignItems": "center",
+            "justifyContent": "flex-start",
+            "marginTop": "20px",
+            "marginBottom": "10px",
+        },
+    )
+
     # Create the layout
     layout = [
-        home_section(),
-        # Add the pie chart and bar chart side by side
+        home_section(is_protocol=False),
+        # Charts section remains unchanged...
         html.Div(
             [
-                # Pie chart with border
+                # Pie chart and bar chart containers...
                 html.Div(
                     pie_chart,
                     style={
@@ -152,38 +226,9 @@ def display_table_page(
                 "marginBottom": "20px",
             },
         ),
-        # Add the "Table for Task" section below the charts
-        html.Div(
-            [
-                html.I(
-                    className="bi bi-table",
-                    style={
-                        "marginLeft": "25px",
-                        "marginRight": "10px",
-                        "color": "#007bff",
-                        "fontSize": "1.5rem",
-                        "marginBottom": "10px",
-                    },
-                ),
-                html.H1(
-                    f"Table for Task: {selected_task}, Version: {selected_version}",
-                    style={
-                        "display": "inline-block",
-                        "color": "#007bff",
-                        "fontFamily": "Arial, sans-serif",
-                        "fontWeight": "bold",
-                        "fontSize": "1.5rem",
-                    },
-                ),
-            ],
-            style={
-                "display": "flex",
-                "alignItems": "center",
-                "marginTop": "20px",
-                "marginBottom": "10px",
-            },
-        ),
-        # Add the data grid
+        # Header row with conditionally inserted "Copy Path"
+        header_row,
+        # Data grid below
         html.Div(
             [
                 dag.AgGrid(
@@ -212,36 +257,4 @@ def display_table_page(
             className="grid-container",
         ),
     ]
-
-    # Conditionally add the "Quality Checks File" button if the task is "csdtm_dev"
-    if selected_task.strip().lower() == "csdtm_dev":
-        layout.append(
-            html.Div(
-                [
-                    html.Button(
-                        "Quality Checks File",
-                        id="quality-checks-button",
-                        style={
-                            "backgroundColor": "#6a0dad",
-                            "color": "white",
-                            "border": "none",
-                            "padding": "10px 20px",
-                            "cursor": "pointer",
-                            "fontSize": "16px",
-                            "marginTop": "10px",
-                            "borderRadius": "12px",
-                        },
-                    ),
-                    dcc.Store(
-                        id="quality-checks-path", data=quality_checks_path
-                    ),  # Store the folder path
-                    html.Div(
-                        id="quality-checks-message",
-                        style={"marginTop": "10px", "color": "red"},
-                    ),  # Message display
-                ],
-                style={"textAlign": "center"},
-            )
-        )
-
     return html.Div(layout)
