@@ -56,6 +56,7 @@ def analysis_version_page(
     # filtered_df.to_excel(writer, sheet_name="Summary", index=False)
     # writer.close()  # Save and close the file
     # Group by Protocol, Project, and Analysis_Version if needed
+
     version_df = (
         filtered_df.groupby(
             [
@@ -69,9 +70,9 @@ def analysis_version_page(
         .agg({"Data_Path": "first"})
         .reset_index()
     )
-    #writer = pd.ExcelWriter("testing_analysis_version.xlsx", engine="xlsxwriter")
-    #ersion_df.to_excel(writer, sheet_name="Summary", index=False)
-    #writer.close()  # Save and close the file
+    # writer = pd.ExcelWriter("testing_analysis_version.xlsx", engine="xlsxwriter")
+    # ersion_df.to_excel(writer, sheet_name="Summary", index=False)
+    # writer.close()  # Save and close the file
     return html.Div(
         [
             home_section(is_protocol=False),

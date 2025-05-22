@@ -4,12 +4,26 @@ from dash import html
 from pages.home import home_section
 
 
+def extract_study_path(full_path, protocol):
+    tokens = [token.strip() for token in full_path.split("/") if token.strip()]
+    protocol_lower = protocol.strip().lower()
+    for i, token in enumerate(tokens):
+        if token.lower() == protocol_lower:
+            # If there is a token after protocol, include it; otherwise, use only protocol.
+            end_index = i + 2 if len(tokens) > i + 1 else i + 1
+            return "/" + "/".join(tokens[:end_index])
+    return full_path
+
+
 def project_page(selected_protocol, summary_df):
-    # Filter the DataFrame for the selected protocol
+    # Filter the DataFrame to include only rows for the selected protocol
     filtered_df = summary_df[summary_df["Protocol"] == selected_protocol]
 
+    # Group by Project and update Data_Path using the extract_study_path function.
     project_df = (
-        filtered_df.groupby("Project").agg({"Data_Path": "first"}).reset_index()
+        filtered_df.groupby("Project")
+        .agg({"Data_Path": lambda x: extract_study_path(x.iloc[0], selected_protocol)})
+        .reset_index()
     )
 
     return html.Div(
@@ -56,14 +70,16 @@ def project_page(selected_protocol, summary_df):
                             "cellRenderer": "ProjectLink",  # Use the ProjectLink renderer
                             "width": 400,
                         },
-                        {"headerName": "Path", "field": "Data_Path", "width": 800},
+                        {
+                            "headerName": "Path",
+                            "field": "Data_Path",
+                            "width": 800,
+                        },
                     ],
                     dashGridOptions={
                         "pagination": True,
                         "paginationPageSize": 30,
-                        "frameworkComponents": {
-                            "ProjectLink": "ProjectLink"  # Register the ProjectLink renderer
-                        },
+                        "frameworkComponents": {"ProjectLink": "ProjectLink"},
                     },
                     defaultColDef={
                         "sortable": True,

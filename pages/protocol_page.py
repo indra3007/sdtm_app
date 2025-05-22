@@ -4,11 +4,24 @@ from dash import html
 from pages.home import home_section
 
 
+def extract_study_path(full_path, protocol):
+    tokens = [token.strip() for token in full_path.split("/") if token.strip()]
+    protocol_lower = protocol.strip().lower()
+    for i, token in enumerate(tokens):
+        if token.lower() == protocol_lower:
+            return "/" + "/".join(tokens[: i + 1])
+    return full_path
+
+
 def protocol_page(summary_df):
     protocol_df = (
         summary_df.groupby("Protocol")
         .agg({"Data_Path": "first", "Date": "first"})
         .reset_index()
+    )
+    # Update the Data_Path column to show only the truncated study path
+    protocol_df["Data_Path"] = protocol_df.apply(
+        lambda row: extract_study_path(row["Data_Path"], row["Protocol"]), axis=1
     )
 
     return html.Div(

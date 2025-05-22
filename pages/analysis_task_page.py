@@ -4,6 +4,17 @@ import dash_ag_grid as dag
 from pages.home import home_section
 
 
+def extract_task_path(full_path, stop_token="final", offset=1):
+    tokens = [token.strip() for token in full_path.split("/") if token.strip()]
+    for i, token in enumerate(tokens):
+        if token.lower() == stop_token.lower():
+            end_index = i + offset  # include additional tokens as specified
+            if end_index > len(tokens):
+                end_index = len(tokens)
+            return "/" + "/".join(tokens[:end_index])
+    return full_path
+
+
 def analysis_task_page(selected_protocol, selected_project, summary_df):
     print(
         f"Generating analysis_task_page for Protocol: {selected_protocol}, Project: {selected_project}"
@@ -32,6 +43,10 @@ def analysis_task_page(selected_protocol, selected_project, summary_df):
     task_df = (
         filtered_df.groupby("Analysis_Task").agg({"Data_Path": "first"}).reset_index()
     )
+    task_df["Data_Path"] = task_df["Data_Path"].apply(
+        lambda p: extract_task_path(p, stop_token=selected_project, offset=2)
+    )
+
     return html.Div(
         [
             home_section(is_protocol=False),
