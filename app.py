@@ -1,3 +1,4 @@
+from app_instance import app, server
 from datetime import datetime
 from os import path
 import dash
@@ -17,6 +18,9 @@ from pages.analysis_task_page import analysis_task_page
 from pages.analysis_version_page import analysis_version_page
 from pages.display_table_page import display_table_page
 import re
+from dash import callback_context, Output, Input, State
+from dash.exceptions import PreventUpdate
+import dash
 
 engine = get_engine()
 
@@ -41,20 +45,20 @@ END
 with engine.begin() as conn:
     conn.execute(create_table_query)
     print("Table 'query_submit_sdtm_checks' is ready!")
-external_stylesheets = [
-    "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css",  # Bootstrap CSS
-    "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css",  # Bootstrap Icons
-]
+# external_stylesheets = [
+#     "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css",  # Bootstrap CSS
+#     "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css",  # Bootstrap Icons
+# ]
 
 
-# Initialize the Dash app with external stylesheets
-app = Dash(
-    __name__,
-    external_stylesheets=external_stylesheets,
-    suppress_callback_exceptions=True,
-    routes_pathname_prefix="/sdtmchecks/",
-)
-server = app.server
+# # Initialize the Dash app with external stylesheets
+# app = Dash(
+#     __name__,
+#     external_stylesheets=external_stylesheets,
+#     suppress_callback_exceptions=True,
+#     routes_pathname_prefix="/sdtmchecks/",
+# )
+# server = app.server
 
 
 # Fetch the table from the SQL database
@@ -692,37 +696,36 @@ def combined_popup_action(
     elif triggered_id == "query-submit-btn" and n_form:
         insert_query = text(
             """
-            INSERT INTO query_submit_sdtm_checks (name, email, domain, description, [rule])
-            VALUES (:name, :email, :domain, :description, :rule)
+        INSERT INTO query_submit_sdtm_checks (name, email, domain, description, [rule])
+        VALUES (:name, :email, :domain, :description, :rule)
         """
         )
-        try:
-            with engine.begin() as conn:
-                conn.execute(
-                    insert_query,
-                    {
-                        "name": name,
-                        "email": email,
-                        "domain": domain,
-                        "description": description,
-                        "rule": rule,
-                    },
-                )
-            # On success, show a success message and close the popup.
-            return "Query successfully submitted!", {"display": "none"}
-        except Exception as e:
-            # On error, remain visible.
-            return f"Error submitting query: {str(e)}", {
-                "display": "block",
-                "position": "fixed",
-                "top": "20%",
-                "left": "50%",
-                "transform": "translateX(-50%)",
-                "backgroundColor": "#fff",
-                "padding": "20px",
-                "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
-                "zIndex": 1000,
-            }
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                insert_query,
+                {
+                    "name": name,
+                    "email": email,
+                    "domain": domain,
+                    "description": description,
+                    "rule": rule,
+                },
+            )
+        # On success, return an empty message and close the popup.
+        return "", {"display": "none"}
+    except Exception as e:
+        return f"Error submitting query: {str(e)}", {
+            "display": "block",
+            "position": "fixed",
+            "top": "20%",
+            "left": "50%",
+            "transform": "translateX(-50%)",
+            "backgroundColor": "#fff",
+            "padding": "20px",
+            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            "zIndex": 1000,
+        }
     # For any other trigger, ensure the popup is hidden.
     else:
         return "", {"display": "none"}
@@ -799,6 +802,396 @@ def toggle_user_guide(user_clicks, close_clicks, x_clicks, current_style):
     elif triggered_id in ["user-guide-close-button", "user-guide-x-button"]:
         return {"display": "none"}
     return current_style
+
+
+# Define your developer email address (adjust as needed)
+DEVELOPER_EMAIL = "indraneel.narisetty@gilead.com"
+
+
+# Callback to toggle the Report Bug popup.
+@app.callback(
+    Output("report-bug-popup", "style"),
+    [Input("report-bug-button", "n_clicks"), Input("bug-cancel-btn", "n_clicks")],
+)
+def toggle_report_bug_popup(report_clicks, cancel_clicks):
+    ctx = callback_context
+    if not ctx.triggered:
+        return {"display": "none"}
+    clicked_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if clicked_id == "report-bug-button":
+        return {
+            "display": "block",
+            "position": "fixed",
+            "top": "20%",
+            "left": "50%",
+            "transform": "translateX(-50%)",
+            "backgroundColor": "#fff",
+            "padding": "20px",
+            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            "zIndex": 1000,
+            "width": "43%",
+            "cursor": "move",
+            "borderRadius": "8px",
+        }
+    elif clicked_id == "bug-cancel-btn":
+        return {"display": "none"}
+    return {"display": "none"}
+
+
+import base64, uuid
+from dash.exceptions import PreventUpdate
+
+
+@app.callback(
+    [
+        Output("report-bug-popup", "style", allow_duplicate=True),
+        Output("bug-thankyou-popup", "style"),
+        Output("bug-submitted-email", "children"),
+        # Reset input values:
+        Output("bug-name", "value"),
+        Output("bug-email", "value"),
+        Output("bug-description", "value"),
+        Output("bug-screenshot-upload", "contents"),
+        # Update input styles for error highlighting:
+        Output("bug-name", "style"),
+        Output("bug-email", "style"),
+        Output("bug-description", "style"),
+    ],
+    [Input("bug-submit-btn", "n_clicks")],
+    [
+        State("bug-email", "value"),
+        State("bug-description", "value"),
+        State("bug-screenshot-upload", "contents"),
+        State("bug-name", "value"),
+    ],
+    prevent_initial_call="initial_duplicate",
+)
+def submit_bug_report(n_clicks, email, description, screenshot_contents, name):
+    # Common popup style for the bug report popup.
+    popup_style = {
+        "display": "block",
+        "position": "fixed",
+        "top": "20%",
+        "left": "50%",
+        "transform": "translateX(-50%)",
+        "backgroundColor": "#fff",
+        "padding": "20px",
+        "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+        "zIndex": 1000,
+        "width": "43%",
+        "cursor": "move",
+        "borderRadius": "8px",
+    }
+    default_input_style = {"border": "1px solid #ccc"}
+    error_input_style = {"border": "2px solid red"}
+
+    # Check required fields.
+    missing_name = not name or name.strip() == ""
+    missing_email = not email or email.strip() == ""
+    missing_description = not description or description.strip() == ""
+
+    if n_clicks:
+        # Highlight errors if any required field is missing.
+        if missing_name or missing_email or missing_description:
+            error_message = "<span style='color:red;'>Error: Name, Email and Bug Description are required.</span>"
+            name_style = error_input_style if missing_name else default_input_style
+            email_style = error_input_style if missing_email else default_input_style
+            desc_style = (
+                error_input_style if missing_description else default_input_style
+            )
+            return (
+                popup_style,  # Keep popup open.
+                {"display": "none"},  # Do not show thank you popup.
+                error_message,  # Error message.
+                name,
+                email,
+                description,  # Do not clear inputs.
+                screenshot_contents,  # Do not clear screenshot.
+                name_style,
+                email_style,
+                desc_style,
+            )
+
+        # Define Thank You popup style.
+        thankyou_style = {
+            "display": "block",
+            "position": "fixed",
+            "top": "30%",
+            "left": "50%",
+            "transform": "translateX(-50%)",
+            "backgroundColor": "#fff",
+            "padding": "20px",
+            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            "zIndex": 1000,
+            "width": "40%",
+            "cursor": "move",
+            "borderRadius": "8px",
+        }
+
+        details = (
+            f"<strong>Name:</strong> {name}<br>"
+            f"<strong>Email:</strong> {email}<br><br>"
+            f"<strong>Bug Description:</strong><br>{description}"
+        )
+        attachments = []
+        # If screenshot_contents is provided, process as list or single string.
+        if screenshot_contents:
+            if isinstance(screenshot_contents, list):
+                for content in screenshot_contents:
+                    try:
+                        header, encoded = content.split(",", 1)
+                        data = base64.b64decode(encoded)
+                        tmp_path = f"temp_{uuid.uuid4().hex}.png"
+                        with open(tmp_path, "wb") as f:
+                            f.write(data)
+                        attachments.append(tmp_path)
+                    except Exception as e:
+                        print(f"Error processing screenshot: {e}")
+            else:
+                try:
+                    header, encoded = screenshot_contents.split(",", 1)
+                    data = base64.b64decode(encoded)
+                    tmp_path = f"temp_{uuid.uuid4().hex}.png"
+                    with open(tmp_path, "wb") as f:
+                        f.write(data)
+                    attachments.append(tmp_path)
+                except Exception as e:
+                    print(f"Error processing screenshot: {e}")
+
+        try:
+            send_bug_report(
+                from_email=email,
+                to_email=DEVELOPER_EMAIL,
+                details=details,
+                attachments=attachments,  # Pass the list of file paths.
+            )
+        except Exception as e:
+            print(f"Error sending bug report email: {e}")
+
+        submitted_message = f"Report submitted from email: **{email}**"
+        # Clear all inputs and close the bug report popup.
+        return (
+            {"display": "none"},  # Hide the bug report popup.
+            thankyou_style,  # Show Thank You popup.
+            submitted_message,  # Thank you message.
+            "",  # Clear bug-name.
+            "",  # Clear bug-email.
+            "",  # Clear bug-description.
+            None,  # Clear bug-screenshot-upload.
+            default_input_style,  # Reset style for bug-name.
+            default_input_style,  # Reset style for bug-email.
+            default_input_style,  # Reset style for bug-description.
+        )
+    raise PreventUpdate
+
+
+@app.callback(
+    Output("bug-thankyou-popup", "style", allow_duplicate=True),
+    [Input("bug-thankyou-close-btn", "n_clicks")],
+    prevent_initial_call=True,
+)
+def close_thankyou(n_clicks):
+    return {"display": "none"}
+
+
+# --- Callbacks for Query Submission Thank You Popup ---
+@app.callback(
+    [
+        Output("submit-query-popup", "style", allow_duplicate=True),
+        Output("query-thankyou-popup", "style"),
+        Output("query-submitted-message", "children"),
+    ],
+    [Input("query-submit-btn", "n_clicks")],
+    [
+        State("query-name", "value"),
+        State("query-email", "value"),
+        State("query-domain", "value"),
+        State("query-description", "value"),
+        State("query-rule", "value"),
+    ],
+    prevent_initial_call="initial_duplicate",
+)
+def submit_query(n_clicks, name, email, domain, description, rule):
+    if n_clicks:
+        # Insert the query into the database.
+        insert_query = text(
+            """
+            INSERT INTO query_submit_sdtm_checks (name, email, domain, description, [rule])
+            VALUES (:name, :email, :domain, :description, :rule)
+            """
+        )
+        try:
+            with engine.begin() as conn:
+                conn.execute(
+                    insert_query,
+                    {
+                        "name": name,
+                        "email": email,
+                        "domain": domain,
+                        "description": description,
+                        "rule": rule,
+                    },
+                )
+        except Exception as e:
+            return (
+                f"Error submitting query: {str(e)}",
+                {
+                    "display": "block",
+                    "position": "fixed",
+                    "top": "20%",
+                    "left": "50%",
+                    "transform": "translateX(-50%)",
+                    "backgroundColor": "#fff",
+                    "padding": "20px",
+                    "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+                    "zIndex": 1000,
+                },
+                no_update,
+            )
+
+        thankyou_style = {
+            "display": "block",
+            "position": "fixed",
+            "top": "30%",
+            "left": "50%",
+            "transform": "translateX(-50%)",
+            "backgroundColor": "#fff",
+            "padding": "20px",
+            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            "zIndex": 1000,
+            "width": "40%",
+            "cursor": "move",
+            "borderRadius": "8px",
+        }
+        submitted_message = (
+            "Thank you! Your response has been submitted to the developer."
+        )
+        # Hide the Submit Query popup and show Query Thank You popup.
+        return {"display": "none"}, thankyou_style, submitted_message
+    raise PreventUpdate
+
+
+# Callback to close the Query Thank You popup.
+@app.callback(
+    Output("query-thankyou-popup", "style", allow_duplicate=True),
+    [Input("query-thankyou-close-btn", "n_clicks")],
+    prevent_initial_call=True,
+)
+def close_query_thankyou(n_clicks):
+    return {"display": "none"}
+
+
+import os
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.application import MIMEApplication
+
+
+def send_bug_report(from_email, to_email, details, attachments=None):
+    """
+    Sends a bug report email with bug details.
+    Image attachments are embedded inline.
+    Other attachments are added as downloadable files.
+    """
+    print("Sending bug report email with details:")
+    print(details)
+    if attachments:
+        for attachment in attachments:
+            abs_path = os.path.abspath(attachment)
+            print("Checking attachment at:", abs_path)
+
+    smtp_server = "mailrelay.gilead.com"
+    smtp_port = 25
+    timeout = 600
+    subject = "New Bug Report Submitted"
+
+    msg = MIMEMultipart("related")
+    msg["Subject"] = subject
+    msg["From"] = from_email
+    msg["To"] = to_email
+
+    msg_alternative = MIMEMultipart("alternative")
+    msg.attach(msg_alternative)
+
+    # Build the HTML message body.
+    html = f"""\
+<html>
+  <body style="font-family: Arial, sans-serif; font-size:14px;">
+    <p>
+      <strong>Bug Report Details:</strong><br>
+      {details}<br><br>
+      <strong>Submitted from:</strong> {from_email}
+    </p>
+    """
+    # For each attachment, add an inline image tag for screenshots
+    # and for non-images, a download link.
+    if attachments:
+        for attachment in attachments:
+            abs_path = os.path.abspath(attachment)
+            ext = os.path.splitext(abs_path)[1].lower()
+            if ext in [".png", ".jpg", ".jpeg", ".gif"]:
+                # Use the basename as the Content-ID identifier.
+                cid = os.path.basename(abs_path)
+                html += f"""\
+    <p><strong>Inline Screenshot:</strong><br>
+      <img src="cid:{cid}" style="max-width:600px; border:1px solid #ccc;">
+    </p>
+                """
+            else:
+                # For non-image attachments, add a download link placeholder.
+                html += f"""\
+    <p><strong>Attachment:</strong> {os.path.basename(abs_path)}</p>
+                """
+    html += """
+  </body>
+</html>
+"""
+    msg_alternative.attach(MIMEText(html, "html"))
+
+    # Attach files.
+    if attachments:
+        for attachment in attachments:
+            abs_path = os.path.abspath(attachment)
+            if os.path.exists(abs_path):
+                ext = os.path.splitext(abs_path)[1].lower()
+                try:
+                    with open(abs_path, "rb") as f:
+                        file_data = f.read()
+                    if ext in [".png", ".jpg", ".jpeg", ".gif"]:
+                        image = MIMEImage(file_data)
+                        # Use the basename as content id.
+                        cid = os.path.basename(abs_path)
+                        image.add_header("Content-ID", f"<{cid}>")
+                        image.add_header(
+                            "Content-Disposition",
+                            "inline",
+                            filename=os.path.basename(abs_path),
+                        )
+                        msg.attach(image)
+                        print("Inline image attached successfully:", cid)
+                    else:
+                        attachment_part = MIMEApplication(
+                            file_data, Name=os.path.basename(abs_path)
+                        )
+                        attachment_part.add_header(
+                            "Content-Disposition",
+                            f'attachment; filename="{os.path.basename(abs_path)}"',
+                        )
+                        msg.attach(attachment_part)
+                        print("File attached as download:", os.path.basename(abs_path))
+                except Exception as e:
+                    print(f"Error attaching file {abs_path}: {e}")
+            else:
+                print("Attachment file not found at:", abs_path)
+
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=timeout) as server:
+            server.send_message(msg)
+            print("Bug report email sent successfully!")
+    except Exception as e:
+        print(f"Error sending bug report email: {e}")
 
 
 if __name__ == "__main__":
