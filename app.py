@@ -21,6 +21,7 @@ import re
 from dash import callback_context, Output, Input, State
 from dash.exceptions import PreventUpdate
 import dash
+import mimetypes
 
 engine = get_engine()
 
@@ -934,29 +935,33 @@ def submit_bug_report(n_clicks, email, description, screenshot_contents, name):
             f"<strong>Bug Description:</strong><br>{description}"
         )
         attachments = []
-        # If screenshot_contents is provided, process as list or single string.
         if screenshot_contents:
             if isinstance(screenshot_contents, list):
                 for content in screenshot_contents:
                     try:
                         header, encoded = content.split(",", 1)
+                        # Extract the MIME type from the header.
+                        mimetype = header.split(":")[1].split(";")[0]
+                        ext = mimetypes.guess_extension(mimetype) or ".bin"
                         data = base64.b64decode(encoded)
-                        tmp_path = f"temp_{uuid.uuid4().hex}.png"
+                        tmp_path = f"temp_{uuid.uuid4().hex}{ext}"
                         with open(tmp_path, "wb") as f:
                             f.write(data)
                         attachments.append(tmp_path)
                     except Exception as e:
-                        print(f"Error processing screenshot: {e}")
+                        print(f"Error processing attachment: {e}")
             else:
                 try:
                     header, encoded = screenshot_contents.split(",", 1)
+                    mimetype = header.split(":")[1].split(";")[0]
+                    ext = mimetypes.guess_extension(mimetype) or ".bin"
                     data = base64.b64decode(encoded)
-                    tmp_path = f"temp_{uuid.uuid4().hex}.png"
+                    tmp_path = f"temp_{uuid.uuid4().hex}{ext}"
                     with open(tmp_path, "wb") as f:
                         f.write(data)
                     attachments.append(tmp_path)
                 except Exception as e:
-                    print(f"Error processing screenshot: {e}")
+                    print(f"Error processing attachment: {e}")
 
         try:
             send_bug_report(
