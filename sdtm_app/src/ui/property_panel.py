@@ -5281,12 +5281,12 @@ class PropertyPanel(QScrollArea):
         """)
         join_type_layout = QVBoxLayout(join_type_group)
         
-        # Create join type options in new order: left, right, inner, outer
+        # Create join type options with SQL Venn diagram style representations
         join_options = [
             ("left", "Left Join", "All rows from left dataset, matched rows from right", "●○"),
             ("right", "Right Join", "All rows from right dataset, matched rows from left", "○●"),
             ("inner", "Inner Join", "Only rows with matches in both datasets", "◐◑"),
-            ("outer", "Outer Join", "All rows from both datasets", "●●")
+            ("outer", "Outer Join", "All rows from both datasets", "◉◉")
         ]
         
         # Create grid layout for join types (2x2)
@@ -5329,19 +5329,20 @@ class PropertyPanel(QScrollArea):
             self.join_type_group.addButton(radio, idx)
             container_layout.addWidget(radio)
             
-            # Visual representation with circles
+            # Visual representation with SQL Venn diagram style circles
             visual_label = QLabel(visual)
             visual_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             visual_label.setStyleSheet("""
                 QLabel {
-                    font-size: 24px;
+                    font-size: 20px;
                     font-weight: bold;
-                    color: #2980b9;
-                    padding: 8px;
-                    background: white;
-                    border-radius: 5px;
-                    border: 1px solid #bdc3c7;
-                    min-height: 40px;
+                    color: #2c3e50;
+                    padding: 10px;
+                    background: #ffffff;
+                    border-radius: 6px;
+                    border: 2px solid #3498db;
+                    min-height: 45px;
+                    letter-spacing: 2px;
                 }
             """)
             container_layout.addWidget(visual_label)
