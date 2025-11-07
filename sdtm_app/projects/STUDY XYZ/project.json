@@ -1,0 +1,29 @@
+{
+  "name": "STUDY XYZ",
+  "description": "",
+  "created": "2025-10-27T10:34:09.359292",
+  "modified": "2025-11-07T09:25:17.295072",
+  "version": "1.0",
+  "flows": [
+    {
+      "name": "Workflow_5nodes_2connections_test",
+      "filename": "Workflow_5nodes_2connections_test.json",
+      "modified": "2025-10-27T13:08:50.001329"
+    },
+    {
+      "name": "Workflow_5nodes_2connections",
+      "filename": "Workflow_5nodes_2connections.json",
+      "modified": "2025-10-27T13:21:42.970845"
+    },
+    {
+      "name": "AE",
+      "filename": "AE.json",
+      "modified": "2025-10-28T16:40:39.453178"
+    },
+    {
+      "name": "AE_copy",
+      "filename": "AE_copy.json",
+      "modified": "2025-11-07T09:25:17.295080"
+    }
+  ]
+}
