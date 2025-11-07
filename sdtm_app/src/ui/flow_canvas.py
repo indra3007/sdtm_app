@@ -1105,6 +1105,8 @@ class FlowCanvas(QGraphicsView):
             node = ConditionalMappingNode()
         elif node_type == "DomainNode":
             node = DomainNode()
+        elif node_type == "JoinNode":
+            node = JoinNode()
         else:
             # Generic node
             node = GenericTransformationNode(node_data.get("title", "Unknown"))
@@ -3996,7 +3998,9 @@ class JoinNode(BaseNode):
             "column_suffix_left": self.column_suffix_left,
             "column_suffix_right": self.column_suffix_right,
             "left_available_columns": self.left_available_columns,
-            "right_available_columns": self.right_available_columns
+            "right_available_columns": self.right_available_columns,
+            "selected_left_columns": getattr(self, 'selected_left_columns', []),
+            "selected_right_columns": getattr(self, 'selected_right_columns', [])
         })
         return data
     
