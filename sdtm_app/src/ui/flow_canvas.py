@@ -4006,7 +4006,18 @@ class JoinNode(BaseNode):
     
     def deserialize(self, data):
         """Deserialize join configuration from saved data"""
-        super().deserialize(data)
+        # Set basic properties directly since BaseNode doesn't have deserialize
+        if 'title' in data:
+            self.title = data['title']
+        if 'custom_name' in data:
+            self.custom_name = data['custom_name']
+        if 'custom_description' in data:
+            self.custom_description = data['custom_description']
+        if 'position' in data:
+            pos_data = data['position']
+            self.setPos(pos_data['x'], pos_data['y'])
+        
+        # Set join-specific properties
         self.set_properties(data)
     
     def update_available_columns(self):
