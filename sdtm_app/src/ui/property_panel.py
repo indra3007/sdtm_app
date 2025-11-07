@@ -5283,10 +5283,10 @@ class PropertyPanel(QScrollArea):
         
         # Create join type options in new order: left, right, inner, outer
         join_options = [
-            ("left", "Left Join", "All rows from left dataset, matched rows from right", "🟦🔗  "),
-            ("right", "Right Join", "All rows from right dataset, matched rows from left", " 🔗🟩"),
-            ("inner", "Inner Join", "Only rows with matches in both datasets", " 🔗  "),
-            ("outer", "Outer Join", "All rows from both datasets", "🟦🔗🟩")
+            ("left", "Left Join", "All rows from left dataset, matched rows from right", "●○"),
+            ("right", "Right Join", "All rows from right dataset, matched rows from left", "○●"),
+            ("inner", "Inner Join", "Only rows with matches in both datasets", "◐◑"),
+            ("outer", "Outer Join", "All rows from both datasets", "●●")
         ]
         
         # Create grid layout for join types (2x2)
@@ -5329,18 +5329,19 @@ class PropertyPanel(QScrollArea):
             self.join_type_group.addButton(radio, idx)
             container_layout.addWidget(radio)
             
-            # Visual representation
+            # Visual representation with circles
             visual_label = QLabel(visual)
             visual_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             visual_label.setStyleSheet("""
                 QLabel {
-                    font-size: 16px;
+                    font-size: 24px;
                     font-weight: bold;
-                    color: #2c3e50;
-                    padding: 5px;
+                    color: #2980b9;
+                    padding: 8px;
                     background: white;
-                    border-radius: 3px;
-                    border: 1px solid #ecf0f1;
+                    border-radius: 5px;
+                    border: 1px solid #bdc3c7;
+                    min-height: 40px;
                 }
             """)
             container_layout.addWidget(visual_label)
