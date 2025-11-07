@@ -1,0 +1,15 @@
+CODELIST,DECODED_VALUE,CODELIST_VALUE,DEFINITION
+YESNO,Yes,Y,Positive response
+YESNO,No,N,Negative response
+YESNO,Unknown,U,Unknown response
+AESEV,Mild,MILD,Mild adverse event severity
+AESEV,Moderate,MODERATE,Moderate adverse event severity
+AESEV,Severe,SEVERE,Severe adverse event severity
+AEOUT,Recovered/Resolved,RECOVERED,Adverse event outcome: recovered or resolved
+AEOUT,Recovering/Resolving,RECOVERING,Adverse event outcome: recovering or resolving
+AEOUT,Not Recovered/Not Resolved,NOT RECOVERED,Adverse event outcome: not recovered or not resolved
+AEOUT,Fatal,FATAL,Adverse event outcome: fatal
+AEOUT,Unknown,UNKNOWN,Adverse event outcome: unknown
+COUNTRY,United States,USA,United States of America
+COUNTRY,Canada,CAN,Canada
+COUNTRY,United Kingdom,GBR,United Kingdom of Great Britain and Northern Ireland

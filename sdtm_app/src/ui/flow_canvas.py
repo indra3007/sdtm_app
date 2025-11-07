@@ -3692,7 +3692,7 @@ class JoinNode(BaseNode):
         super().__init__("🔗 Join", width=120, height=80)
         
         # Join configuration
-        self.join_type = "inner"  # inner, left, right, outer
+        self.join_type = "left"  # left, right, inner, outer (reordered for better UX)
         self.left_columns = []    # Columns from left dataset for joining
         self.right_columns = []   # Columns from right dataset for joining
         self.duplicate_handling = "skip"  # append, skip
@@ -3971,7 +3971,7 @@ class JoinNode(BaseNode):
     
     def set_properties(self, properties):
         """Set join configuration from saved properties"""
-        self.join_type = properties.get("join_type", "inner")
+        self.join_type = properties.get("join_type", "left")  # Updated default order
         self.left_columns = properties.get("left_columns", [])
         self.right_columns = properties.get("right_columns", [])
         self.duplicate_handling = properties.get("duplicate_handling", "skip")

@@ -5269,46 +5269,105 @@ class PropertyPanel(QScrollArea):
                 border-radius: 5px;
                 margin-top: 5px;
                 padding-top: 15px;
+                background: white;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 5px 0 5px;
+                background: white;
+                border-radius: 2px;
             }
         """)
         join_type_layout = QVBoxLayout(join_type_group)
         
-        join_button_layout = QHBoxLayout()
+        # Create join type options in new order: left, right, inner, outer
+        join_options = [
+            ("left", "Left Join", "All rows from left dataset, matched rows from right", "🟦🔗  "),
+            ("right", "Right Join", "All rows from right dataset, matched rows from left", " 🔗🟩"),
+            ("inner", "Inner Join", "Only rows with matches in both datasets", " 🔗  "),
+            ("outer", "Outer Join", "All rows from both datasets", "🟦🔗🟩")
+        ]
+        
+        # Create grid layout for join types (2x2)
+        join_grid_layout = QGridLayout()
         self.join_type_group = QButtonGroup()
         
-        inner_radio = QRadioButton("Inner Join")
-        inner_radio.setToolTip("Only rows with matches in both datasets")
-        inner_radio.setChecked(node.join_type == "inner")
-        self.join_type_group.addButton(inner_radio, 0)
-        join_button_layout.addWidget(inner_radio)
+        for idx, (join_type, display_name, tooltip, visual) in enumerate(join_options):
+            # Create container for each join type
+            join_container = QWidget()
+            join_container.setStyleSheet("""
+                QWidget {
+                    border: 1px solid #bdc3c7;
+                    border-radius: 5px;
+                    padding: 5px;
+                    margin: 2px;
+                    background: #f8f9fa;
+                }
+                QWidget:hover {
+                    background: #e3f2fd;
+                    border-color: #3498db;
+                }
+            """)
+            container_layout = QVBoxLayout(join_container)
+            container_layout.setContentsMargins(8, 8, 8, 8)
+            
+            # Radio button
+            radio = QRadioButton(display_name)
+            radio.setChecked(node.join_type == join_type)
+            radio.setStyleSheet("""
+                QRadioButton {
+                    font-weight: bold;
+                    font-size: 11px;
+                    spacing: 5px;
+                }
+                QRadioButton::indicator {
+                    width: 13px;
+                    height: 13px;
+                }
+            """)
+            self.join_type_group.addButton(radio, idx)
+            container_layout.addWidget(radio)
+            
+            # Visual representation
+            visual_label = QLabel(visual)
+            visual_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            visual_label.setStyleSheet("""
+                QLabel {
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                    padding: 5px;
+                    background: white;
+                    border-radius: 3px;
+                    border: 1px solid #ecf0f1;
+                }
+            """)
+            container_layout.addWidget(visual_label)
+            
+            # Description
+            desc_label = QLabel(tooltip)
+            desc_label.setWordWrap(True)
+            desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            desc_label.setStyleSheet("""
+                QLabel {
+                    font-size: 10px;
+                    color: #7f8c8d;
+                    padding: 3px;
+                    text-align: center;
+                }
+            """)
+            container_layout.addWidget(desc_label)
+            
+            # Add to grid (2x2 layout)
+            row = idx // 2
+            col = idx % 2
+            join_grid_layout.addWidget(join_container, row, col)
         
-        left_radio = QRadioButton("Left Join")
-        left_radio.setToolTip("All rows from left dataset, matched rows from right")
-        left_radio.setChecked(node.join_type == "left")
-        self.join_type_group.addButton(left_radio, 1)
-        join_button_layout.addWidget(left_radio)
-        
-        right_radio = QRadioButton("Right Join")
-        right_radio.setToolTip("All rows from right dataset, matched rows from left")
-        right_radio.setChecked(node.join_type == "right")
-        self.join_type_group.addButton(right_radio, 2)
-        join_button_layout.addWidget(right_radio)
-        
-        outer_radio = QRadioButton("Outer Join")
-        outer_radio.setToolTip("All rows from both datasets")
-        outer_radio.setChecked(node.join_type == "outer")
-        self.join_type_group.addButton(outer_radio, 3)
-        join_button_layout.addWidget(outer_radio)
-        
-        join_type_layout.addLayout(join_button_layout)
+        join_type_layout.addLayout(join_grid_layout)
         
         def on_join_type_changed(button_id):
-            join_types = ["inner", "left", "right", "outer"]
+            join_types = ["left", "right", "inner", "outer"]  # Updated order
             node.join_type = join_types[button_id]
             node._user_interacted = True  # Mark user interaction
             print(f"🔗 Join type changed to: {node.join_type}")
@@ -5774,7 +5833,7 @@ class PropertyPanel(QScrollArea):
     
     def reset_join_configuration(self, node):
         """Reset join configuration to defaults"""
-        node.join_type = "inner"
+        node.join_type = "left"  # Updated default order
         node.left_columns = []
         node.right_columns = []
         node.duplicate_handling = "skip"

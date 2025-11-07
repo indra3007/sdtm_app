@@ -1,0 +1,15 @@
+CODELIST,DECODE,VALUE,DESCRIPTION
+YESNO,Yes,Y,Affirmative response
+YESNO,No,N,Negative response
+YESNO,Unknown,U,Response not available
+SEVERITY,Mild,1,Grade 1 - Mild severity
+SEVERITY,Moderate,2,Grade 2 - Moderate severity
+SEVERITY,Severe,3,Grade 3 - Severe severity
+SEVERITY,Life Threatening,4,Grade 4 - Life threatening
+NYND,Yes,Y,Yes response
+NYND,No,N,No response
+NYND,Not Done,ND,Not performed
+OCCUR,Occurred,Y,Event occurred
+OCCUR,Did Not Occur,N,Event did not occur
+SERIOUS,Serious,Y,Serious adverse event
+SERIOUS,Not Serious,N,Non-serious adverse event
