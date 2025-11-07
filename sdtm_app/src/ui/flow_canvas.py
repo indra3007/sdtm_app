@@ -3693,7 +3693,7 @@ class JoinNode(BaseNode):
         self.join_type = "inner"  # inner, left, right, outer
         self.left_columns = []    # Columns from left dataset for joining
         self.right_columns = []   # Columns from right dataset for joining
-        self.duplicate_handling = "append"  # append, skip
+        self.duplicate_handling = "skip"  # append, skip
         self.column_suffix_left = "_left"
         self.column_suffix_right = "_right"
         
@@ -3972,7 +3972,7 @@ class JoinNode(BaseNode):
         self.join_type = properties.get("join_type", "inner")
         self.left_columns = properties.get("left_columns", [])
         self.right_columns = properties.get("right_columns", [])
-        self.duplicate_handling = properties.get("duplicate_handling", "append")
+        self.duplicate_handling = properties.get("duplicate_handling", "skip")
         self.column_suffix_left = properties.get("column_suffix_left", "_left")
         self.column_suffix_right = properties.get("column_suffix_right", "_right")
         self.left_available_columns = properties.get("left_available_columns", [])

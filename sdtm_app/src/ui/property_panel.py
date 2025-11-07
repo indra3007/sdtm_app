@@ -5777,7 +5777,7 @@ class PropertyPanel(QScrollArea):
         node.join_type = "inner"
         node.left_columns = []
         node.right_columns = []
-        node.duplicate_handling = "append"
+        node.duplicate_handling = "skip"
         node.column_suffix_left = "_left"
         node.column_suffix_right = "_right"
         
