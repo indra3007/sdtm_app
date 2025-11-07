@@ -1,0 +1,690 @@
+{
+  "metadata": {
+    "name": "AE_copy",
+    "created": "2025-11-07T09:25:17.290279",
+    "modified": "2025-11-07T09:25:17.290286",
+    "version": "1.0"
+  },
+  "flow": {
+    "version": "1.0",
+    "nodes": [
+      {
+        "id": 2345921606224,
+        "type": "DataInputNode",
+        "title": "📥 ae.sas7bdat",
+        "custom_name": null,
+        "custom_description": null,
+        "position": {
+          "x": 50.0,
+          "y": 50.0
+        },
+        "properties": {
+          "filename": "ae.sas7bdat",
+          "rows": 245,
+          "columns": 131
+        },
+        "data": "<built-in method data of DataInputNode object at 0x000001FB5CB8F110>",
+        "filename": "ae.sas7bdat",
+        "file_path": "C:\\Users\\inarisetty\\sdtm_local\\sdtm_app\\raw\\ae.sas7bdat",
+        "dataframe_info": {
+          "shape": [
+            245,
+            131
+          ],
+          "columns": [
+            "INVID",
+            "SCRNID",
+            "SUBJID",
+            "SUBJINIT",
+            "X_SUBJID",
+            "SUBJECTID",
+            "PROJECT",
+            "STUDYSITEID",
+            "SUBJECT",
+            "SITEID",
+            "SITENUMBER",
+            "INSTANCEID",
+            "INSTANCENAME",
+            "INSTANCEREPEATNUMBER",
+            "FOLDER",
+            "FOLDERNAME",
+            "FOLDERSEQ",
+            "DATAPAGEID",
+            "DATAPAGENAME",
+            "PAGEREPEATNUMBER",
+            "RECORDDATE",
+            "RECORDID",
+            "RECORDPOSITION",
+            "MINCREATED",
+            "MAXUPDATED",
+            "STUDYENVSITENUMBER",
+            "DLASTMOD",
+            "AETERM",
+            "AESER",
+            "AESER_STD",
+            "AEIRR",
+            "AEIRR_STD",
+            "AESTDAT",
+            "AESTDAT_RAW",
+            "AESTDAT_YYYY",
+            "AESTDAT_MM",
+            "AESTDAT_DD",
+            "AESTTIM",
+            "AEENDAT",
+            "AEENDAT_RAW",
+            "AEENDAT_YYYY",
+            "AEENDAT_MM",
+            "AEENDAT_DD",
+            "AEENTIM",
+            "AEONGO",
+            "AEONGO_STD",
+            "AERELDRV",
+            "AERELDRV_STD",
+            "AEREL",
+            "AEREL_STD",
+            "AEREL2",
+            "AEREL2_STD",
+            "AEREL1",
+            "AEREL1_STD",
+            "AEREL3",
+            "AEREL3_STD",
+            "AEREL4",
+            "AEREL4_STD",
+            "AERELPRC",
+            "AERELPRC_STD",
+            "AEACN",
+            "AEACN_STD",
+            "AEACN1",
+            "AEACN1_STD",
+            "AEACN2",
+            "AEACN2_STD",
+            "AEACN3",
+            "AEACN3_STD",
+            "AEACNOTH5",
+            "AEACNOTH5_RAW",
+            "AETOXGR",
+            "AETOXGR_STD",
+            "CASENO",
+            "CASENO_STD",
+            "OLDCASE",
+            "REP_SMTP",
+            "AESDTH",
+            "AESDTH_STD",
+            "AESLIFE",
+            "AESLIFE_STD",
+            "AESHOSP",
+            "AESHOSP_STD",
+            "AEHSTDAT",
+            "AEHSTDAT_RAW",
+            "AEHSTDAT_YYYY",
+            "AEHSTDAT_MM",
+            "AEHSTDAT_DD",
+            "AEHENDAT",
+            "AEHENDAT_RAW",
+            "AEHENDAT_YYYY",
+            "AEHENDAT_MM",
+            "AEHENDAT_DD",
+            "AESDISAB",
+            "AESDISAB_STD",
+            "AESCONG",
+            "AESCONG_STD",
+            "AESMIE",
+            "AESMIE_STD",
+            "AEALTCAU",
+            "AEDISEAS",
+            "AEDISEAS_RAW",
+            "AEPRECON",
+            "AEPRECON_RAW",
+            "AEINTER",
+            "AEINTER_RAW",
+            "AECM",
+            "AECM_RAW",
+            "AECMSPEC",
+            "AEOTH",
+            "AEOTH_RAW",
+            "AEOTHSP",
+            "AEOUT",
+            "AEOUT_STD",
+            "AERLPRBX",
+            "AERLPRBX_STD",
+            "DICTION",
+            "DIC_VER",
+            "MDRLLTC",
+            "MDRLLT",
+            "MDRPTC",
+            "MDRPT",
+            "MDRHLTC",
+            "MDRHLT",
+            "MDRHLGTC",
+            "MDRHLGT",
+            "MDRSOCC",
+            "MDRSOC",
+            "QUERY",
+            "AMBIG",
+            "PDIRAE",
+            "PD1SKTOX"
+          ]
+        }
+      },
+      {
+        "id": 2345921609424,
+        "type": "DataInputNode",
+        "title": "📥 aes.sas7bdat",
+        "custom_name": null,
+        "custom_description": null,
+        "position": {
+          "x": 41.83879632237553,
+          "y": 186.72541654931024
+        },
+        "properties": {
+          "filename": "aes.sas7bdat",
+          "rows": 28,
+          "columns": 29
+        },
+        "data": "<built-in method data of DataInputNode object at 0x000001FB0FA9C550>",
+        "filename": "aes.sas7bdat",
+        "file_path": "C:\\Users\\inarisetty\\sdtm_local\\sdtm_app\\raw\\aes.sas7bdat",
+        "dataframe_info": {
+          "shape": [
+            28,
+            29
+          ],
+          "columns": [
+            "INVID",
+            "SCRNID",
+            "SUBJID",
+            "SUBJINIT",
+            "X_SUBJID",
+            "SUBJECTID",
+            "PROJECT",
+            "STUDYSITEID",
+            "SUBJECT",
+            "SITEID",
+            "SITENUMBER",
+            "INSTANCEID",
+            "INSTANCENAME",
+            "INSTANCEREPEATNUMBER",
+            "FOLDER",
+            "FOLDERNAME",
+            "FOLDERSEQ",
+            "DATAPAGEID",
+            "DATAPAGENAME",
+            "PAGEREPEATNUMBER",
+            "RECORDDATE",
+            "RECORDID",
+            "RECORDPOSITION",
+            "MINCREATED",
+            "MAXUPDATED",
+            "STUDYENVSITENUMBER",
+            "DLASTMOD",
+            "AEYN",
+            "AEYN_STD"
+          ]
+        }
+      },
+      {
+        "id": 2345997255856,
+        "type": "DataInputNode",
+        "title": "📥 dm.sas7bdat",
+        "custom_name": null,
+        "custom_description": null,
+        "position": {
+          "x": 62.24180551643674,
+          "y": 322.09063248568305
+        },
+        "properties": {
+          "filename": "dm.sas7bdat",
+          "rows": 33,
+          "columns": 51
+        },
+        "data": "<built-in method data of DataInputNode object at 0x000001FB0FA9CB90>",
+        "filename": "dm.sas7bdat",
+        "file_path": "C:\\Users\\inarisetty\\sdtm_local\\sdtm_app\\raw\\dm.sas7bdat",
+        "dataframe_info": {
+          "shape": [
+            33,
+            51
+          ],
+          "columns": [
+            "INVID",
+            "SCRNID",
+            "SUBJID",
+            "SUBJINIT",
+            "X_SUBJID",
+            "SUBJECTID",
+            "PROJECT",
+            "STUDYSITEID",
+            "SUBJECT",
+            "SITEID",
+            "SITENUMBER",
+            "INSTANCEID",
+            "INSTANCENAME",
+            "INSTANCEREPEATNUMBER",
+            "FOLDER",
+            "FOLDERNAME",
+            "FOLDERSEQ",
+            "DATAPAGEID",
+            "DATAPAGENAME",
+            "PAGEREPEATNUMBER",
+            "RECORDDATE",
+            "RECORDID",
+            "RECORDPOSITION",
+            "MINCREATED",
+            "MAXUPDATED",
+            "STUDYENVSITENUMBER",
+            "DLASTMOD",
+            "BRTHYR",
+            "BRTHYR_RAW",
+            "BRTHYR_YYYY",
+            "BRTHYR_MM",
+            "BRTHYR_DD",
+            "BRTHDAT",
+            "BRTHDAT_RAW",
+            "BRTHDAT_YYYY",
+            "BRTHDAT_MM",
+            "BRTHDAT_DD",
+            "AGE_REP",
+            "AGE_REP_RAW",
+            "AGEU",
+            "SEX",
+            "SEX_STD",
+            "RACE",
+            "RACE_STD",
+            "RACEOTH",
+            "ETHNIC",
+            "ETHNIC_STD",
+            "COUNTRY",
+            "COUNTRY_STD",
+            "REP_SMTP",
+            "BRTHIMDT"
+          ]
+        }
+      },
+      {
+        "id": 2346506314096,
+        "type": "ColumnRenamerNode",
+        "title": "🏷️ Renamer",
+        "custom_name": "test1",
+        "custom_description": null,
+        "position": {
+          "x": 423.6789875095882,
+          "y": 43.77140811916526
+        },
+        "properties": {
+          "mappings": {
+            "X_SUBJID": "USUBJID",
+            "AESER": "AESER_CRF",
+            "AEREL": "AEREL_CRF",
+            "AESCONG": "AESCONG_CRF",
+            "AEOUT": "AEOUT_CRF",
+            "AETOXGR": "AETOXGR_CRF",
+            "AESDTH": "AESDTH_CRF",
+            "AESLIFE": "AESLIFE_CRF",
+            "AESHOSP": "AESHOSP_CRF",
+            "AESMIE": "AESMIE_CRF",
+            "RECORDID": "AEREFID",
+            "RECORDPOSITION": "AESPID"
+          }
+        },
+        "data": "<built-in method data of ColumnRenamerNode object at 0x000001FB0FA9D1D0>"
+      },
+      {
+        "id": 2831340984816,
+        "type": "RowFilterNode",
+        "title": "🔍 Row Filter",
+        "custom_name": null,
+        "custom_description": null,
+        "position": {
+          "x": 577.4036746605987,
+          "y": 46.2823269721615
+        },
+        "properties": {
+          "filter_column": "",
+          "filter_operator": "equals",
+          "filter_value": "",
+          "case_sensitive": false,
+          "output_mode": "matching",
+          "conditions": [
+            {
+              "column": "SUBJID",
+              "operator": "is not missing",
+              "value": "",
+              "case_sensitive": false,
+              "logic_operator": "AND"
+            },
+            {
+              "column": "SUBJID",
+              "operator": "is not missing",
+              "value": "",
+              "case_sensitive": false,
+              "logic_operator": "AND"
+            },
+            {
+              "column": "INVID",
+              "operator": "equals",
+              "value": "",
+              "case_sensitive": false,
+              "logic_operator": "AND"
+            }
+          ],
+          "logic_operator": "AND",
+          "use_multiple_conditions": true
+        },
+        "data": "<built-in method data of RowFilterNode object at 0x000001FB0FA9D6D0>"
+      },
+      {
+        "id": 2166398463152,
+        "type": "ConstantValueColumnNode",
+        "title": "Constant",
+        "custom_name": null,
+        "custom_description": null,
+        "position": {
+          "x": 729.3681948627061,
+          "y": 47.04291483626844
+        },
+        "properties": {
+          "column_name": "TEST",
+          "constant_value": "AE",
+          "data_type": "string",
+          "columns": [
+            {
+              "column_name": "TEST",
+              "constant_value": "AE",
+              "data_type": "string"
+            }
+          ]
+        },
+        "data": "<built-in method data of ConstantValueColumnNode object at 0x000001FB0FA9DBD0>"
+      },
+      {
+        "id": 1607938830608,
+        "type": "ExpressionBuilderNode",
+        "title": "📝 Expression",
+        "custom_name": "REC",
+        "custom_description": null,
+        "position": {
+          "x": 871.5390374365486,
+          "y": 50.11783522010052
+        },
+        "properties": {
+          "expression": "",
+          "target_column": "",
+          "new_column_name": "",
+          "operation_mode": "replace",
+          "function_type": "strip",
+          "is_multiple_mode": true,
+          "expressions": [
+            {
+              "column": "INVID",
+              "function": "strip",
+              "parameters": "",
+              "mode": "Append",
+              "new_column": "RP"
+            },
+            {
+              "column": "INVID",
+              "function": "domain_split",
+              "parameters": "HYPO",
+              "mode": "Append",
+              "new_column": "x"
+            }
+          ]
+        },
+        "data": "<built-in method data of ExpressionBuilderNode object at 0x000001FB0FA9C4B0>"
+      },
+      {
+        "id": 2345828619984,
+        "type": "ConditionalMappingNode",
+        "title": "�️ Conditional Mapping",
+        "custom_name": "AEREL CT",
+        "custom_description": null,
+        "position": {
+          "x": 1024.8570857946506,
+          "y": 53.564031757630495
+        },
+        "properties": {
+          "source_column": "AEREL_CRF",
+          "target_column": "",
+          "mappings": [
+            {
+              "condition": "Related",
+              "result": "RELATED"
+            },
+            {
+              "condition": "Not Related",
+              "result": "NOT RELATED"
+            }
+          ],
+          "default_value": "",
+          "operation_mode": "replace_column",
+          "ct_selection": null,
+          "mapping_configs": [
+            {
+              "id": 1,
+              "name": "Mapping 1",
+              "source_column": "AEREL_CRF",
+              "target_column": "",
+              "mappings": [
+                {
+                  "condition": "Related",
+                  "result": "RELATED"
+                },
+                {
+                  "condition": "Not Related",
+                  "result": "NOT RELATED"
+                }
+              ],
+              "default_value": "",
+              "operation_mode": "replace_column",
+              "ct_selection": "RELATED",
+              "mapping_table": "<PyQt6.QtWidgets.QTableWidget object at 0x00000210002CB890>"
+            }
+          ]
+        },
+        "data": "<built-in method data of ConditionalMappingNode object at 0x000001FB0FA9E5D0>"
+      },
+      {
+        "id": 2076148613200,
+        "type": "DomainNode",
+        "title": "🏷️ Domain",
+        "custom_name": null,
+        "custom_description": null,
+        "position": {
+          "x": 239.77946005821642,
+          "y": 45.85028529520871
+        },
+        "properties": {
+          "selected_domain": "AE"
+        },
+        "data": "<built-in method data of DomainNode object at 0x000001FB0FA9EAD0>"
+      },
+      {
+        "id": 2179104039120,
+        "type": "ColumnKeepDropNode",
+        "title": "📋 Column Keep/Drop",
+        "custom_name": null,
+        "custom_description": null,
+        "position": {
+          "x": 272.0,
+          "y": 292.0
+        },
+        "properties": {
+          "included_columns": [
+            "INVID",
+            "SCRNID",
+            "SUBJID"
+          ],
+          "excluded_columns": [
+            "SUBJINIT",
+            "X_SUBJID",
+            "SUBJECTID",
+            "PROJECT",
+            "STUDYSITEID",
+            "SUBJECT",
+            "SITEID",
+            "SITENUMBER",
+            "INSTANCEID",
+            "INSTANCENAME",
+            "INSTANCEREPEATNUMBER",
+            "FOLDER",
+            "FOLDERNAME",
+            "FOLDERSEQ",
+            "DATAPAGEID",
+            "DATAPAGENAME",
+            "PAGEREPEATNUMBER",
+            "RECORDDATE",
+            "RECORDID",
+            "RECORDPOSITION",
+            "MINCREATED",
+            "MAXUPDATED",
+            "STUDYENVSITENUMBER",
+            "DLASTMOD",
+            "BRTHYR",
+            "BRTHYR_RAW",
+            "BRTHYR_YYYY",
+            "BRTHYR_MM",
+            "BRTHYR_DD",
+            "BRTHDAT",
+            "BRTHDAT_RAW",
+            "BRTHDAT_YYYY",
+            "BRTHDAT_MM",
+            "BRTHDAT_DD",
+            "AGE_REP",
+            "AGE_REP_RAW",
+            "AGEU",
+            "SEX",
+            "SEX_STD",
+            "RACE",
+            "RACE_STD",
+            "RACEOTH",
+            "ETHNIC",
+            "ETHNIC_STD",
+            "COUNTRY",
+            "COUNTRY_STD",
+            "REP_SMTP",
+            "BRTHIMDT"
+          ],
+          "available_columns": [
+            "INVID",
+            "SCRNID",
+            "SUBJID",
+            "SUBJINIT",
+            "X_SUBJID",
+            "SUBJECTID",
+            "PROJECT",
+            "STUDYSITEID",
+            "SUBJECT",
+            "SITEID",
+            "SITENUMBER",
+            "INSTANCEID",
+            "INSTANCENAME",
+            "INSTANCEREPEATNUMBER",
+            "FOLDER",
+            "FOLDERNAME",
+            "FOLDERSEQ",
+            "DATAPAGEID",
+            "DATAPAGENAME",
+            "PAGEREPEATNUMBER",
+            "RECORDDATE",
+            "RECORDID",
+            "RECORDPOSITION",
+            "MINCREATED",
+            "MAXUPDATED",
+            "STUDYENVSITENUMBER",
+            "DLASTMOD",
+            "BRTHYR",
+            "BRTHYR_RAW",
+            "BRTHYR_YYYY",
+            "BRTHYR_MM",
+            "BRTHYR_DD",
+            "BRTHDAT",
+            "BRTHDAT_RAW",
+            "BRTHDAT_YYYY",
+            "BRTHDAT_MM",
+            "BRTHDAT_DD",
+            "AGE_REP",
+            "AGE_REP_RAW",
+            "AGEU",
+            "SEX",
+            "SEX_STD",
+            "RACE",
+            "RACE_STD",
+            "RACEOTH",
+            "ETHNIC",
+            "ETHNIC_STD",
+            "COUNTRY",
+            "COUNTRY_STD",
+            "REP_SMTP",
+            "BRTHIMDT"
+          ]
+        },
+        "data": "<built-in method data of ColumnKeepDropNode object at 0x000001FB5CB8E0D0>"
+      }
+    ],
+    "connections": [
+      {
+        "start_node": 2346506314096,
+        "end_node": 2831340984816,
+        "start_port": "output",
+        "end_port": "input"
+      },
+      {
+        "start_node": 2831340984816,
+        "end_node": 2166398463152,
+        "start_port": "output",
+        "end_port": "input"
+      },
+      {
+        "start_node": 2166398463152,
+        "end_node": 1607938830608,
+        "start_port": "output",
+        "end_port": "input"
+      },
+      {
+        "start_node": 1607938830608,
+        "end_node": 2345828619984,
+        "start_port": "output",
+        "end_port": "input"
+      },
+      {
+        "start_node": 2345921606224,
+        "end_node": 2076148613200,
+        "start_port": "output",
+        "end_port": "input"
+      },
+      {
+        "start_node": 2076148613200,
+        "end_node": 2346506314096,
+        "start_port": "output",
+        "end_port": "input"
+      },
+      {
+        "start_node": 2345997255856,
+        "end_node": 2179104039120,
+        "start_port": "output",
+        "end_port": "input"
+      }
+    ],
+    "summary": {
+      "node_count": 10,
+      "connection_count": 7,
+      "node_types": [
+        "DataInputNode",
+        "DataInputNode",
+        "DataInputNode",
+        "ColumnRenamerNode",
+        "RowFilterNode",
+        "ConstantValueColumnNode",
+        "ExpressionBuilderNode",
+        "ConditionalMappingNode",
+        "DomainNode",
+        "ColumnKeepDropNode"
+      ],
+      "custom_names": [
+        "test1",
+        "REC",
+        "AEREL CT"
+      ]
+    }
+  }
+}
