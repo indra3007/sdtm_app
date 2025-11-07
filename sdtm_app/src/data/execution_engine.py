@@ -110,7 +110,7 @@ class FlowExecutionEngine:
                 # Data input node - load data from file
                 success = self.execute_data_input_node(node)
             elif node_class_name in ['DomainNode', 'ColumnRenamerNode', 'ExpressionBuilderNode', 
-                                   'ConstantValueColumnNode', 'RowFilterNode', 'ConditionalMappingNode']:
+                                   'ConstantValueColumnNode', 'RowFilterNode', 'ConditionalMappingNode', 'JoinNode']:
                 # Known transformation nodes - delegate to specialized execution
                 success = self.execute_transformation_node(node)
             elif hasattr(node, 'node_type'):

@@ -263,6 +263,9 @@ class FlowCanvas(QGraphicsView):
         elif node_type == "Column Keep" or node_type == "Column Drop" or node_type == "Column Keep/Drop":
             node = ColumnKeepDropNode()
             print(f"✅ Created ColumnKeepDropNode: {node.title}")
+        elif node_type == "Join":
+            node = JoinNode()
+            print(f"✅ Created JoinNode: {node.title}")
         # TODO: Add other node types
         else:
             node = GenericTransformationNode(node_type)
@@ -2801,32 +2804,64 @@ class ConditionalMappingNode(BaseNode):
             return False
 
 
-class ConnectionPort(QGraphicsEllipseItem):
-    """Enhanced connection port for linking nodes."""
+class ConnectionPort(QGraphicsPathItem):
+    """Enhanced connection port with fancy plug/connector shapes."""
     
     def __init__(self, x, y, width, height, port_type, parent):
-        super().__init__(x, y, width, height, parent)
+        super().__init__(parent)
         self.port_type = port_type  # "input" or "output"
         self.parent_node = parent
         
-        # Fancy gradients based on port type
+        # Create simple + and - symbols for connection ports
+        path = QPainterPath()
+        
         if port_type == "input":
-            # Blue gradient for input ports
-            gradient = QRadialGradient(width/2, height/2, width/2)
-            gradient.setColorAt(0, QColor(100, 150, 255, 255))  # Bright center
-            gradient.setColorAt(1, QColor(50, 100, 200, 255))   # Darker edge
-            self.setBrush(QBrush(gradient))
-            self.setPen(QPen(QColor(255, 255, 255), 2))
-            self.hover_brush = QBrush(QColor(120, 170, 255))
-        else:  # output
-            # Orange gradient for output ports
-            gradient = QRadialGradient(width/2, height/2, width/2)
-            gradient.setColorAt(0, QColor(255, 150, 100, 255))  # Bright center
-            gradient.setColorAt(1, QColor(200, 100, 50, 255))   # Darker edge
-            self.setBrush(QBrush(gradient))
-            self.setPen(QPen(QColor(255, 255, 255), 2))
-            self.hover_brush = QBrush(QColor(255, 170, 120))
+            # Create a + symbol for input ports
+            center_x, center_y = x + width/2, y + height/2
+            line_thickness = 3
+            line_length = min(width, height) * 0.6
             
+            # Horizontal line of +
+            path.addRect(center_x - line_length/2, center_y - line_thickness/2, 
+                        line_length, line_thickness)
+            # Vertical line of +
+            path.addRect(center_x - line_thickness/2, center_y - line_length/2, 
+                        line_thickness, line_length)
+            
+            # Background circle
+            circle_path = QPainterPath()
+            circle_path.addEllipse(x, y, width, height)
+            path = circle_path.united(path)
+            
+            # Green color for input ports (+)
+            self.gradient = QRadialGradient(x + width/2, y + height/2, width/2)
+            self.gradient.setColorAt(0, QColor(100, 255, 100, 255))  # Bright center
+            self.gradient.setColorAt(1, QColor(50, 200, 50, 255))    # Darker edge
+            self.hover_brush = QBrush(QColor(120, 255, 120))
+        else:  # output
+            # Create a - symbol for output ports
+            center_x, center_y = x + width/2, y + height/2
+            line_thickness = 3
+            line_length = min(width, height) * 0.6
+            
+            # Horizontal line of -
+            path.addRect(center_x - line_length/2, center_y - line_thickness/2, 
+                        line_length, line_thickness)
+            
+            # Background circle
+            circle_path = QPainterPath()
+            circle_path.addEllipse(x, y, width, height)
+            path = circle_path.united(path)
+            
+            # Red color for output ports (-)
+            self.gradient = QRadialGradient(x + width/2, y + height/2, width/2)
+            self.gradient.setColorAt(0, QColor(255, 100, 100, 255))  # Bright center
+            self.gradient.setColorAt(1, QColor(200, 50, 50, 255))    # Darker edge
+            self.hover_brush = QBrush(QColor(255, 120, 120))
+            
+        self.setPath(path)
+        self.setBrush(QBrush(self.gradient))
+        self.setPen(QPen(QColor(255, 255, 255), 2))
         self.normal_brush = self.brush()
         
         # Make port interactive
@@ -2840,8 +2875,9 @@ class ConnectionPort(QGraphicsEllipseItem):
         """Enhanced hover effect."""
         self.setBrush(self.hover_brush)
         self.setPen(QPen(QColor(255, 255, 255), 3))
-        port_name = "Input" if self.port_type == "input" else "Output"
-        self.setToolTip(f"🔗 {port_name} Port\nClick and drag to create connections")
+        port_name = "Input Port (+)" if self.port_type == "input" else "Output Port (-)"
+        connector_symbol = "+" if self.port_type == "input" else "-"
+        self.setToolTip(f"{connector_symbol} {port_name}\nClick and drag to create connections")
         super().hoverEnterEvent(event)
         
     def hoverLeaveEvent(self, event):
@@ -2856,7 +2892,7 @@ class ConnectionPort(QGraphicsEllipseItem):
         
     def get_scene_position(self):
         """Get the center position of the port in scene coordinates."""
-        rect = self.rect()
+        rect = self.boundingRect()
         center = QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
         return self.mapToScene(center)
         
@@ -3645,4 +3681,421 @@ class ColumnKeepDropNode(BaseNode):
                 self.included_columns = []
             if not hasattr(self, 'excluded_columns'):
                 self.excluded_columns = []
+
+
+class JoinNode(BaseNode):
+    """KNIME-style Join node for combining datasets"""
+    
+    def __init__(self):
+        super().__init__("🔗 Join", width=120, height=80)
+        
+        # Join configuration
+        self.join_type = "inner"  # inner, left, right, outer
+        self.left_columns = []    # Columns from left dataset for joining
+        self.right_columns = []   # Columns from right dataset for joining
+        self.duplicate_handling = "append"  # append, skip
+        self.column_suffix_left = "_left"
+        self.column_suffix_right = "_right"
+        
+        # Available columns from input datasets
+        self.left_available_columns = []
+        self.right_available_columns = []
+        
+        # Join node specific styling - Orange gradient for database operations
+        gradient = QLinearGradient(0, 0, 0, 80)
+        gradient.setColorAt(0, QColor(255, 152, 0))   # Bright orange
+        gradient.setColorAt(1, QColor(255, 87, 34))   # Deep orange
+        self.setBrush(QBrush(gradient))
+        self.setPen(QPen(QColor(255, 193, 7), 3))  # Amber border
+        
+    def execute(self, input_data=None):
+        """Execute the join operation"""
+        try:
+            print(f"🔗 JOIN EXECUTE: Starting join operation for {self.title}")
+            
+            # Get input data from connected nodes
+            left_data, right_data = self._get_input_datasets()
+            
+            if left_data is None or right_data is None:
+                raise ValueError("Both left and right datasets are required for join")
+            
+            if not self.left_columns or not self.right_columns:
+                raise ValueError("Join columns must be specified for both datasets")
+            
+            if len(self.left_columns) != len(self.right_columns):
+                raise ValueError("Number of join columns must match between left and right datasets")
+                
+            print(f"🔗 JOIN EXECUTE: Left data shape: {left_data.shape}")
+            print(f"🔗 JOIN EXECUTE: Right data shape: {right_data.shape}")
+            print(f"🔗 JOIN EXECUTE: Join type: {self.join_type}")
+            print(f"🔗 JOIN EXECUTE: Left columns: {self.left_columns}")
+            print(f"🔗 JOIN EXECUTE: Right columns: {self.right_columns}")
+            
+            # Create a copy to avoid modifying original data
+            left_df = left_data.copy()
+            right_df = right_data.copy()
+            
+            # Handle column name conflicts before join
+            left_df, right_df = self._handle_column_conflicts(left_df, right_df)
+            
+            # Determine pandas join parameters
+            how = self.join_type
+            if self.join_type == "outer":
+                how = "outer"
+            elif self.join_type == "left":
+                how = "left"
+            elif self.join_type == "right":
+                how = "right"
+            else:
+                how = "inner"
+            
+            # Perform the join
+            if len(self.left_columns) == 1 and len(self.right_columns) == 1:
+                # Single column join
+                result_df = pd.merge(
+                    left_df, 
+                    right_df,
+                    left_on=self.left_columns[0],
+                    right_on=self.right_columns[0],
+                    how=how,
+                    suffixes=(self.column_suffix_left, self.column_suffix_right)
+                )
+            else:
+                # Multiple column join
+                result_df = pd.merge(
+                    left_df,
+                    right_df,
+                    left_on=self.left_columns,
+                    right_on=self.right_columns,
+                    how=how,
+                    suffixes=(self.column_suffix_left, self.column_suffix_right)
+                )
+            
+            print(f"🔗 JOIN EXECUTE: Result shape: {result_df.shape}")
+            print(f"🔗 JOIN EXECUTE: Join completed successfully")
+            
+            # Store output data for execution engine
+            self.output_data = result_df
+            
+            # Return True for execution engine (not the DataFrame)
+            return True
+            
+        except Exception as e:
+            print(f"❌ JOIN EXECUTE ERROR: {str(e)}")
+            raise e
+    
+    def _get_input_datasets(self):
+        """Get left and right datasets from connected input nodes"""
+        left_data = None
+        right_data = None
+        connected_inputs = 0
+        
+        # Check for connected input nodes
+        for connection in self.canvas.connections if self.canvas else []:
+            if connection.end_port and connection.end_port.parent_node == self:
+                connected_inputs += 1
+                source_node = connection.start_port.parent_node
+                
+                print(f"🔗 JOIN: Processing input {connected_inputs} from {source_node.title}")
+                
+                # Try to get data from execution engine cache first
+                data = None
+                if hasattr(self.canvas, 'execution_engine') and self.canvas.execution_engine:
+                    execution_engine = self.canvas.execution_engine
+                    
+                    # Try both node object and title as keys
+                    if source_node in execution_engine.node_outputs:
+                        data = execution_engine.node_outputs[source_node]
+                        print(f"🔗 JOIN: Found data in cache (node object key)")
+                    elif hasattr(source_node, 'title') and source_node.title in execution_engine.node_outputs:
+                        data = execution_engine.node_outputs[source_node.title]
+                        print(f"🔗 JOIN: Found data in cache (title key)")
+                    else:
+                        # Data not in cache, try to execute upstream node
+                        print(f"🔗 JOIN: Data not cached, executing upstream node: {source_node.title}")
+                        success = execution_engine.execute_node(source_node)
+                        if success:
+                            # Try again after execution
+                            if source_node in execution_engine.node_outputs:
+                                data = execution_engine.node_outputs[source_node]
+                                print(f"🔗 JOIN: Got data after execution (node object key)")
+                            elif hasattr(source_node, 'title') and source_node.title in execution_engine.node_outputs:
+                                data = execution_engine.node_outputs[source_node.title]
+                                print(f"🔗 JOIN: Got data after execution (title key)")
+                
+                # If execution engine didn't work, try direct node access
+                if data is None and hasattr(source_node, 'dataframe') and source_node.dataframe is not None:
+                    data = source_node.dataframe
+                    print(f"🔗 JOIN: Using node's direct dataframe attribute")
+                
+                if data is not None:
+                    print(f"🔗 JOIN: Got data with shape: {data.shape}")
+                    if connected_inputs == 1:
+                        left_data = data
+                    elif connected_inputs == 2:
+                        right_data = data
+                else:
+                    print(f"❌ JOIN: No data available from {source_node.title}")
+        
+        print(f"🔗 JOIN: Final datasets - Left: {left_data.shape if left_data is not None else 'None'}, Right: {right_data.shape if right_data is not None else 'None'}")
+        return left_data, right_data
+    
+    def _handle_column_conflicts(self, left_df, right_df):
+        """Handle conflicting column names between datasets"""
+        left_cols = set(left_df.columns)
+        right_cols = set(right_df.columns)
+        
+        # Find join columns to exclude from conflict checking
+        join_cols_left = set(self.left_columns)
+        join_cols_right = set(self.right_columns)
+        
+        # Find conflicting columns (excluding join columns)
+        conflicting = (left_cols & right_cols) - join_cols_left - join_cols_right
+        
+        if conflicting:
+            print(f"🔗 Handling {len(conflicting)} conflicting columns: {conflicting}")
+            
+            # Apply suffix to conflicting columns
+            left_rename = {}
+            right_rename = {}
+            
+            for col in conflicting:
+                if self.duplicate_handling == "append":
+                    # Add suffix to both
+                    left_rename[col] = f"{col}{self.column_suffix_left}"
+                    right_rename[col] = f"{col}{self.column_suffix_right}"
+                elif self.duplicate_handling == "skip":
+                    # Keep left, rename right
+                    right_rename[col] = f"{col}{self.column_suffix_right}"
+            
+            if left_rename:
+                left_df = left_df.rename(columns=left_rename)
+            if right_rename:
+                right_df = right_df.rename(columns=right_rename)
+        
+        return left_df, right_df
+    
+    def get_properties(self):
+        """Return current join configuration"""
+        return {
+            "join_type": self.join_type,
+            "left_columns": self.left_columns,
+            "right_columns": self.right_columns,
+            "duplicate_handling": self.duplicate_handling,
+            "column_suffix_left": self.column_suffix_left,
+            "column_suffix_right": self.column_suffix_right,
+            "left_available_columns": self.left_available_columns,
+            "right_available_columns": self.right_available_columns
+        }
+    
+    def set_properties(self, properties):
+        """Set join configuration from saved properties"""
+        self.join_type = properties.get("join_type", "inner")
+        self.left_columns = properties.get("left_columns", [])
+        self.right_columns = properties.get("right_columns", [])
+        self.duplicate_handling = properties.get("duplicate_handling", "append")
+        self.column_suffix_left = properties.get("column_suffix_left", "_left")
+        self.column_suffix_right = properties.get("column_suffix_right", "_right")
+        self.left_available_columns = properties.get("left_available_columns", [])
+        self.right_available_columns = properties.get("right_available_columns", [])
+        
+        print(f"🔗 JOIN SET_PROPERTIES: Restored join configuration")
+        print(f"🔗 Join type: {self.join_type}")
+        print(f"🔗 Left columns: {self.left_columns}")
+        print(f"🔗 Right columns: {self.right_columns}")
+    
+    def serialize(self):
+        """Serialize join configuration for saving"""
+        data = super().serialize()
+        data.update({
+            "join_type": self.join_type,
+            "left_columns": self.left_columns,
+            "right_columns": self.right_columns,
+            "duplicate_handling": self.duplicate_handling,
+            "column_suffix_left": self.column_suffix_left,
+            "column_suffix_right": self.column_suffix_right,
+            "left_available_columns": self.left_available_columns,
+            "right_available_columns": self.right_available_columns
+        })
+        return data
+    
+    def deserialize(self, data):
+        """Deserialize join configuration from saved data"""
+        super().deserialize(data)
+        self.set_properties(data)
+    
+    def update_available_columns(self):
+        """Update available columns from connected input nodes"""
+        try:
+            self.left_available_columns = []
+            self.right_available_columns = []
+            
+            # Get canvas reference - try multiple approaches
+            canvas = None
+            
+            # Method 1: Check scene and views
+            if hasattr(self, 'scene') and self.scene():
+                views = self.scene().views()
+                for view in views:
+                    if hasattr(view, 'parent') and view.parent():
+                        parent = view.parent()
+                        if hasattr(parent, 'canvas'):
+                            canvas = parent.canvas
+                            break
+                        if hasattr(parent, 'flow_canvas'):
+                            canvas = parent.flow_canvas
+                            break
+            
+            # Method 2: Direct canvas reference
+            if not canvas and hasattr(self, 'canvas'):
+                canvas = self.canvas
+            
+            # Method 3: Try to find canvas in scene items
+            if not canvas and hasattr(self, 'scene') and self.scene():
+                scene_items = self.scene().items()
+                for item in scene_items:
+                    if hasattr(item, 'canvas') and hasattr(item.canvas, 'connections'):
+                        canvas = item.canvas
+                        break
+            
+            if not canvas:
+                print("🔗 JOIN: No canvas found for column detection")
+                return
+                
+            print(f"🔗 JOIN: Found canvas with {len(canvas.connections)} total connections")
+            
+            # Find connections TO this join node (input connections)
+            input_connections = []
+            for connection in canvas.connections:
+                try:
+                    if hasattr(connection, 'end_port') and connection.end_port:
+                        # Check if this connection ends at our join node
+                        end_node = getattr(connection.end_port, 'parent_node', None) or getattr(connection.end_port, 'node', None)
+                        if end_node == self:
+                            input_connections.append(connection)
+                            print(f"🔗 JOIN: Found input connection from {getattr(connection.start_port.parent_node if hasattr(connection.start_port, 'parent_node') else connection.start_port.node, 'title', 'Unknown')}")
+                except Exception as conn_err:
+                    print(f"🔗 JOIN: Error checking connection: {conn_err}")
+                    continue
+            
+            print(f"🔗 JOIN: Found {len(input_connections)} input connections")
+            
+            # Process each input connection
+            for i, connection in enumerate(input_connections):
+                try:
+                    source_node = getattr(connection.start_port, 'parent_node', None) or getattr(connection.start_port, 'node', None)
+                    if source_node:
+                        print(f"🔗 JOIN: Processing connection {i+1} from {getattr(source_node, 'title', 'Unknown')}")
+                        columns = self._get_columns_from_node(source_node, canvas)
+                        
+                        if i == 0:  # First connection = left dataset
+                            self.left_available_columns = columns
+                            print(f"🔗 JOIN: Set left columns ({len(columns)}): {columns[:3]}..." if len(columns) > 3 else f"🔗 JOIN: Set left columns: {columns}")
+                        elif i == 1:  # Second connection = right dataset
+                            self.right_available_columns = columns
+                            print(f"🔗 JOIN: Set right columns ({len(columns)}): {columns[:3]}..." if len(columns) > 3 else f"🔗 JOIN: Set right columns: {columns}")
+                except Exception as proc_err:
+                    print(f"🔗 JOIN: Error processing connection {i}: {proc_err}")
+            
+            print(f"🔗 JOIN: Final available columns - Left: {len(self.left_available_columns)}, Right: {len(self.right_available_columns)}")
+            
+        except Exception as e:
+            print(f"❌ Error updating available columns for join: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _get_columns_from_node(self, source_node, canvas):
+        """Get column names from a source node - prioritize execution engine cache"""
+        columns = []
+        
+        try:
+            # Method 1: Try from execution engine cache (most reliable)
+            if hasattr(canvas, 'execution_engine') and canvas.execution_engine:
+                # Try both node object and title as keys
+                node_outputs = canvas.execution_engine.node_outputs
+                
+                # Check with node object as key
+                if source_node in node_outputs:
+                    data = node_outputs[source_node]
+                    if hasattr(data, 'columns'):
+                        columns = list(data.columns)
+                        print(f"🔗 JOIN: Got {len(columns)} columns from execution engine (node object)")
+                        return columns
+                
+                # Check with node title as key
+                if hasattr(source_node, 'title') and source_node.title in node_outputs:
+                    data = node_outputs[source_node.title]
+                    if hasattr(data, 'columns'):
+                        columns = list(data.columns)
+                        print(f"🔗 JOIN: Got {len(columns)} columns from execution engine (title)")
+                        return columns
+            
+            # Method 2: Check if node has dataframe attribute directly
+            if hasattr(source_node, 'dataframe') and source_node.dataframe is not None:
+                if hasattr(source_node.dataframe, 'columns'):
+                    columns = list(source_node.dataframe.columns)
+                    print(f"🔗 JOIN: Got {len(columns)} columns from node dataframe")
+                    return columns
+            
+            # Method 3: For data input nodes, try to get from data manager
+            if hasattr(source_node, 'filename'):
+                try:
+                    import sys
+                    import os
+                    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+                    from data.data_manager import DataManager
+                    data_mgr = DataManager()
+                    # Try to get cached data first
+                    file_path = source_node.filename
+                    if file_path in data_mgr.cache:
+                        data = data_mgr.cache[file_path]
+                        if hasattr(data, 'columns'):
+                            columns = list(data.columns)
+                            print(f"🔗 JOIN: Got {len(columns)} columns from data manager cache")
+                            return columns
+                except Exception as dm_err:
+                    print(f"🔗 JOIN: Could not get columns from data manager: {dm_err}")
+            
+            # Method 3: Try from node's available_columns attribute
+            if hasattr(source_node, 'available_columns') and source_node.available_columns:
+                columns = source_node.available_columns
+                print(f"🔗 JOIN: Got {len(columns)} columns from node attribute")
+                return columns
+            
+            # Method 4: For column keep/drop nodes, try included_columns or excluded_columns
+            if hasattr(source_node, 'included_columns') and source_node.included_columns:
+                columns = source_node.included_columns
+                print(f"🔗 JOIN: Got {len(columns)} columns from included_columns")
+                return columns
+                
+            print(f"🔗 JOIN: No columns found for node {getattr(source_node, 'title', 'Unknown')}")
+            return []
+            
+        except Exception as e:
+            print(f"🔗 JOIN: Error getting columns from {getattr(source_node, 'title', 'Unknown')}: {e}")
+            return []
+            
+    def refresh_available_columns(self):
+        """Refresh available columns from connected nodes (alias for update_available_columns)"""
+        self.update_available_columns()
+    
+    def create_ports(self):
+        """Create dual input ports and single output port for Join node."""
+        # Left input port (for left dataset)
+        left_input = ConnectionPort(-15, 18, 24, 24, "input", self)
+        left_input.setToolTip("🔌 LEFT INPUT: Connect first dataset here")
+        left_input.setZValue(10)
+        self.input_ports.append(left_input)
+        
+        # Right input port (for right dataset) 
+        right_input = ConnectionPort(-15, 42, 24, 24, "input", self)
+        right_input.setToolTip("🔌 RIGHT INPUT: Connect second dataset here")
+        right_input.setZValue(10)
+        self.input_ports.append(right_input)
+        
+        # Single output port (right side)
+        output_port = ConnectionPort(self.rect().width() - 9, 28, 24, 24, "output", self)
+        output_port.setToolTip("🔗 OUTPUT: Joined dataset output")
+        output_port.setZValue(10)
+        self.output_ports.append(output_port)
         

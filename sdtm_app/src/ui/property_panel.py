@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QLineEdit, QTextEdit, QComboBox, QPushButton, QCheckBox, QRadioButton,
     QSpinBox, QDoubleSpinBox, QListWidget, QListWidgetItem,
     QGroupBox, QScrollArea, QTableWidget, QTableWidgetItem, QMessageBox,
-    QAbstractItemView, QHeaderView
+    QAbstractItemView, QHeaderView, QButtonGroup
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
@@ -138,6 +138,8 @@ class PropertyPanel(QScrollArea):
                     self.create_domain_properties(node)
                 elif node_type == "ConstantValueColumnNode":
                     self.create_constant_value_properties(node)
+                elif node_type == "JoinNode":
+                    self.create_join_properties(node)
                 else:
                     self.create_generic_properties(node)
                     
@@ -5198,6 +5200,737 @@ class PropertyPanel(QScrollArea):
             preview_text = "Enter column names and values"
             
         self.constant_preview_label.setText(preview_text)
+    
+    def create_join_properties(self, node):
+        """Create KNIME-style join properties interface with proper column selection."""
+        print(f"🔗 Creating join properties for: {node.title}")
+        
+        # Update available columns from connected nodes
+        node.update_available_columns()
+        
+        # Connection Status Header
+        status_widget = QWidget()
+        status_layout = QHBoxLayout(status_widget)
+        status_layout.setContentsMargins(10, 10, 10, 10)
+        
+        left_connected = len(node.left_available_columns) > 0
+        right_connected = len(node.right_available_columns) > 0
+        
+        if left_connected and right_connected:
+            status_icon = QLabel("🔗")
+            status_icon.setStyleSheet("font-size: 18px;")
+            status_text = QLabel(f"Both datasets connected - Left: {len(node.left_available_columns)} cols, Right: {len(node.right_available_columns)} cols")
+            status_text.setStyleSheet("color: #27ae60; font-weight: bold; font-size: 12px;")
+        else:
+            status_icon = QLabel("⚠️")
+            status_icon.setStyleSheet("font-size: 18px;")
+            status_text = QLabel("Connect two datasets to configure join")
+            status_text.setStyleSheet("color: #e67e22; font-weight: bold; font-size: 12px;")
+        
+        status_layout.addWidget(status_icon)
+        status_layout.addWidget(status_text)
+        
+        # Add refresh button
+        refresh_btn = QPushButton("🔄 Refresh")
+        refresh_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 3px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+        """)
+        refresh_btn.clicked.connect(lambda: self.refresh_join_properties(node))
+        status_layout.addWidget(refresh_btn)
+        
+        status_layout.addStretch()
+        
+        status_widget.setStyleSheet("""
+            QWidget {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                border-radius: 5px;
+            }
+        """)
+        self.content_layout.addWidget(status_widget)
+        
+        # Join Type Selection
+        join_type_group = QGroupBox("🔗 Join Type")
+        join_type_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3498db;
+                border-radius: 5px;
+                margin-top: 5px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+        join_type_layout = QVBoxLayout(join_type_group)
+        
+        join_button_layout = QHBoxLayout()
+        self.join_type_group = QButtonGroup()
+        
+        inner_radio = QRadioButton("Inner Join")
+        inner_radio.setToolTip("Only rows with matches in both datasets")
+        inner_radio.setChecked(node.join_type == "inner")
+        self.join_type_group.addButton(inner_radio, 0)
+        join_button_layout.addWidget(inner_radio)
+        
+        left_radio = QRadioButton("Left Join")
+        left_radio.setToolTip("All rows from left dataset, matched rows from right")
+        left_radio.setChecked(node.join_type == "left")
+        self.join_type_group.addButton(left_radio, 1)
+        join_button_layout.addWidget(left_radio)
+        
+        right_radio = QRadioButton("Right Join")
+        right_radio.setToolTip("All rows from right dataset, matched rows from left")
+        right_radio.setChecked(node.join_type == "right")
+        self.join_type_group.addButton(right_radio, 2)
+        join_button_layout.addWidget(right_radio)
+        
+        outer_radio = QRadioButton("Outer Join")
+        outer_radio.setToolTip("All rows from both datasets")
+        outer_radio.setChecked(node.join_type == "outer")
+        self.join_type_group.addButton(outer_radio, 3)
+        join_button_layout.addWidget(outer_radio)
+        
+        join_type_layout.addLayout(join_button_layout)
+        
+        def on_join_type_changed(button_id):
+            join_types = ["inner", "left", "right", "outer"]
+            node.join_type = join_types[button_id]
+            node._user_interacted = True  # Mark user interaction
+            print(f"🔗 Join type changed to: {node.join_type}")
+            
+        self.join_type_group.buttonClicked.connect(lambda btn: on_join_type_changed(self.join_type_group.id(btn)))
+        self.content_layout.addWidget(join_type_group)
+        
+        # Join Column Configuration - Always show this section
+        join_columns_group = QGroupBox("📋 Join Column Configuration")
+        join_columns_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #9b59b6;
+                border-radius: 5px;
+                margin-top: 5px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+        join_columns_layout = QVBoxLayout(join_columns_group)
+        
+        if left_connected and right_connected:
+            # Column selection instructions
+            instructions = QLabel("Select columns to join on from each dataset:")
+            instructions.setStyleSheet("color: #555; font-style: italic; margin-bottom: 10px;")
+            join_columns_layout.addWidget(instructions)
+            
+            # Join columns table with better dropdowns
+            mapping_table = QTableWidget()
+            mapping_table.setColumnCount(3)
+            mapping_table.setHorizontalHeaderLabels(["Left Dataset Column", "Right Dataset Column", "Actions"])
+            mapping_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+            mapping_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+            mapping_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+            mapping_table.setAlternatingRowColors(True)
+            mapping_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+            
+            # Store the table reference for updates
+            self.join_mapping_table = mapping_table
+            
+            # Populate existing mappings - Add at least one row to start
+            if not hasattr(node, 'left_columns') or not node.left_columns:
+                node.left_columns = [""]
+                node.right_columns = [""]
+            self.refresh_join_table(mapping_table, node)
+            
+            join_columns_layout.addWidget(mapping_table)
+            
+            # Join column action buttons
+            button_layout = QHBoxLayout()
+            
+            add_join_btn = QPushButton("➕ Add Join Column Pair")
+            add_join_btn.setStyleSheet(BUTTON_STYLE_PRIMARY)
+            add_join_btn.clicked.connect(lambda: self.add_join_column(mapping_table, node))
+            button_layout.addWidget(add_join_btn)
+            
+            clear_join_btn = QPushButton("🗑️ Clear All")
+            clear_join_btn.setStyleSheet(BUTTON_STYLE_DANGER)
+            clear_join_btn.clicked.connect(lambda: self.clear_join_columns(mapping_table, node))
+            button_layout.addWidget(clear_join_btn)
+            
+            button_layout.addStretch()
+            join_columns_layout.addLayout(button_layout)
+            
+        else:
+            # Show helpful message when datasets aren't connected
+            no_data_label = QLabel("🔌 Connect two datasets to configure join columns")
+            no_data_label.setStyleSheet("""
+                QLabel {
+                    color: #e67e22;
+                    font-style: italic;
+                    font-size: 14px;
+                    padding: 20px;
+                    text-align: center;
+                    border: 2px dashed #e67e22;
+                    border-radius: 8px;
+                    background-color: #fef5e7;
+                }
+            """)
+            no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            join_columns_layout.addWidget(no_data_label)
+            
+            # Add some instructions
+            instructions_label = QLabel("""
+            <b>Instructions:</b>
+            <br>1. Connect a dataset to the left input port (+)
+            <br>2. Connect a dataset to the right input port (+)  
+            <br>3. Column dropdowns will appear here for selection
+            """)
+            instructions_label.setStyleSheet("""
+                QLabel {
+                    color: #666;
+                    padding: 15px;
+                    background-color: #f8f9fa;
+                    border-radius: 5px;
+                    font-size: 12px;
+                }
+            """)
+            join_columns_layout.addWidget(instructions_label)
+        
+        self.content_layout.addWidget(join_columns_group)
+        
+        # Duplicate Column Handling
+        duplicate_group = QGroupBox("⚙️ Duplicate Column Handling")
+        duplicate_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #f39c12;
+                border-radius: 5px;
+                margin-top: 5px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+        duplicate_layout = QVBoxLayout(duplicate_group)
+        
+        # Duplicate handling options
+        duplicate_button_layout = QHBoxLayout()
+        self.duplicate_handling_group = QButtonGroup()
+        
+        append_radio = QRadioButton("Add Suffix to Both")
+        append_radio.setToolTip("Add suffix to conflicting columns from both datasets")
+        append_radio.setChecked(node.duplicate_handling == "append")
+        self.duplicate_handling_group.addButton(append_radio, 0)
+        duplicate_button_layout.addWidget(append_radio)
+        
+        skip_radio = QRadioButton("Keep Left, Suffix Right")
+        skip_radio.setToolTip("Keep left dataset columns, add suffix to right")
+        skip_radio.setChecked(node.duplicate_handling == "skip")
+        self.duplicate_handling_group.addButton(skip_radio, 1)
+        duplicate_button_layout.addWidget(skip_radio)
+        
+        duplicate_layout.addLayout(duplicate_button_layout)
+        
+        # Suffix configuration
+        suffix_layout = QHBoxLayout()
+        suffix_layout.addWidget(QLabel("Left Suffix:"))
+        
+        left_suffix_edit = QLineEdit(node.column_suffix_left)
+        left_suffix_edit.setPlaceholderText("_left")
+        left_suffix_edit.textChanged.connect(lambda text: setattr(node, 'column_suffix_left', text))
+        suffix_layout.addWidget(left_suffix_edit)
+        
+        suffix_layout.addWidget(QLabel("Right Suffix:"))
+        
+        right_suffix_edit = QLineEdit(node.column_suffix_right)
+        right_suffix_edit.setPlaceholderText("_right")
+        right_suffix_edit.textChanged.connect(lambda text: setattr(node, 'column_suffix_right', text))
+        suffix_layout.addWidget(right_suffix_edit)
+        
+        duplicate_layout.addLayout(suffix_layout)
+        
+        def on_duplicate_handling_changed(button_id):
+            handling_types = ["append", "skip"]
+            node.duplicate_handling = handling_types[button_id]
+            print(f"🔗 Duplicate handling changed to: {node.duplicate_handling}")
+            
+        self.duplicate_handling_group.buttonClicked.connect(lambda btn: on_duplicate_handling_changed(self.duplicate_handling_group.id(btn)))
+        self.content_layout.addWidget(duplicate_group)
+        
+        # Action buttons group (same style as Expression Builder)
+        buttons_group = QGroupBox("🚀 Actions")
+        buttons_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 14px;
+                color: #2c3e50;
+                border: 2px solid #28a745;
+                border-radius: 3px;
+                margin-top: 5px;
+                padding-top: 5px;
+                background: white;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 8px;
+                padding: 0 4px 0 4px;
+                background: white;
+                border-radius: 2px;
+            }
+        """)
+        buttons_layout = QVBoxLayout(buttons_group)
+        
+        # Apply and Execute button
+        apply_btn = QPushButton("✅ Apply and Execute")
+        apply_btn.setToolTip("Apply join configuration and execute in one step")
+        apply_btn.setStyleSheet(BUTTON_STYLE_PRIMARY)
+        apply_btn.clicked.connect(lambda: self.apply_join_execute(node))
+        buttons_layout.addWidget(apply_btn)
+        
+        # Cancel button
+        cancel_btn = QPushButton("❌ Cancel")
+        cancel_btn.setToolTip("Cancel - Revert unsaved changes")
+        cancel_btn.setStyleSheet(BUTTON_STYLE_DANGER)
+        cancel_btn.clicked.connect(lambda: self.cancel_changes(node))
+        buttons_layout.addWidget(cancel_btn)
+        
+        self.content_layout.addWidget(buttons_group)
+
+        # Check if node has been executed and show result (same pattern as Expression Builder)
+        execution_engine = self.get_execution_engine(node)
+        if execution_engine:
+            output_data = execution_engine.get_node_output_data(node)
+            if output_data is not None:
+                result_group = QGroupBox("✨ Join Results")
+                result_group.setStyleSheet("""
+                    QGroupBox {
+                        font-weight: bold;
+                        font-size: 14px;
+                        color: #2c3e50;
+                        border: 2px solid #28a745;
+                        border-radius: 3px;
+                        margin-top: 5px;
+                        padding-top: 5px;
+                        background: white;
+                    }
+                    QGroupBox::title {
+                        subcontrol-origin: margin;
+                        left: 8px;
+                        padding: 0 4px 0 4px;
+                        background: white;
+                        border-radius: 2px;
+                    }
+                """)
+                result_layout = QVBoxLayout(result_group)
+                
+                result_info = QLabel(f"✅ Join completed: {len(output_data)} rows produced")
+                result_info.setStyleSheet("color: #27ae60; font-weight: bold; padding: 8px; font-size: 13px;")
+                result_layout.addWidget(result_info)
+                
+                # View transformed data button
+                view_btn = QPushButton("👁️ View Transformed Data")
+                view_btn.setStyleSheet("""
+                    QPushButton {
+                        background: #17a2b8;
+                        color: white;
+                        padding: 5px 10px;
+                        border: none;
+                    }
+                    QPushButton:hover {
+                        background: #138496;
+                    }
+                """)
+                view_btn.clicked.connect(lambda: self.view_node_data(node, output_data, "Transformed Data"))
+                result_layout.addWidget(view_btn)
+                
+                self.content_layout.addWidget(result_group)
+    
+    def refresh_join_properties(self, node):
+        """Refresh the join properties by updating columns and recreating the interface"""
+        print("🔄 Refreshing join properties...")
+        
+        # Update available columns from connected nodes
+        node.update_available_columns()
+        
+        # Force refresh by clearing and recreating the interface
+        self.clear_content()
+        self.create_join_properties(node)
+        
+        print(f"🔄 Join properties refreshed - Left: {len(node.left_available_columns)}, Right: {len(node.right_available_columns)}")
+        
+        # Show notification about refresh
+        if len(node.left_available_columns) > 0 and len(node.right_available_columns) > 0:
+            self.show_notification(f"Refreshed: Found {len(node.left_available_columns)} left cols, {len(node.right_available_columns)} right cols")
+        else:
+            self.show_notification("No columns detected. Ensure nodes are connected and executed.", is_error=True)
+    
+    def refresh_join_table(self, table, node):
+        """Refresh the join column mapping table"""
+        # Clear existing rows
+        table.setRowCount(0)
+        
+        # Add existing mappings
+        max_mappings = max(len(node.left_columns), len(node.right_columns), 1)
+        for i in range(max_mappings):
+            self.add_join_table_row(table, node, i)
+    
+    def add_join_table_row(self, table, node, index):
+        """Add a single row to the join table"""
+        row = table.rowCount()
+        table.insertRow(row)
+        
+        # Left column combo
+        left_combo = QComboBox()
+        left_combo.addItems(node.left_available_columns)
+        if index < len(node.left_columns) and node.left_columns[index] in node.left_available_columns:
+            left_combo.setCurrentText(node.left_columns[index])
+        left_combo.currentTextChanged.connect(lambda text: self.update_join_column(node, row, "left", text))
+        table.setCellWidget(row, 0, left_combo)
+        
+        # Right column combo
+        right_combo = QComboBox()
+        right_combo.addItems(node.right_available_columns)
+        if index < len(node.right_columns) and node.right_columns[index] in node.right_available_columns:
+            right_combo.setCurrentText(node.right_columns[index])
+        right_combo.currentTextChanged.connect(lambda text: self.update_join_column(node, row, "right", text))
+        table.setCellWidget(row, 1, right_combo)
+        
+        # Remove button
+        remove_btn = QPushButton("❌")
+        remove_btn.setMaximumWidth(30)
+        remove_btn.setStyleSheet("QPushButton { background-color: #e74c3c; color: white; }")
+        remove_btn.clicked.connect(lambda: self.remove_join_table_row(table, node, row))
+        table.setCellWidget(row, 2, remove_btn)
+    
+    def update_join_column(self, node, row, side, column):
+        """Update join column mapping"""
+        # Mark that user has interacted with the node
+        node._user_interacted = True
+        
+        if side == "left":
+            # Extend list if needed
+            while len(node.left_columns) <= row:
+                node.left_columns.append("")
+            node.left_columns[row] = column
+        else:
+            # Extend list if needed
+            while len(node.right_columns) <= row:
+                node.right_columns.append("")
+            node.right_columns[row] = column
+        
+        print(f"🔗 Updated join columns - Left: {node.left_columns}, Right: {node.right_columns}")
+    
+    def add_join_column(self, table, node):
+        """Add a new join column row"""
+        self.add_join_table_row(table, node, table.rowCount())
+    
+    def remove_join_table_row(self, table, node, row):
+        """Remove a join column row"""
+        table.removeRow(row)
+        
+        # Update node column lists
+        if row < len(node.left_columns):
+            node.left_columns.pop(row)
+        if row < len(node.right_columns):
+            node.right_columns.pop(row)
+        
+        print(f"🔗 Removed join row {row} - Left: {node.left_columns}, Right: {node.right_columns}")
+    
+    def clear_join_columns(self, table, node):
+        """Clear all join column mappings"""
+        table.setRowCount(0)
+        node.left_columns = []
+        node.right_columns = []
+        print("🔗 Cleared all join columns")
+    
+    def select_all_columns(self, list_widget, select_all=True):
+        """Select or deselect all columns in a list widget."""
+        for i in range(list_widget.count()):
+            item = list_widget.item(i)
+            item.setCheckState(Qt.CheckState.Checked if select_all else Qt.CheckState.Unchecked)
+    
+    def update_selected_columns(self, node, side):
+        """Update selected columns for output based on list widget selections."""
+        if side == "left" and hasattr(self, 'left_columns_list'):
+            selected = []
+            for i in range(self.left_columns_list.count()):
+                item = self.left_columns_list.item(i)
+                if item.checkState() == Qt.CheckState.Checked:
+                    selected.append(item.text())
+            node.selected_left_columns = selected
+            print(f"🔗 Updated selected left columns: {selected}")
+        elif side == "right" and hasattr(self, 'right_columns_list'):
+            selected = []
+            for i in range(self.right_columns_list.count()):
+                item = self.right_columns_list.item(i)
+                if item.checkState() == Qt.CheckState.Checked:
+                    selected.append(item.text())
+            node.selected_right_columns = selected
+            print(f"🔗 Updated selected right columns: {selected}")
+    
+    def preview_join_results(self, node):
+        """Preview the join results without executing."""
+        try:
+            if not hasattr(node, 'left_columns') or not hasattr(node, 'right_columns'):
+                self.show_notification("Please configure join columns first", is_error=True)
+                return
+            
+            if not node.left_columns or not node.right_columns:
+                self.show_notification("Please select join columns for both datasets", is_error=True)
+                return
+            
+            # Show preview information
+            preview_info = f"""
+            Join Preview:
+            Type: {node.join_type.upper()} JOIN
+            Left columns: {', '.join(node.left_columns)}
+            Right columns: {', '.join(node.right_columns)}
+            Duplicate handling: {node.duplicate_handling}
+            
+            This will join the datasets on the specified columns.
+            """
+            
+            # Create preview dialog
+            from PyQt6.QtWidgets import QMessageBox
+            msg = QMessageBox()
+            msg.setWindowTitle("Join Preview")
+            msg.setText("Join Configuration Preview")
+            msg.setDetailedText(preview_info)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+            
+        except Exception as e:
+            print(f"Error in join preview: {e}")
+            self.show_notification(f"Error previewing join: {str(e)}", is_error=True)
+    
+    def apply_join_configuration(self, node):
+        """Apply the current join configuration"""
+        # Don't show error if this is just initialization (no user interaction yet)
+        if not hasattr(node, '_user_interacted'):
+            print("🔗 Skipping validation - node not yet configured by user")
+            return
+        
+        # Clean up empty columns
+        node.left_columns = [col for col in node.left_columns if col.strip()]
+        node.right_columns = [col for col in node.right_columns if col.strip()]
+        
+        if not node.left_columns or not node.right_columns:
+            self.show_notification("Please select join columns for both datasets", is_error=True)
+            return
+        
+        if len(node.left_columns) != len(node.right_columns):
+            self.show_notification("Number of join columns must match for both datasets", is_error=True)
+            return
+        
+        print(f"🔗 Applied join configuration:")
+        print(f"   Type: {node.join_type}")
+        print(f"   Left columns: {node.left_columns}")
+        print(f"   Right columns: {node.right_columns}")
+        print(f"   Duplicate handling: {node.duplicate_handling}")
+        
+        self.show_notification(f"Join configuration applied: {node.join_type} join on {len(node.left_columns)} column(s)")
+        
+        # Update node display to reflect configuration (if node supports it)
+        if node.left_columns and node.right_columns:
+            join_summary = f"{node.join_type.title()} on {node.left_columns[0]}={node.right_columns[0]}"
+            if len(node.left_columns) > 1:
+                join_summary += f" (+{len(node.left_columns)-1} more)"
+            
+            # Try to update node label if it has one
+            if hasattr(node, 'desc_text'):
+                node.desc_text.setPlainText(join_summary)
+            elif hasattr(node, 'name_text'):
+                node.name_text.setPlainText(join_summary)
+            elif hasattr(node, 'content_label'):
+                node.content_label.setText(join_summary)
+            elif hasattr(node, 'label'):
+                node.label.setText(join_summary)
+            else:
+                print(f"🔗 Node display updated: {join_summary}")
+    
+    def reset_join_configuration(self, node):
+        """Reset join configuration to defaults"""
+        node.join_type = "inner"
+        node.left_columns = []
+        node.right_columns = []
+        node.duplicate_handling = "append"
+        node.column_suffix_left = "_left"
+        node.column_suffix_right = "_right"
+        
+        print("🔗 Reset join configuration to defaults")
+        
+    def apply_join_execute(self, node):
+        """Apply join configuration and execute the join operation"""
+        try:
+            node_name = getattr(node, 'display_name', getattr(node, 'title', '🔗 Join'))
+            print(f"🔗 JOIN EXECUTE: Starting apply and execute for {node_name}")
+            
+            # First apply the configuration
+            self.apply_join_configuration(node)
+            
+            # Get the execution engine
+            execution_engine = self.get_execution_engine(node)
+            if not execution_engine:
+                self.show_notification("No execution engine available", is_error=True)
+                return
+            
+            # First, execute upstream nodes to ensure we have input data
+            print(f"🔗 JOIN EXECUTE: Executing upstream nodes first")
+            if hasattr(node, 'canvas') and node.canvas:
+                # Find and execute upstream nodes
+                upstream_executed = self._execute_upstream_nodes(node, execution_engine)
+                if not upstream_executed:
+                    self.show_notification("Failed to execute upstream nodes", is_error=True)
+                    return
+                
+            # Execute the workflow starting from this node
+            print(f"🔗 JOIN EXECUTE: Executing join node {node_name}")
+            success = execution_engine.execute_node(node)
+            
+            if success:
+                # Check if execution was successful by looking for output data
+                output_data = execution_engine.get_node_output_data(node)
+                if output_data is not None:
+                    print(f"🔗 JOIN EXECUTE: Execution successful - {len(output_data)} rows produced")
+                    self.show_notification(f"Join executed successfully: {len(output_data)} rows produced")
+                    
+                    # Refresh just the results section instead of the whole panel
+                    self._update_join_results_section(node, output_data)
+                    
+                    # Auto-refresh the data viewer
+                    if hasattr(self, 'auto_refresh_data_viewer'):
+                        self.auto_refresh_data_viewer(node)
+                else:
+                    print(f"🔗 JOIN EXECUTE: No output data produced")
+                    self.show_notification("Join executed but produced no output data", is_error=True)
+            else:
+                print(f"🔗 JOIN EXECUTE: Execution failed")
+                self.show_notification("Join execution failed", is_error=True)
+            
+            print(f"🔗 JOIN EXECUTE: Completed for {node_name}")
+            
+        except Exception as e:
+            print(f"❌ JOIN EXECUTE ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            self.show_notification(f"Error executing join: {str(e)}", is_error=True)
+            
+    def _update_join_results_section(self, node, output_data):
+        """Update just the results section of the join properties without recreating the whole panel"""
+        try:
+            # Find and remove any existing results section
+            for i in range(self.content_layout.count()):
+                widget = self.content_layout.itemAt(i).widget()
+                if widget and isinstance(widget, QGroupBox) and "Join Results" in widget.title():
+                    self.content_layout.removeWidget(widget)
+                    widget.setParent(None)
+                    break
+            
+            # Add the updated results section
+            result_group = QGroupBox("✨ Join Results")
+            result_group.setStyleSheet("""
+                QGroupBox {
+                    font-weight: bold;
+                    font-size: 14px;
+                    color: #2c3e50;
+                    border: 2px solid #28a745;
+                    border-radius: 3px;
+                    margin-top: 5px;
+                    padding-top: 5px;
+                    background: white;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 8px;
+                    padding: 0 4px 0 4px;
+                    background: white;
+                    border-radius: 2px;
+                }
+            """)
+            result_layout = QVBoxLayout(result_group)
+            
+            result_info = QLabel(f"✅ Join completed: {len(output_data)} rows produced")
+            result_info.setStyleSheet("color: #27ae60; font-weight: bold; padding: 8px; font-size: 13px;")
+            result_layout.addWidget(result_info)
+            
+            # View transformed data button
+            view_btn = QPushButton("👁️ View Transformed Data")
+            view_btn.setStyleSheet("""
+                QPushButton {
+                    background: #17a2b8;
+                    color: white;
+                    padding: 5px 10px;
+                    border: none;
+                }
+                QPushButton:hover {
+                    background: #138496;
+                }
+            """)
+            view_btn.clicked.connect(lambda: self.view_node_data(node, output_data, "Transformed Data"))
+            result_layout.addWidget(view_btn)
+            
+            self.content_layout.addWidget(result_group)
+            
+        except Exception as e:
+            print(f"Error updating join results section: {e}")
+            
+    def _execute_upstream_nodes(self, node, execution_engine):
+        """Execute all upstream nodes that the join depends on"""
+        try:
+            if not hasattr(node, 'canvas') or not node.canvas:
+                print("🔗 No canvas reference for upstream execution")
+                return False
+                
+            # Find all input connections to this join node
+            upstream_nodes = []
+            for connection in node.canvas.connections:
+                if hasattr(connection, 'end_port') and hasattr(connection.end_port, 'parent_node'):
+                    if connection.end_port.parent_node == node:
+                        # This connection ends at our join node
+                        if hasattr(connection, 'start_port') and hasattr(connection.start_port, 'parent_node'):
+                            upstream_nodes.append(connection.start_port.parent_node)
+            
+            print(f"🔗 Found {len(upstream_nodes)} upstream nodes to execute")
+            
+            # Execute each upstream node
+            success_count = 0
+            for upstream_node in upstream_nodes:
+                try:
+                    print(f"🔗 Executing upstream node: {getattr(upstream_node, 'title', 'Unknown')}")
+                    result = execution_engine.execute_node(upstream_node)
+                    if result:
+                        success_count += 1
+                        print(f"✅ Upstream node executed successfully: {getattr(upstream_node, 'title', 'Unknown')}")
+                    else:
+                        print(f"❌ Failed to execute upstream node: {getattr(upstream_node, 'title', 'Unknown')}")
+                except Exception as e:
+                    print(f"❌ Error executing upstream node {getattr(upstream_node, 'title', 'Unknown')}: {e}")
+            
+            return success_count == len(upstream_nodes)
+            
+        except Exception as e:
+            print(f"❌ Error executing upstream nodes: {e}")
+            return False
     
     def create_row_filter_properties(self, node):
         """Create properties for row filter nodes with fancy UI."""

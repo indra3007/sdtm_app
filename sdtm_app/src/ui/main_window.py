@@ -1203,6 +1203,10 @@ class MainWindow(QMainWindow):
         keep_drop_item.setData(0, Qt.ItemDataRole.UserRole, "Column Keep/Drop")
         mgmt_item.addChild(keep_drop_item)
         
+        join_item = QTreeWidgetItem(["🔗 Join"])
+        join_item.setData(0, Qt.ItemDataRole.UserRole, "Join")
+        mgmt_item.addChild(join_item)
+        
         group_item = QTreeWidgetItem(["📈 GroupBy"])
         group_item.setData(0, Qt.ItemDataRole.UserRole, "GroupBy")
         mgmt_item.addChild(group_item)
