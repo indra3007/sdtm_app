@@ -5538,6 +5538,187 @@ class PropertyPanel(QScrollArea):
         self.duplicate_handling_group.buttonClicked.connect(lambda btn: on_duplicate_handling_changed(self.duplicate_handling_group.id(btn)))
         self.content_layout.addWidget(duplicate_group)
         
+        # Output Selection Feature - Multiple datasets based on join parts
+        output_selection_group = QGroupBox("🎯 Output Selection (Multiple Tables)")
+        output_selection_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #e74c3c;
+                border-radius: 5px;
+                margin-top: 5px;
+                padding-top: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+        output_selection_layout = QVBoxLayout(output_selection_group)
+        
+        # Instructions
+        output_instructions = QLabel("Select which parts of the join to include as separate output tables:")
+        output_instructions.setStyleSheet("""
+            QLabel {
+                color: #2c3e50;
+                font-size: 11px;
+                padding: 5px;
+                background-color: #fef9e7;
+                border-radius: 3px;
+                margin-bottom: 5px;
+            }
+        """)
+        output_selection_layout.addWidget(output_instructions)
+        
+        # Create checkboxes for different output parts
+        output_checkboxes_layout = QHBoxLayout()
+        
+        # Initialize output selection attributes if not exists
+        if not hasattr(node, 'output_matching_rows'):
+            node.output_matching_rows = True  # Default to matching rows
+        if not hasattr(node, 'output_left_unmatched'):
+            node.output_left_unmatched = False
+        if not hasattr(node, 'output_right_unmatched'):
+            node.output_right_unmatched = False
+        
+        # Matching rows checkbox with circle visual
+        matching_container = QWidget()
+        matching_container.setStyleSheet("""
+            QWidget {
+                border: 1px solid #3498db;
+                border-radius: 5px;
+                padding: 5px;
+                background: #f8f9fa;
+            }
+        """)
+        matching_layout = QVBoxLayout(matching_container)
+        
+        self.matching_rows_checkbox = QCheckBox("Matching Rows")
+        self.matching_rows_checkbox.setChecked(node.output_matching_rows)
+        self.matching_rows_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-weight: bold;
+                font-size: 11px;
+            }
+        """)
+        matching_layout.addWidget(self.matching_rows_checkbox)
+        
+        matching_visual = QLabel("◐◑")
+        matching_visual.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        matching_visual.setStyleSheet("""
+            QLabel {
+                font-size: 16px;
+                color: #3498db;
+                background: white;
+                border-radius: 3px;
+                padding: 3px;
+            }
+        """)
+        matching_layout.addWidget(matching_visual)
+        
+        # Left unmatched rows checkbox  
+        left_unmatched_container = QWidget()
+        left_unmatched_container.setStyleSheet("""
+            QWidget {
+                border: 1px solid #e67e22;
+                border-radius: 5px;
+                padding: 5px;
+                background: #f8f9fa;
+            }
+        """)
+        left_unmatched_layout = QVBoxLayout(left_unmatched_container)
+        
+        self.left_unmatched_checkbox = QCheckBox("Left Unmatched")
+        self.left_unmatched_checkbox.setChecked(node.output_left_unmatched)
+        self.left_unmatched_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-weight: bold;
+                font-size: 11px;
+            }
+        """)
+        left_unmatched_layout.addWidget(self.left_unmatched_checkbox)
+        
+        left_unmatched_visual = QLabel("●○")
+        left_unmatched_visual.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        left_unmatched_visual.setStyleSheet("""
+            QLabel {
+                font-size: 16px;
+                color: #e67e22;
+                background: white;
+                border-radius: 3px;
+                padding: 3px;
+            }
+        """)
+        left_unmatched_layout.addWidget(left_unmatched_visual)
+        
+        # Right unmatched rows checkbox
+        right_unmatched_container = QWidget()
+        right_unmatched_container.setStyleSheet("""
+            QWidget {
+                border: 1px solid #9b59b6;
+                border-radius: 5px;
+                padding: 5px;
+                background: #f8f9fa;
+            }
+        """)
+        right_unmatched_layout = QVBoxLayout(right_unmatched_container)
+        
+        self.right_unmatched_checkbox = QCheckBox("Right Unmatched")
+        self.right_unmatched_checkbox.setChecked(node.output_right_unmatched)
+        self.right_unmatched_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-weight: bold;
+                font-size: 11px;
+            }
+        """)
+        right_unmatched_layout.addWidget(self.right_unmatched_checkbox)
+        
+        right_unmatched_visual = QLabel("○●")
+        right_unmatched_visual.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right_unmatched_visual.setStyleSheet("""
+            QLabel {
+                font-size: 16px;
+                color: #9b59b6;
+                background: white;
+                border-radius: 3px;
+                padding: 3px;
+            }
+        """)
+        right_unmatched_layout.addWidget(right_unmatched_visual)
+        
+        # Add containers to layout
+        output_checkboxes_layout.addWidget(matching_container)
+        output_checkboxes_layout.addWidget(left_unmatched_container)
+        output_checkboxes_layout.addWidget(right_unmatched_container)
+        output_selection_layout.addLayout(output_checkboxes_layout)
+        
+        # Connect checkbox signals
+        def on_output_selection_changed():
+            node.output_matching_rows = self.matching_rows_checkbox.isChecked()
+            node.output_left_unmatched = self.left_unmatched_checkbox.isChecked()
+            node.output_right_unmatched = self.right_unmatched_checkbox.isChecked()
+            
+            # Ensure at least one option is selected
+            if not (node.output_matching_rows or node.output_left_unmatched or node.output_right_unmatched):
+                self.matching_rows_checkbox.setChecked(True)
+                node.output_matching_rows = True
+            
+            selected_outputs = []
+            if node.output_matching_rows:
+                selected_outputs.append("Matching")
+            if node.output_left_unmatched:
+                selected_outputs.append("Left Unmatched")
+            if node.output_right_unmatched:
+                selected_outputs.append("Right Unmatched")
+            
+            print(f"🎯 Output selection changed: {', '.join(selected_outputs)}")
+        
+        self.matching_rows_checkbox.stateChanged.connect(on_output_selection_changed)
+        self.left_unmatched_checkbox.stateChanged.connect(on_output_selection_changed)
+        self.right_unmatched_checkbox.stateChanged.connect(on_output_selection_changed)
+        
+        self.content_layout.addWidget(output_selection_group)
+        
         # Column Selection Section (KNIME-style output columns)
         if node.left_available_columns or node.right_available_columns:
             self._add_column_selection_section(node)

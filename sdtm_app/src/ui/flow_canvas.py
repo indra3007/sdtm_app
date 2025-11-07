@@ -3699,6 +3699,11 @@ class JoinNode(BaseNode):
         self.column_suffix_left = "_left"
         self.column_suffix_right = "_right"
         
+        # Output selection for multiple tables
+        self.output_matching_rows = True      # Include matching/intersection rows
+        self.output_left_unmatched = False    # Include left-only rows
+        self.output_right_unmatched = False   # Include right-only rows
+        
         # Available columns from input datasets
         self.left_available_columns = []
         self.right_available_columns = []
@@ -3780,10 +3785,18 @@ class JoinNode(BaseNode):
                 result_df = self._apply_column_selection(result_df, left_df, right_df)
                 print(f"🔗 JOIN EXECUTE: After column selection: {result_df.shape}")
             
+            # Handle multiple output selection
+            outputs = self._create_multiple_outputs(result_df, left_df, right_df)
+            
             print(f"🔗 JOIN EXECUTE: Join completed successfully")
             
             # Store output data for execution engine
-            self.output_data = result_df
+            if len(outputs) == 1:
+                # Single output - store normally
+                self.output_data = outputs[0]
+            else:
+                # Multiple outputs - store as dictionary
+                self.output_data = outputs
             
             # Return True for execution engine (not the DataFrame)
             return True
@@ -3791,6 +3804,110 @@ class JoinNode(BaseNode):
         except Exception as e:
             print(f"❌ JOIN EXECUTE ERROR: {str(e)}")
             raise e
+    
+    def _create_multiple_outputs(self, joined_df, left_df, right_df):
+        """Create multiple output datasets based on user selection"""
+        outputs = {}
+        
+        # Get join columns for identifying matches
+        left_join_cols = self.left_columns
+        right_join_cols = self.right_columns
+        
+        try:
+            if self.output_matching_rows:
+                # Get matching rows (intersection)
+                if self.join_type == "inner":
+                    matching_df = joined_df.copy()
+                else:
+                    # For other join types, identify matching rows
+                    # Create indicators to identify matches
+                    left_indicator = left_df[left_join_cols].copy()
+                    left_indicator['_left_id'] = range(len(left_df))
+                    
+                    right_indicator = right_df[right_join_cols].copy()
+                    right_indicator['_right_id'] = range(len(right_df))
+                    
+                    # Rename columns for merge
+                    right_indicator_renamed = right_indicator.copy()
+                    for i, col in enumerate(right_join_cols):
+                        if col in left_join_cols:
+                            continue  # Keep same name if already matching
+                        right_indicator_renamed = right_indicator_renamed.rename(columns={col: left_join_cols[i]})
+                    
+                    # Find matches
+                    matches = pd.merge(left_indicator, right_indicator_renamed, on=left_join_cols, how='inner')
+                    
+                    # Get matching rows from joined result
+                    if len(matches) > 0:
+                        # Use inner join to get only matching rows
+                        matching_df = pd.merge(left_df, right_df, 
+                                             left_on=left_join_cols, 
+                                             right_on=right_join_cols, 
+                                             how='inner')
+                        matching_df = self._apply_column_selection(matching_df, left_df, right_df)
+                    else:
+                        # No matches found
+                        matching_df = pd.DataFrame()
+                
+                outputs['Matching Rows'] = matching_df
+                print(f"🎯 Created matching rows output: {matching_df.shape}")
+            
+            if self.output_left_unmatched:
+                # Get left-only rows (left anti-join)
+                left_indicator = left_df[left_join_cols].copy()
+                left_indicator['_row_id'] = range(len(left_df))
+                
+                right_indicator = right_df[right_join_cols].copy()
+                # Rename right columns to match left for merge
+                right_renamed = {}
+                for i, col in enumerate(right_join_cols):
+                    right_renamed[col] = left_join_cols[i]
+                right_indicator = right_indicator.rename(columns=right_renamed)
+                
+                # Find unmatched left rows
+                merged_indicator = pd.merge(left_indicator, right_indicator, 
+                                          on=left_join_cols, how='left', indicator=True)
+                left_only_mask = merged_indicator['_merge'] == 'left_only'
+                left_unmatched_ids = merged_indicator[left_only_mask]['_row_id']
+                
+                left_unmatched_df = left_df.iloc[left_unmatched_ids].copy()
+                outputs['Left Unmatched'] = left_unmatched_df
+                print(f"🎯 Created left unmatched output: {left_unmatched_df.shape}")
+            
+            if self.output_right_unmatched:
+                # Get right-only rows (right anti-join)
+                right_indicator = right_df[right_join_cols].copy()
+                right_indicator['_row_id'] = range(len(right_df))
+                
+                left_indicator = left_df[left_join_cols].copy()
+                # Rename left columns to match right for merge
+                left_renamed = {}
+                for i, col in enumerate(left_join_cols):
+                    left_renamed[col] = right_join_cols[i]
+                left_indicator = left_indicator.rename(columns=left_renamed)
+                
+                # Find unmatched right rows
+                merged_indicator = pd.merge(right_indicator, left_indicator, 
+                                          on=right_join_cols, how='left', indicator=True)
+                right_only_mask = merged_indicator['_merge'] == 'left_only'
+                right_unmatched_ids = merged_indicator[right_only_mask]['_row_id']
+                
+                right_unmatched_df = right_df.iloc[right_unmatched_ids].copy()
+                outputs['Right Unmatched'] = right_unmatched_df
+                print(f"🎯 Created right unmatched output: {right_unmatched_df.shape}")
+            
+            # If no outputs selected, default to matching rows
+            if not outputs:
+                outputs['Matching Rows'] = joined_df.copy()
+                print(f"🎯 No outputs selected, defaulting to matching rows: {joined_df.shape}")
+            
+            print(f"🎯 Total outputs created: {len(outputs)}")
+            return outputs
+            
+        except Exception as e:
+            print(f"❌ Error creating multiple outputs: {e}")
+            # Fallback to original joined dataframe
+            return {'Matching Rows': joined_df.copy()}
     
     def _get_input_datasets(self):
         """Get left and right datasets from connected input nodes"""
@@ -3966,7 +4083,11 @@ class JoinNode(BaseNode):
             "left_available_columns": self.left_available_columns,
             "right_available_columns": self.right_available_columns,
             "selected_left_columns": getattr(self, 'selected_left_columns', []),
-            "selected_right_columns": getattr(self, 'selected_right_columns', [])
+            "selected_right_columns": getattr(self, 'selected_right_columns', []),
+            # Output selection attributes
+            "output_matching_rows": getattr(self, 'output_matching_rows', True),
+            "output_left_unmatched": getattr(self, 'output_left_unmatched', False),
+            "output_right_unmatched": getattr(self, 'output_right_unmatched', False)
         }
     
     def set_properties(self, properties):
@@ -3982,10 +4103,16 @@ class JoinNode(BaseNode):
         self.selected_left_columns = properties.get("selected_left_columns", [])
         self.selected_right_columns = properties.get("selected_right_columns", [])
         
+        # Output selection attributes with defaults
+        self.output_matching_rows = properties.get("output_matching_rows", True)
+        self.output_left_unmatched = properties.get("output_left_unmatched", False)
+        self.output_right_unmatched = properties.get("output_right_unmatched", False)
+        
         print(f"🔗 JOIN SET_PROPERTIES: Restored join configuration")
         print(f"🔗 Join type: {self.join_type}")
         print(f"🔗 Left columns: {self.left_columns}")
         print(f"🔗 Right columns: {self.right_columns}")
+        print(f"🎯 Output selection: Matching={self.output_matching_rows}, Left={self.output_left_unmatched}, Right={self.output_right_unmatched}")
     
     def serialize(self):
         """Serialize join configuration for saving"""
@@ -4000,7 +4127,11 @@ class JoinNode(BaseNode):
             "left_available_columns": self.left_available_columns,
             "right_available_columns": self.right_available_columns,
             "selected_left_columns": getattr(self, 'selected_left_columns', []),
-            "selected_right_columns": getattr(self, 'selected_right_columns', [])
+            "selected_right_columns": getattr(self, 'selected_right_columns', []),
+            # Output selection attributes
+            "output_matching_rows": getattr(self, 'output_matching_rows', True),
+            "output_left_unmatched": getattr(self, 'output_left_unmatched', False),
+            "output_right_unmatched": getattr(self, 'output_right_unmatched', False)
         })
         return data
     
