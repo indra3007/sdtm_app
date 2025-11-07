@@ -3772,6 +3772,12 @@ class JoinNode(BaseNode):
                 )
             
             print(f"🔗 JOIN EXECUTE: Result shape: {result_df.shape}")
+            
+            # Apply column selection if configured
+            if hasattr(self, 'selected_left_columns') or hasattr(self, 'selected_right_columns'):
+                result_df = self._apply_column_selection(result_df, left_df, right_df)
+                print(f"🔗 JOIN EXECUTE: After column selection: {result_df.shape}")
+            
             print(f"🔗 JOIN EXECUTE: Join completed successfully")
             
             # Store output data for execution engine
@@ -3875,6 +3881,77 @@ class JoinNode(BaseNode):
         
         return left_df, right_df
     
+    def _apply_column_selection(self, result_df, left_df, right_df):
+        """Apply column selection to the join result"""
+        try:
+            # Get selected columns for left and right datasets
+            selected_left = getattr(self, 'selected_left_columns', [])
+            selected_right = getattr(self, 'selected_right_columns', [])
+            
+            if not selected_left and not selected_right:
+                # No column selection specified, return all columns
+                return result_df
+                
+            # Build list of columns to keep
+            columns_to_keep = []
+            
+            # Always include join columns (they are essential)
+            join_columns = set()
+            if hasattr(self, 'left_columns') and hasattr(self, 'right_columns'):
+                # Add the actual join columns from the result
+                for left_col, right_col in zip(self.left_columns, self.right_columns):
+                    if left_col in result_df.columns:
+                        join_columns.add(left_col)
+                        columns_to_keep.append(left_col)
+                    elif right_col in result_df.columns:
+                        join_columns.add(right_col)
+                        columns_to_keep.append(right_col)
+            
+            # Add selected left columns (excluding join columns already added)
+            if selected_left:
+                for col in selected_left:
+                    # Handle renamed columns due to suffix
+                    original_col = col
+                    suffixed_col = f"{col}{self.column_suffix_left}"
+                    
+                    if original_col in result_df.columns and original_col not in join_columns:
+                        columns_to_keep.append(original_col)
+                    elif suffixed_col in result_df.columns:
+                        columns_to_keep.append(suffixed_col)
+            
+            # Add selected right columns (excluding join columns already added)
+            if selected_right:
+                for col in selected_right:
+                    # Handle renamed columns due to suffix
+                    original_col = col
+                    suffixed_col = f"{col}{self.column_suffix_right}"
+                    
+                    if original_col in result_df.columns and original_col not in join_columns:
+                        columns_to_keep.append(original_col)
+                    elif suffixed_col in result_df.columns:
+                        columns_to_keep.append(suffixed_col)
+            
+            # Remove duplicates while preserving order
+            final_columns = []
+            for col in columns_to_keep:
+                if col not in final_columns and col in result_df.columns:
+                    final_columns.append(col)
+            
+            if final_columns:
+                print(f"🔗 Column selection: Keeping {len(final_columns)} of {len(result_df.columns)} columns")
+                print(f"🔗 Selected columns: {final_columns}")
+                result_df = result_df[final_columns]
+            else:
+                print("⚠️ Column selection resulted in no columns, keeping all")
+            
+            return result_df
+            
+        except Exception as e:
+            print(f"❌ Error applying column selection: {e}")
+            # Return original dataframe if column selection fails
+            return result_df
+    
+    
     def get_properties(self):
         """Return current join configuration"""
         return {
@@ -3885,7 +3962,9 @@ class JoinNode(BaseNode):
             "column_suffix_left": self.column_suffix_left,
             "column_suffix_right": self.column_suffix_right,
             "left_available_columns": self.left_available_columns,
-            "right_available_columns": self.right_available_columns
+            "right_available_columns": self.right_available_columns,
+            "selected_left_columns": getattr(self, 'selected_left_columns', []),
+            "selected_right_columns": getattr(self, 'selected_right_columns', [])
         }
     
     def set_properties(self, properties):
@@ -3898,6 +3977,8 @@ class JoinNode(BaseNode):
         self.column_suffix_right = properties.get("column_suffix_right", "_right")
         self.left_available_columns = properties.get("left_available_columns", [])
         self.right_available_columns = properties.get("right_available_columns", [])
+        self.selected_left_columns = properties.get("selected_left_columns", [])
+        self.selected_right_columns = properties.get("selected_right_columns", [])
         
         print(f"🔗 JOIN SET_PROPERTIES: Restored join configuration")
         print(f"🔗 Join type: {self.join_type}")

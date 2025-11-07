@@ -5477,6 +5477,10 @@ class PropertyPanel(QScrollArea):
         self.duplicate_handling_group.buttonClicked.connect(lambda btn: on_duplicate_handling_changed(self.duplicate_handling_group.id(btn)))
         self.content_layout.addWidget(duplicate_group)
         
+        # Column Selection Section (KNIME-style output columns)
+        if node.left_available_columns or node.right_available_columns:
+            self._add_column_selection_section(node)
+        
         # Action buttons group (same style as Expression Builder)
         buttons_group = QGroupBox("🚀 Actions")
         buttons_group.setStyleSheet("""
@@ -5817,9 +5821,10 @@ class PropertyPanel(QScrollArea):
                     # Refresh just the results section instead of the whole panel
                     self._update_join_results_section(node, output_data)
                     
-                    # Auto-refresh the data viewer
-                    if hasattr(self, 'auto_refresh_data_viewer'):
-                        self.auto_refresh_data_viewer(node)
+                    # Trigger data viewer refresh like other nodes
+                    print("🔄 JOIN: Ensuring data viewer refresh")
+                    self.data_refresh_requested.emit(node)
+                    print("🔄 JOIN: Data refresh signal emitted - viewer should update automatically")
                 else:
                     print(f"🔗 JOIN EXECUTE: No output data produced")
                     self.show_notification("Join executed but produced no output data", is_error=True)
@@ -5931,7 +5936,230 @@ class PropertyPanel(QScrollArea):
         except Exception as e:
             print(f"❌ Error executing upstream nodes: {e}")
             return False
-    
+            
+    def _add_column_selection_section(self, node):
+        """Add KNIME-style column selection section for join output"""
+        
+        # Initialize column selection attributes if they don't exist
+        if not hasattr(node, 'selected_left_columns'):
+            node.selected_left_columns = node.left_available_columns.copy() if node.left_available_columns else []
+        if not hasattr(node, 'selected_right_columns'):
+            node.selected_right_columns = node.right_available_columns.copy() if node.right_available_columns else []
+        
+        # Column Selection Group
+        column_selection_group = QGroupBox("📋 Output Column Selection")
+        column_selection_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 14px;
+                color: #2c3e50;
+                border: 2px solid #e67e22;
+                border-radius: 5px;
+                margin-top: 5px;
+                padding-top: 15px;
+                background: white;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                background: white;
+                border-radius: 2px;
+            }
+        """)
+        column_selection_layout = QVBoxLayout(column_selection_group)
+        
+        # Create horizontal layout for left and right columns
+        columns_layout = QHBoxLayout()
+        
+        # Left Dataset Columns
+        if node.left_available_columns:
+            left_columns_widget = self._create_column_selection_widget(
+                "Left Dataset Columns", 
+                node.left_available_columns, 
+                node.selected_left_columns,
+                lambda cols: self._on_column_selection_change(node, 'left', cols, summary_label)
+            )
+            columns_layout.addWidget(left_columns_widget)
+        
+        # Right Dataset Columns  
+        if node.right_available_columns:
+            right_columns_widget = self._create_column_selection_widget(
+                "Right Dataset Columns",
+                node.right_available_columns,
+                node.selected_right_columns, 
+                lambda cols: self._on_column_selection_change(node, 'right', cols, summary_label)
+            )
+            columns_layout.addWidget(right_columns_widget)
+        
+        column_selection_layout.addLayout(columns_layout)
+        
+        # Add selection summary
+        summary_label = QLabel()
+        summary_label.setStyleSheet("""
+            QLabel {
+                background-color: #f8f9fa;
+                padding: 8px;
+                border-radius: 3px;
+                border: 1px solid #dee2e6;
+                font-size: 11px;
+                color: #495057;
+            }
+        """)
+        self._update_column_selection_summary(summary_label, node)
+        column_selection_layout.addWidget(summary_label)
+        
+        self.content_layout.addWidget(column_selection_group)
+        
+    def _create_column_selection_widget(self, title, available_columns, selected_columns, on_change_callback):
+        """Create a column selection widget with checkboxes"""
+        
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(5, 5, 5, 5)
+        
+        # Title
+        title_label = QLabel(title)
+        title_label.setStyleSheet("""
+            QLabel {
+                font-weight: bold;
+                font-size: 12px;
+                color: #2c3e50;
+                padding: 5px;
+                background-color: #ecf0f1;
+                border-radius: 3px;
+            }
+        """)
+        layout.addWidget(title_label)
+        
+        # Select All / Deselect All buttons
+        button_layout = QHBoxLayout()
+        select_all_btn = QPushButton("Select All")
+        select_all_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 3px 8px;
+                border-radius: 2px;
+                font-size: 10px;
+            }
+            QPushButton:hover { background-color: #2980b9; }
+        """)
+        
+        deselect_all_btn = QPushButton("Deselect All")
+        deselect_all_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e74c3c;
+                color: white;
+                border: none;
+                padding: 3px 8px;
+                border-radius: 2px;
+                font-size: 10px;
+            }
+            QPushButton:hover { background-color: #c0392b; }
+        """)
+        
+        button_layout.addWidget(select_all_btn)
+        button_layout.addWidget(deselect_all_btn)
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+        
+        # Scrollable area for columns
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setMaximumHeight(200)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: 1px solid #bdc3c7;
+                border-radius: 3px;
+                background-color: white;
+            }
+        """)
+        
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout(scroll_widget)
+        scroll_layout.setContentsMargins(5, 5, 5, 5)
+        
+        checkboxes = []
+        
+        for column in available_columns:
+            checkbox = QCheckBox(column)
+            checkbox.setChecked(column in selected_columns)
+            checkbox.setStyleSheet("""
+                QCheckBox {
+                    padding: 2px;
+                    font-size: 11px;
+                }
+                QCheckBox:hover {
+                    background-color: #f8f9fa;
+                }
+            """)
+            
+            def on_checkbox_changed(checked, col=column):
+                current_selected = [cb.text() for cb in checkboxes if cb.isChecked()]
+                on_change_callback(current_selected)
+                
+            checkbox.toggled.connect(on_checkbox_changed)
+            checkboxes.append(checkbox)
+            scroll_layout.addWidget(checkbox)
+        
+        scroll_layout.addStretch()
+        scroll_area.setWidget(scroll_widget)
+        layout.addWidget(scroll_area)
+        
+        # Connect select/deselect all buttons
+        def select_all():
+            for checkbox in checkboxes:
+                checkbox.setChecked(True)
+            current_selected = [cb.text() for cb in checkboxes if cb.isChecked()]
+            on_change_callback(current_selected)
+            
+        def deselect_all():
+            for checkbox in checkboxes:
+                checkbox.setChecked(False)
+            current_selected = [cb.text() for cb in checkboxes if cb.isChecked()]
+            on_change_callback(current_selected)
+            
+        select_all_btn.clicked.connect(select_all)
+        deselect_all_btn.clicked.connect(deselect_all)
+        
+        return widget
+        
+    def _update_column_selection_summary(self, label, node):
+        """Update the column selection summary label"""
+        left_count = len(getattr(node, 'selected_left_columns', []))
+        right_count = len(getattr(node, 'selected_right_columns', []))
+        total_available_left = len(getattr(node, 'left_available_columns', []))
+        total_available_right = len(getattr(node, 'right_available_columns', []))
+        
+        text = f"📊 Output Selection: "
+        if left_count > 0:
+            text += f"Left: {left_count}/{total_available_left} columns"
+        if right_count > 0:
+            if left_count > 0:
+                text += " • "
+            text += f"Right: {right_count}/{total_available_right} columns"
+        
+        estimated_total = left_count + right_count
+        if hasattr(node, 'left_columns') and hasattr(node, 'right_columns'):
+            # Subtract join columns that will be merged
+            if node.left_columns and node.right_columns:
+                estimated_total -= min(len(node.left_columns), len(node.right_columns))
+        
+        text += f" • Estimated output: ~{estimated_total} columns"
+        label.setText(text)
+        
+    def _on_column_selection_change(self, node, side, selected_columns, summary_label):
+        """Handle column selection change and update summary"""
+        if side == 'left':
+            setattr(node, 'selected_left_columns', selected_columns)
+        else:
+            setattr(node, 'selected_right_columns', selected_columns)
+        
+        # Update the summary label
+        self._update_column_selection_summary(summary_label, node)
+
     def create_row_filter_properties(self, node):
         """Create properties for row filter nodes with fancy UI."""
         print(f"ROW FILTER: Creating row filter properties for: {node.title}")
