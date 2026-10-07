@@ -1,0 +1,1176 @@
+<title>DAPA-HF Analysis Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: left rail of protocol sections (stacks to tabs on phone), main pane shows one section as a structured spec */
+:root{
+  --bg:#f5f7f9; --panel:#ffffff; --ink:#15212e; --muted:#5a6878; --line:#d9e0e7;
+  --accent:#1d5d8f; --accent-soft:#e3eef7; --code-bg:#eef2f6;
+  --s1:#2a78d6; --s2:#eb6834; --pass:#1c7a4c; --pass-soft:#e1f3e9; --fail:#b23b2e; --fail-soft:#f8e4e1; --warn:#9a6a00; --warn-soft:#fbf0d6;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f161d; --panel:#16202a; --ink:#e3e9ef; --muted:#93a2b2; --line:#2a3846;
+  --accent:#6eb2e6; --accent-soft:#18324a; --code-bg:#0c131a;
+  --s1:#3987e5; --s2:#d95926; --pass:#5cc791; --pass-soft:#143426; --fail:#ec8678; --fail-soft:#3a1d19; --warn:#e2b44c; --warn-soft:#352a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f161d; --panel:#16202a; --ink:#e3e9ef; --muted:#93a2b2; --line:#2a3846;
+  --accent:#6eb2e6; --accent-soft:#18324a; --code-bg:#0c131a;
+  --s1:#3987e5; --s2:#d95926; --pass:#5cc791; --pass-soft:#143426; --fail:#ec8678; --fail-soft:#3a1d19; --warn:#e2b44c; --warn-soft:#352a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+header{display:flex;flex-direction:column;gap:6px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(26px,4vw,36px)/1.1 var(--f-display);margin:0;text-wrap:balance}
+h2{font:600 22px/1.2 var(--f-display);margin:0 0 4px;text-wrap:balance}
+h3{font:600 16px/1.3 var(--f-display);margin:0;letter-spacing:.01em}
+.sub{color:var(--muted);max-width:70ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font:500 12px var(--f-mono);padding:3px 8px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--muted)}
+.chip b{color:var(--ink);font-weight:500}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;margin-top:22px}
+nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);align-self:start}
+nav button{all:unset;cursor:pointer;padding:8px 12px;border-radius:6px;font:500 14px var(--f-body);color:var(--muted);display:flex;gap:10px;align-items:baseline}
+nav button span{font:12px var(--f-mono);opacity:.7;min-width:3.2em}
+nav button:hover{color:var(--ink);background:var(--panel)}
+nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{min-width:0}
+section{display:flex;flex-direction:column;gap:18px}
+.lede{color:var(--muted);max-width:72ch;margin:0}
+.src{font:12px var(--f-mono);color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+dl.kv{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:8px 16px;margin:0}
+dl.kv dt{font:500 12px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+dl.kv dd{margin:0;min-width:0}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--code-bg);padding:1px 5px;border-radius:3px}
+pre{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font:13px/1.55 var(--f-mono);color:var(--ink)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{all:unset;cursor:pointer;font:500 12px var(--f-mono);padding:4px 10px;border:1px solid var(--line);border-radius:4px;color:var(--muted)}
+.tabs button[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ep-list{display:flex;flex-direction:column;gap:8px}
+.ep{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}
+.ep>button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px}
+.ep>button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ep .rank{font:600 13px var(--f-mono);color:var(--accent)}
+.ep .name{font-weight:600}
+.ep .type{font:12px var(--f-mono);color:var(--muted)}
+.ep .body{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:14px}
+.pill{font:500 11px var(--f-mono);padding:2px 7px;border-radius:999px;white-space:nowrap}
+.pill.p{background:var(--pass-soft);color:var(--pass)} .pill.f{background:var(--fail-soft);color:var(--fail)} .pill.w{background:var(--warn-soft);color:var(--warn)} .pill.n{background:var(--code-bg);color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:13px;white-space:nowrap}
+/* hierarchy */
+.chain{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.step .dot{width:14px;height:14px;border-radius:50%;justify-self:center;border:2px solid var(--muted)}
+.step.ok{border-color:var(--pass)} .step.ok .dot{background:var(--pass);border-color:var(--pass)}
+.step.stop{border-color:var(--fail)} .step.stop .dot{background:var(--fail);border-color:var(--fail)}
+.step.nom{opacity:.75;border-style:dashed}
+.link{width:2px;height:14px;background:var(--line);margin-left:25px}
+.ctrl{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font:500 12px var(--f-mono);color:var(--muted)}
+input,select{font:14px var(--f-mono);padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink);min-width:0}
+input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.out div{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--bg)}
+.out .k{font:11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.out .v{font:600 18px var(--f-mono);font-variant-numeric:tabular-nums}
+.why{font-size:14px;color:var(--muted)}
+.why b{color:var(--ink)}
+.note{border-left:3px solid var(--warn);background:var(--warn-soft);padding:10px 12px;border-radius:0 6px 6px 0;font-size:14px}
+ul.tight{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.check{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--line)}
+.check:last-child{border-bottom:0}
+.check code{white-space:nowrap}
+.check input{margin-top:4px}
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+footer a{color:var(--accent)}
+/* estimands */
+.estbody{display:flex;flex-direction:column;gap:14px}
+.lineage{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lineage a{font:500 12px var(--f-mono);color:var(--accent);text-decoration:none;padding:4px 9px;border:1px solid var(--accent);border-radius:4px;background:var(--accent-soft)}
+.lineage a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lineage i{font-style:normal;color:var(--muted);font-size:12px}
+.attr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.attr>div{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--bg);min-width:0}
+.attr .k{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.ice{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.ice:last-child{border-bottom:0}
+.rule{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.rule-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg)}
+.rule-b{padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.tests{display:flex;flex-direction:column;gap:4px}
+.test{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font-size:13px;align-items:start}
+.test .mk{font:600 13px var(--f-mono)}
+.test.ok .mk{color:var(--pass)} .test.bad .mk{color:var(--fail)}
+.test code{font-size:12px}
+.q{border-left:3px solid var(--warn);background:var(--warn-soft);padding:8px 10px;border-radius:0 6px 6px 0;font-size:13px}
+.shell td:first-child{font-weight:500}
+/* impact */
+.amend-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
+.amend-list button{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--panel);display:flex;flex-direction:column;gap:3px;font-size:14px}
+.amend-list button .v{font:500 11px var(--f-mono);color:var(--muted)}
+.amend-list button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.amend-list button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.trace{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:8px;overflow-x:auto;padding-bottom:4px}
+.trace .col{display:flex;flex-direction:column;gap:6px;min-width:130px}
+.trace .colh{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.trace .node{font-size:12.5px;line-height:1.35;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--muted)}
+.trace .node.hit{border-color:var(--warn);background:var(--warn-soft);color:var(--ink);font-weight:500}
+/* v3 additions */
+.navh{font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 12px 4px}
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.cap-grid button{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel);display:flex;flex-direction:column;gap:4px}
+.cap-grid button:hover{border-color:var(--accent)}
+.cap-grid button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cap-grid .big{font:600 22px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.cap-grid .lbl{font-size:13px;color:var(--muted)}
+td .yes{color:var(--pass);font-weight:600} td .no{color:var(--muted)} td .part{color:var(--warn);font-weight:600}
+td a{color:var(--accent)}
+.btn{font:500 14px var(--f-body);padding:7px 16px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:var(--panel);cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chart{width:100%;overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:300px;height:auto}
+.chart text{fill:var(--muted);font:11px var(--f-mono)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .axis{stroke:var(--muted);stroke-width:1}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.km-read{font:13px var(--f-mono);color:var(--muted);min-height:1.5em}
+.lint-list{display:flex;flex-direction:column;gap:8px}
+.lint{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 12px;align-items:start;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--panel)}
+.lint .cat{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.lint .det{font-size:14px;color:var(--muted)}
+.lint .det b{color:var(--ink)}
+.trace .node{cursor:pointer;text-align:left;font:inherit}
+.trace .node.root{border-color:var(--fail);background:var(--fail-soft);color:var(--ink);font-weight:600}
+.trace .node.up{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.trace .node.sel{outline:2px solid var(--ink);outline-offset:1px}
+.trace .node:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.as-tag{font:500 11px var(--f-mono);color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.as-link{cursor:pointer}.as-link:hover{text-decoration:underline}
+.as-list{display:flex;flex-direction:column;gap:8px}
+.as{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.as.done{border-left-color:var(--pass)}
+.as-h{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.as-dec{flex-direction:row!important;align-items:center;gap:6px;margin-left:auto;font:500 12px var(--f-mono)}
+.as select{max-width:100%}
+.as a{color:var(--accent)}
+@media (max-width:760px){
+  .navh{display:none}
+  .layout{grid-template-columns:minmax(0,1fr);gap:16px}
+  nav{flex-direction:row;overflow-x:auto;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:6px;z-index:2;margin-inline:-16px;padding-inline:16px}
+  nav button{white-space:nowrap}
+  nav button span{display:none}
+  dl.kv{grid-template-columns:minmax(0,1fr)}
+  dl.kv dd{margin-bottom:6px}
+  .ep>button{grid-template-columns:40px minmax(0,1fr)}
+  .ep>button .pill{grid-column:2;justify-self:start}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">NCT03036124 · AstraZeneca D1699C00001 · Protocol v2.0 (26 Oct 2017) · no SAP</div>
+  <h1>DAPA-HF Analysis Spec</h1>
+  <p class="sub">Built from the protocol alone. Where the protocol is silent, the model makes an explicit, numbered assumption, lists it as an open analysis decision, and shows what each alternative would change. Nothing comes from a SAP or from study results.</p>
+  <div class="meta">
+    <span class="chip">Phase <b>3</b></span>
+    <span class="chip">Randomized <b>1:1</b></span>
+    <span class="chip">Masking <b>quadruple</b></span>
+    <span class="chip">N <b>~4,500 planned</b></span>
+    <span class="chip">Target events <b>844</b></span>
+    <span class="chip">Strata <b>T2D yes/no</b></span>
+  </div>
+</header>
+
+<div class="layout">
+<nav role="tablist" aria-label="Spec sections" id="nav">
+  <button role="tab" data-s="beyond" aria-selected="true"><span>★</span>Beyond USDM</button>
+  <div class="navh">Specify</div>
+  <button role="tab" data-s="design"><span>§1</span>Design</button>
+  <button role="tab" data-s="estimands"><span>E9(R1)</span>Estimands</button>
+  <button role="tab" data-s="endpoints"><span>§3–4</span>Endpoints</button>
+  <button role="tab" data-s="hier"><span>§4.1.3</span>Testing order</button>
+  <button role="tab" data-s="sets"><span>§2</span>Analysis sets</button>
+  <button role="tab" data-s="rules"><span>§4.1</span>Derivation rules</button>
+  <button role="tab" data-s="elig"><span>CSP</span>Eligibility</button>
+  <div class="navh">Execute</div>
+  <button role="tab" data-s="sim"><span>§1.4</span>Design simulator</button>
+  <button role="tab" data-s="run"><span>▶</span>Dry run</button>
+  <button role="tab" data-s="censor"><span>§3.1</span>Censoring calculator</button>
+  <div class="navh">Govern</div>
+  <button role="tab" data-s="assume"><span>A#</span>Open decisions</button>
+  <button role="tab" data-s="lint"><span>✓</span>Spec checks</button>
+  <button role="tab" data-s="impact"><span>Δ</span>Dependency graph</button>
+</nav>
+
+<main>
+<!-- BEYOND -->
+<section id="beyond">
+  <div><h2>What this adds beyond USDM</h2><p class="lede">USDM describes a protocol so systems can exchange it. This model goes further: it executes. The same objects that describe the trial also recompute its design, generate and analyse data, check themselves, and trace every change to its outputs.</p></div>
+  <div class="cap-grid" id="capGrid"></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Capability</th><th>USDM 4</th><th>This model</th><th>Try it</th></tr></thead>
+    <tbody id="capTable"></tbody>
+  </table></div>
+  <div class="note">USDM stays the right format for exchange with regulators and vendors, and it covers the schedule of activities and timelines, which this prototype doesn't build. The idea is to keep USDM as the export and put an executable layer on top.</div>
+</section>
+
+<!-- ASSUME -->
+<section id="assume" hidden>
+  <div><h2>Analysis decisions the protocol leaves open</h2><p class="lede">With only a protocol, many rules a SAP would normally fix are undecided. Each is listed with what the protocol says, the option this model currently uses, and the alternatives. Decisions marked <b>drives code</b> feed the derivations directly: change one and the censoring calculator, unit tests, dry run and spec checks update at once.</p></div>
+  <div class="out" id="asSum"></div>
+  <div class="tabs" id="asFilter" aria-label="Filter decisions"></div>
+  <div class="as-list" id="asList"></div>
+  <div class="note">Together these form a draft SAP decision log. Mark each one decided once the study statistician signs it off.</div>
+</section>
+
+<!-- SIM -->
+<section id="sim" hidden>
+  <div><h2>Design simulator</h2><p class="lede">Recomputes the protocol's sample size (§8.2) and lets you change every assumption. The interim α isn't in the protocol, so it comes from decision A8.</p></div>
+  <div class="panel">
+    <div class="ctrl">
+      <label for="s_hr">True HR<input id="s_hr" type="number" step="0.01" value="0.80"></label>
+      <label for="s_alpha">One-sided α<input id="s_alpha" type="number" step="0.001" value="0.025"></label>
+      <label for="s_pow">Power<input id="s_pow" type="number" step="0.01" value="0.90"></label>
+      <label for="s_rate">Placebo annual rate<input id="s_rate" type="number" step="0.01" value="0.11"></label>
+      <label for="s_n">Randomized N<input id="s_n" type="number" step="100" value="4500"></label>
+      <label for="s_acc">Accrual (months)<input id="s_acc" type="number" step="1" value="18"></label>
+      <label for="s_t">Interim info fraction<input id="s_t" type="number" step="0.05" value="0.75"></label>
+      <label for="s_ia">Interim α<input id="s_ia" type="number" step="0.0005" value="0.001"></label>
+    </div>
+    <div class="out" id="simOut"></div>
+    <p class="why" id="simWhy"></p>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Expected events over time</h3><div class="chart" id="evChart"></div><div class="src">Exponential event times, uniform accrual, no dropout or competing death</div></div>
+    <div class="panel"><h3>Power by true hazard ratio</h3><div class="chart" id="powChart"></div><div class="src">At the computed event target, including the interim look</div></div>
+  </div>
+</section>
+
+<!-- RUN -->
+<section id="run" hidden>
+  <div><h2>Dry run on mock data</h2><p class="lede">Generates a synthetic DAPA-HF population, applies the spec's own derivation rules to build ADTTE, sets the study end date at the 844th event, and fits the protocol's stratified Cox model (§8.5). Every number below is computed in your browser from the spec.</p></div>
+  <div class="panel">
+    <div class="ctrl">
+      <label for="r_n">Patients<input id="r_n" type="number" step="100" value="4500"></label>
+      <label for="r_hr">Assumed HR<input id="r_hr" type="number" step="0.01" value="0.80"></label>
+      <label for="r_rate">Placebo annual rate<input id="r_rate" type="number" step="0.01" value="0.11"></label>
+      <label for="r_ev">Target events<input id="r_ev" type="number" step="1" value="844"></label>
+      <label for="r_seed">Seed<input id="r_seed" type="number" step="1" value="2019"></label>
+      <button class="btn" id="runBtn">Run</button>
+    </div>
+    <div class="out" id="runOut"></div>
+    <p class="why" id="runWhy"></p>
+  </div>
+  <div class="panel"><h3>Kaplan–Meier: primary composite</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Dapagliflozin</span><span><i style="background:var(--s2)"></i>Placebo</span></div>
+    <div class="chart" id="kmChart"></div><div class="km-read" id="kmRead">Hover the chart to read cumulative incidence by month.</div></div>
+  <div class="grid2">
+    <div class="panel"><h3>Derived ADTTE (first 8 rows)</h3><div class="tbl" id="adtte"></div><div class="src">CNSR, ADT and AVAL come from the same primCensor rule the Estimands tab tests</div></div>
+    <div class="panel"><h3>Components (first event of each type)</h3><div class="tbl" id="compTbl"></div></div>
+  </div>
+</section>
+
+<!-- LINT -->
+<section id="lint" hidden>
+  <div><h2>Spec checks</h2><p class="lede">Automated checks run on every load: the protocol's own arithmetic, how much of the analysis the protocol leaves undecided, E9(R1) conformance, randomized stress tests of the derivation rules, and cross-checks against the public registries.</p></div>
+  <div class="out" id="lintSum"></div>
+  <div class="lint-list" id="lintList"></div>
+</section>
+
+<!-- DESIGN -->
+<section id="design" hidden>
+  <div><h2>Study design</h2><p class="lede">Event-driven, parallel-group superiority trial of dapagliflozin vs placebo on top of standard HFrEF care. Follow-up ends for everyone at a common censoring date chosen once 844 primary events are expected.</p></div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Arms</h3>
+      <dl class="kv">
+        <dt>ARM A</dt><dd>Dapagliflozin 10 mg PO once daily (5 mg tablet allowed for dose reduction)</dd>
+        <dt>ARM B</dt><dd>Matching placebo, once daily</dd>
+        <dt>Randomization</dt><dd>1:1 via IxRS, stratified by T2D status (established T2D or HbA1c ≥6.5%). Block design not stated</dd>
+        <dt>Caps</dt><dd>≥30% of patients in each T2D stratum; LVEF, NYHA and AF categories may be capped</dd>
+      </dl>
+      <div class="src">Protocol §3, §8</div>
+    </div>
+    <div class="panel">
+      <h3>Sample size</h3>
+      <dl class="kv">
+        <dt>Effect</dt><dd>HR 0.80</dd>
+        <dt>Alpha</dt><dd>2.5% one-sided. The final level after the interim depends on decision A8</dd>
+        <dt>Power</dt><dd>90% → <code>844</code> primary events</dd>
+        <dt>Placebo rate</dt><dd>11% per year</dd>
+        <dt>Accrual</dt><dd>18 months recruitment, ~24 months mean follow-up → ~4,500 randomized</dd>
+      </dl>
+      <div class="src">Protocol §8.2</div>
+    </div>
+    <div class="panel">
+      <h3>Interim analysis</h3>
+      <dl class="kv">
+        <dt>Timing</dt><dd>When 75% of the target primary events are adjudicated</dd>
+        <dt>Boundary</dt><dd>Haybittle–Peto. The α isn't stated (A8 assumes 0.001 one-sided)</dd>
+        <dt>Purpose</dt><dd>Assess superiority of dapagliflozin</dd>
+        <dt>Not stated</dt><dd>What else is tested at the interim, and how secondaries are handled if the trial stops</dd>
+      </dl>
+      <div class="src">Protocol §8.5.6</div>
+    </div>
+    <div class="panel">
+      <h3>Key dates to derive</h3>
+      <dl class="kv">
+        <dt>SED</dt><dd>Study end date, set when 844 primary events are predicted to have occurred</dd>
+        <dt>SCV</dt><dd>Study closure visit, within 6 weeks of SED</dd>
+        <dt>WoC</dt><dd>Patients may withdraw at any time; vital status is still sought at closure</dd>
+        <dt>Last assessment</dt><dd>Last clinical event assessment. Its role in censoring is decision A1</dd>
+      </dl>
+      <div class="src">Protocol §3.10, §8</div>
+    </div>
+  </div>
+</section>
+
+<!-- ESTIMANDS -->
+<section id="estimands" hidden>
+  <div><h2>Computable estimands</h2><p class="lede">Each estimand is stored as structured data and linked forward to its source data, ADaM parameter, derivation rules and output. Derivation rules run live against their test cases, so the spec checks itself.</p></div>
+  <div class="tabs" id="estTabs" aria-label="Estimand"></div>
+  <div class="lineage" id="lineage"></div>
+  <div id="estBody" class="estbody"></div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact" hidden>
+  <div><h2>Dependency graph</h2><p class="lede">Every object is a node with typed links, from protocol objective to output. Pick an open analysis decision to see what deciding it differently would change, or tap any node to see its full lineage. Nothing here is hand-listed; impact is computed by walking the graph.</p></div>
+  <div class="amend-list" id="amendList"></div>
+  <div class="panel">
+    <div class="legend"><span><i style="background:var(--fail)"></i>Changed directly</span><span><i style="background:var(--warn)"></i>Affected downstream</span><span><i style="background:var(--accent)"></i>Upstream (selected node)</span></div>
+    <h3 id="impTitle">Traceability</h3>
+    <div class="trace" id="trace"></div>
+    <p class="why" id="impWhy"></p>
+  </div>
+</section>
+
+<!-- SETS -->
+<section id="sets" hidden>
+  <div><h2>Analysis sets</h2><p class="lede">The protocol defines the FAS (§8.3.1) and names a safety set (§8.3.2) without giving its rule, so that rule is decision A10.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Set</th><th>Inclusion rule</th><th>Treatment assigned by</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><b>FAS</b></td><td>All randomized patients</td><td>Randomized arm</td><td>Primary, secondary, exploratory efficacy</td></tr>
+      <tr><td><b>Safety</b> <span class="as-tag">A10</span></td><td>Assumed: randomized and received ≥1 dose</td><td>Assumed: actual treatment received</td><td>All safety summaries</td></tr>
+    </tbody>
+  </table></div>
+  <div class="panel">
+    <h3>Example flags (ADSL)</h3>
+    <div class="tabs" data-group="sets"><button aria-pressed="true" data-l="sas">SAS</button><button aria-pressed="false" data-l="r">R</button></div>
+<pre data-group="sets" data-l="sas">/* Illustrative only, not sponsor code */
+data adsl;
+  set adsl;
+  FASFL  = ifc(not missing(RANDDT), 'Y', 'N');
+  SAFFL  = ifc(FASFL='Y' and not missing(TRTSDT), 'Y', 'N');
+  /* actual-treatment rule: assumption A10 */
+  if WRONGONLY = 'Y' then TRT01A = TRTWRONG;
+  else TRT01A = TRT01P;
+run;</pre>
+<pre data-group="sets" data-l="r" hidden># Illustrative only, not sponsor code
+adsl &lt;- adsl |&gt;
+  mutate(
+    FASFL  = if_else(!is.na(RANDDT), "Y", "N"),
+    SAFFL  = if_else(FASFL == "Y" &amp; !is.na(TRTSDT), "Y", "N"),
+    TRT01A = if_else(WRONGONLY == "Y", TRTWRONG, TRT01P)  # assumption A10
+  )</pre>
+  </div>
+  <div class="panel">
+    <h3>Important protocol deviations to summarize</h3>
+    <ul class="tight">
+      <li>Randomized but failed inclusion/exclusion criteria</li>
+      <li>Received the wrong study treatment at any time</li>
+      <li>SGLT2 inhibitor use (an exclusion criterion at entry)</li>
+    </ul>
+    <div class="src">The protocol doesn't list important deviations; this is a typical starting list</div>
+  </div>
+</section>
+
+<!-- ENDPOINTS -->
+<section id="endpoints" hidden>
+  <div><h2>Endpoints</h2><p class="lede">Ordered as in the testing hierarchy. Open one to see the event definition, censoring rule, model, and code.</p></div>
+  <div class="tabs" id="langToggle" aria-label="Code language"><button aria-pressed="true" data-l="sas">SAS</button><button aria-pressed="false" data-l="r">R</button></div>
+  <div class="ep-list" id="epList"></div>
+</section>
+
+<!-- HIERARCHY -->
+<section id="hier" hidden>
+  <div><h2>Confirmatory testing order</h2><p class="lede">Closed fixed-sequence testing in the protocol's order (§8.4). The level, 0.02496 by default, follows from decision A8; using it for secondaries is decision A9. Each step is tested only if the one above it rejected. Edit any p-value to see where the chain stops.</p></div>
+  <div class="panel">
+    <div class="ctrl">
+      <label for="alpha">One-sided α<input id="alpha" type="number" step="0.00001" value="0.02496"></label>
+      <button class="chip" id="resetP" style="cursor:pointer">Reset scenario</button>
+    </div>
+    <div class="chain" id="chain"></div>
+    <p class="why" id="chainWhy"></p>
+    <div class="src">Protocol §8.4. The p-values are a hypothetical scenario for rehearsal; enter any values to see how the sequence behaves.</div>
+  </div>
+</section>
+
+<!-- CENSOR -->
+<section id="censor" hidden>
+  <div><h2>Censoring calculator</h2><p class="lede">Applies the primary-endpoint censoring rule to one patient. The protocol gives no censoring rule, so this one is built from decisions A1–A3. Dates are a made-up example; change them to test edge cases.</p></div>
+  <div class="panel">
+    <div class="ctrl" id="cform">
+      <label for="c_rand">Randomization<input type="date" id="c_rand" value="2018-03-12"></label>
+      <label for="c_pacd">SED<input type="date" id="c_pacd" value="2019-06-17"></label>
+      <label for="c_cea">Last clinical event assessment<input type="date" id="c_cea" value="2019-07-02"></label>
+      <label for="c_evt">First primary event (blank = none)<input type="date" id="c_evt" value=""></label>
+      <label for="c_ncv">Non-CV death (blank = none)<input type="date" id="c_ncv" value=""></label>
+      <label for="c_woc">Withdrawal of consent (blank = none)<input type="date" id="c_woc" value=""></label>
+    </div>
+    <div class="tabs" id="presets" aria-label="Scenarios">
+      <button aria-pressed="false" data-p="complete">Complete follow-up</button>
+      <button aria-pressed="false" data-p="event">Event before SED</button>
+      <button aria-pressed="false" data-p="late">Event after SED</button>
+      <button aria-pressed="false" data-p="ncv">Non-CV death</button>
+      <button aria-pressed="false" data-p="woc">Withdrew consent</button>
+      <button aria-pressed="false" data-p="gap">Missed final assessment</button>
+    </div>
+    <div class="out">
+      <div><div class="k">CNSR</div><div class="v" id="o_cnsr">–</div></div>
+      <div><div class="k">ADT</div><div class="v" id="o_adt">–</div></div>
+      <div><div class="k">AVAL (days)</div><div class="v" id="o_aval">–</div></div>
+      <div><div class="k">Follow-up</div><div class="v" id="o_fu" style="font-size:15px">–</div></div>
+    </div>
+    <p class="why" id="o_why"></p>
+  </div>
+  <div class="note">Day count is <code>end − randomization + 1</code> (decision A12). Undetermined-cause deaths count as CV death under decision A3, so enter them as a primary event.</div>
+</section>
+
+<!-- RULES -->
+<section id="rules" hidden>
+  <div><h2>Derivation rules</h2><p class="lede">Conventions every programmer needs before writing ADaM datasets. The protocol settles few of them; the Source column says which.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Item</th><th>Rule</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Baseline (labs)</td><td>Last value on or before first dose; if never dosed, last on or before randomization</td><td><span class="as-tag">Assumed</span></td></tr>
+      <tr><td>Baseline eGFR</td><td>CKD-EPI. Protocol uses eGFR at enrolment for eligibility; analysis baseline assumed as mean of visits 1 and 2</td><td><span class="as-tag">A11</span></td></tr>
+      <tr><td>Baseline KCCQ</td><td>Value at the randomization visit (visit 2)</td><td><span class="as-tag">Assumed</span></td></tr>
+      <tr><td>T2D stratum</td><td>Established T2D or HbA1c ≥6.5%</td><td class="num">Protocol</td></tr>
+      <tr><td>Visits</td><td>V1 day −14±7; V2 randomization day 0; V3 day 14±3; V4 day 60±7; V5 day 120±7; V6 day 240±14; then day 360±14 and every 4 months ±14 days; SCV within 6 weeks of SED</td><td class="num">Protocol</td></tr>
+      <tr><td>Partial dates</td><td>Year only → <code>YYYY-07-01</code>; year+month → <code>YYYY-MM-15</code>; never before randomization or after death</td><td><span class="as-tag">A12</span></td></tr>
+      <tr><td>Time to event</td><td><code>event/censor date − rand date + 1</code></td><td><span class="as-tag">A12</span></td></tr>
+      <tr><td>Same-day HHF + CV death</td><td>Count only the CV death</td><td><span class="as-tag">A4</span></td></tr>
+      <tr><td>Dose</td><td>10 mg daily; may drop to 5 mg and should return to 10 mg once stable</td><td class="num">Protocol §3.9.1</td></tr>
+      <tr><td>Compliance, exposure</td><td>Pill count; exposure = last − first dose + 1</td><td><span class="as-tag">Assumed</span></td></tr>
+      <tr><td>On-treatment window</td><td>First dose → last dose + 30 days</td><td><span class="as-tag">Assumed</span></td></tr>
+      <tr><td>Event rate</td><td>Patients with event per 100 patient-years</td><td><span class="as-tag">Assumed</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="panel">
+    <h3>Subgroups (primary endpoint) <span class="as-tag">A13</span></h3>
+    <p class="why">The protocol doesn't list analysis subgroups. It does name the variables it stratifies or caps at randomization, which make the natural starting set:</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Variable</th><th>Why the protocol mentions it</th></tr></thead>
+      <tbody>
+        <tr><td>Type 2 diabetes</td><td>Stratification factor; ≥30% in each stratum</td></tr>
+        <tr><td>LVEF category</td><td>May be capped</td></tr>
+        <tr><td>NYHA class</td><td>May be capped</td></tr>
+        <tr><td>Atrial fibrillation</td><td>May be capped</td></tr>
+        <tr><td>Geographic region</td><td>Monitored for global representation</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ELIG -->
+<section id="elig" hidden>
+  <div><h2>Eligibility as checks</h2><p class="lede">Criteria from the registry, rewritten as testable conditions. Tick the ones a hypothetical patient meets; useful for building the screen-failure edit checks.</p></div>
+  <div class="grid2">
+    <div class="panel"><h3>Inclusion (all must be true)</h3><div id="incl"></div></div>
+    <div class="panel"><h3>Exclusion (all must be false)</h3><div id="excl"></div></div>
+  </div>
+  <div class="panel"><div class="out"><div><div class="k">Status</div><div class="v" id="eligOut">–</div></div></div></div>
+</section>
+</main>
+</div>
+
+<footer>
+  <div>Source: <a href="https://cdn.clinicaltrials.gov/large-docs/24/NCT03036124/Prot_000.pdf" target="_blank" rel="noopener">DAPA-HF clinical study protocol v2.0 (ClinicalTrials.gov)</a>, plus registry entries for the cross-checks. No SAP and no study results are used.</div>
+  <div>Code snippets are illustrative, not the sponsor's programs. Variable names follow CDISC ADaM conventions.</div>
+</footer>
+</div>
+
+<script>
+/* ===== Open analysis decisions (protocol gaps) ===== */
+const ASSUME=[
+ {id:"A1",topic:"Censoring date for event-free patients",protocol:"The protocol gives no censoring rule (§8).",opts:["Earliest of last clinical event assessment and SED","SED for everyone not withdrawn or dead"],wired:true,roots:["R_cens"]},
+ {id:"A2",topic:"Non-CV death in CV time-to-event endpoints",protocol:"Not addressed.",opts:["Censor at date of death (cause-specific hazard)","Competing risk (Fine–Gray subdistribution hazard)"],wired:false,roots:["E1"]},
+ {id:"A3",topic:"Deaths of undetermined cause",protocol:"Deaths are classified (§5.1.2), but handling of undetermined cause isn't stated.",opts:["Count as CV death","Exclude from CV death (censor)"],wired:false,roots:["R_cens"]},
+ {id:"A4",topic:"HF hospitalization and CV death on the same day",protocol:"Not addressed.",opts:["Count the CV death only","Count both events"],wired:true,roots:["R_rec"]},
+ {id:"A5",topic:"What makes an eGFR decline 'sustained'",protocol:"Deferred to the CEA charter (§2.2).",opts:["Two values ≥28 days apart","Two values ≥30 days apart","Two values ≥90 days apart"],wired:true,roots:["R_renal"]},
+ {id:"A6",topic:"KCCQ: patients who die before month 8",protocol:"Endpoint is change from baseline at 8 months (§2.2); death isn't addressed.",opts:["Composite: deaths ranked worst (win ratio)","While alive: survivors only (MMRM)"],wired:true,roots:["E3"]},
+ {id:"A7",topic:"Model for recurrent HF hospitalizations and CV death",protocol:"Endpoint named (§2.2); method not stated.",opts:["LWYY proportional rates","Negative binomial","Joint frailty"],wired:false,roots:["O_rec"]},
+ {id:"A8",topic:"Interim analysis α",protocol:"Haybittle–Peto at 75% of adjudicated events (§8.5.6); α not stated.",opts:["0.001 one-sided","0.0005 one-sided","0.0025 one-sided"],wired:true,roots:[]},
+ {id:"A9",topic:"Testing level and models for secondary endpoints",protocol:"Closed testing in a pre-specified hierarchy (§8.4); α given for the primary only.",opts:["Same one-sided level and model family as the primary","Split α across secondaries"],wired:false,roots:[]},
+ {id:"A10",topic:"Safety analysis set",protocol:"Named (§8.3.2) without a rule.",opts:["Randomized and dosed, analysed as treated","Randomized and dosed, analysed as randomized"],wired:false,roots:[]},
+ {id:"A11",topic:"Baseline eGFR",protocol:"eGFR (CKD-EPI) at enrolment is used for eligibility only.",opts:["Mean of visit 1 and visit 2","Last value before randomization"],wired:false,roots:["R_beg"]},
+ {id:"A12",topic:"Day counts and partial dates",protocol:"Not addressed.",opts:["Day = date − randomization + 1; impute partial dates mid-year or mid-month","Day = date − randomization; query partial dates"],wired:false,roots:["R_cens","R_rec","R_renal"]},
+ {id:"A13",topic:"Subgroups for the primary endpoint",protocol:"Not listed; stratification and capped variables are named (T2D, LVEF, NYHA, AF, region).",opts:["Those five variables","Extended: add age, sex, race, NT-proBNP, eGFR, prior HHF"],wired:false,roots:["A_SLSUB"]},
+ {id:"A14",topic:"Cox ties handling and test statistic",protocol:"Cox model specified (§8.5); ties and test not stated.",opts:["Efron ties, score test","Breslow ties, Wald test"],wired:false,roots:["O_prim"]},
+ {id:"A15",topic:"Missing KCCQ in patients alive at 8 months",protocol:"Not addressed.",opts:["Multiple imputation under MAR","Assign worst rank","Complete cases only"],wired:false,roots:["R_mi"]}];
+const AS={},DEC={};ASSUME.forEach(a=>{AS[a.id]=0;DEC[a.id]=false;});
+const RENALGAP=[28,30,90],IA_OPTS=[0.001,0.0005,0.0025];
+const EPS=[
+ {rank:"P",name:"CV death, HF hospitalization or urgent HF visit",type:"time to first event",pnum:0.001,
+  est:"Hazard ratio",
+  def:"First of: CV death, HF hospitalization, urgent HF visit, each CEA-adjudicated (Protocol §2.1). Undetermined-cause deaths: <span class=\"as-tag\">A3</span>",
+  cens:"Not in protocol. Assumed: earliest of WoC or non-CV death if present, otherwise earliest of last clinical event assessment and SED. <span class=\"as-tag\">A1</span> <span class=\"as-tag\">A2</span>",
+  model:"Cox PH with a factor for treatment, stratified by T2D at randomization, adjusted for history of HF hospitalization (Protocol §8.5). Ties and test statistic: <span class=\"as-tag\">A14</span>",
+  sens:"Not specified (§8.5.7 is a heading only). Natural candidates: the A3 alternative, and a tipping-point analysis for informative censoring.",src:"Protocol §2.1, §8.5",
+  sas:`proc phreg data=adtte(where=(PARAMCD="PRIMCOMP" and FASFL="Y"));
+  class TRT01P(ref="Placebo") HHFHIST;
+  model AVAL*CNSR(1) = TRT01P HHFHIST / ties=efron rl;
+  strata T2DSTRAT;            /* IxRS value */
+  hazardratio TRT01P;
+run;  /* score-test p from TYPE3(SCORE) */`,
+  r:`fit <- coxph(Surv(AVAL, 1 - CNSR) ~ TRT01P + HHFHIST + strata(T2DSTRAT),
+             data = filter(adtte, PARAMCD == "PRIMCOMP", FASFL == "Y"),
+             ties = "efron")
+summary(fit)$sctest   # score test`},
+ {rank:"S1",name:"CV death or HF hospitalization",type:"time to first event",pnum:0.004,
+  est:"Hazard ratio",
+  def:"First of CV death or HF hospitalization. Urgent HF visits excluded.",
+  cens:"As primary (assumed).",model:"Assumed same Cox model as the primary. <span class=\"as-tag\">A9</span>",
+  sens:"Not specified.",src:"Protocol §2.2",
+  sas:`proc phreg data=adtte(where=(PARAMCD="CVDHHF"));
+  class TRT01P(ref="Placebo") HHFHIST;
+  model AVAL*CNSR(1) = TRT01P HHFHIST / ties=efron rl;
+  strata T2DSTRAT;
+run;`,
+  r:`coxph(Surv(AVAL, 1 - CNSR) ~ TRT01P + HHFHIST + strata(T2DSTRAT),
+      data = filter(adtte, PARAMCD == "CVDHHF"), ties = "efron")`},
+ {rank:"S2",name:"Total HF hospitalizations and CV death",type:"recurrent events",pnum:0.008,
+  est:"Rate ratio",
+  def:"All first and recurrent HF hospitalizations plus CV death (Protocol §2.2). Urgent HF visits assumed excluded. Same-day handling: <span class=\"as-tag\">A4</span>",
+  cens:"Counting-process intervals (start, stop, event). CV death terminates; censoring as for primary (assumed).",
+  model:"Not in protocol. Assumed LWYY proportional rates, stratified by T2D, adjusted for prior HHF. <span class=\"as-tag\">A7</span>",
+  sens:"Not specified.",src:"Protocol §2.2",
+  sas:`proc phreg data=adrec covs(aggregate);
+  class TRT01P(ref="Placebo") HHFHIST;
+  model (TSTART, TSTOP)*EVENT(0) = TRT01P HHFHIST / rl;
+  strata T2DSTRAT;
+  id USUBJID;                 /* robust sandwich = LWYY */
+run;`,
+  r:`coxph(Surv(TSTART, TSTOP, EVENT) ~ TRT01P + HHFHIST +
+        strata(T2DSTRAT) + cluster(USUBJID), data = adrec)
+# robust SE gives the LWYY rate ratio`},
+ {rank:"S3",name:"KCCQ total symptom score change at 8 months",type:"ranked composite",pnum:0.015,
+  est:"Win ratio",
+  def:"Change from baseline to 8 months in KCCQ total symptom score (Protocol §2.2). The protocol doesn't say how deaths before 8 months are handled. <span class=\"as-tag\">A6</span>",
+  cens:"Not time-to-event. Missing TSS in survivors: <span class=\"as-tag\">A15</span>",
+  model:"Not in protocol. Under the default A6 option (composite with death): rank ANCOVA with a CMH test, summarized by a win ratio. Under the alternative: MMRM on survivors.",
+  sens:"Not specified.",src:"Protocol §2.2",
+  sas:`/* Per imputation m, per stratum s */
+proc rank data=kccq out=rk fraction ties=mean;
+  by _IMPUTATION_ T2DSTRAT;
+  var COMPOSITE BASE; ranks R_COMP R_BASE;
+run;
+proc reg data=rk noprint; by _IMPUTATION_ T2DSTRAT;
+  model R_COMP = R_BASE; output out=res r=RESID;
+run;
+proc freq data=res; by _IMPUTATION_;
+  tables T2DSTRAT*TRT01P*RESID / cmh2 scores=table noprint;
+run;  /* then Wilson-Hilferty + MIANALYZE */`,
+  r:`# composite: deaths first (worst), ordered by last change while alive
+kccq <- kccq |>
+  mutate(COMPOSITE = if_else(DTHB8M == 1, -1000 + LASTCHG, CHG8M))
+res <- kccq |> group_by(.imp, T2DSTRAT) |>
+  mutate(r_y = percent_rank(COMPOSITE), r_x = percent_rank(BASE),
+         resid = resid(lm(r_y ~ r_x)))
+# CMH on residual scores per imputation, then pool`},
+ {rank:"S4",name:"≥50% sustained eGFR decline, ESRD or renal death",type:"time to first event",pnum:0.06,
+  est:"Hazard ratio",
+  def:"≥50% sustained eGFR decline, end-stage renal disease, or renal death (Protocol §2.2). \"Sustained\" is deferred to the CEA charter, so the confirmation rule is <span class=\"as-tag\">A5</span>",
+  cens:"Assumed: earliest of WoC or non-renal death; else earliest of last renal assessment and SED. <span class=\"as-tag\">A1</span>",
+  model:"Assumed Cox PH stratified by T2D, adjusted for baseline eGFR. <span class=\"as-tag\">A9</span> <span class=\"as-tag\">A11</span>",sens:"—",src:"Protocol §2.2",
+  sas:`/* confirm sustained decline */
+data egfr2; set egfr; by USUBJID ADT;
+  NEXTDT = lag(ADT); /* use a look-ahead in practice */
+  if PCHG <= -50 and NEXT_PCHG <= -50 and NEXTDT - ADT >= 28
+     then CONFDT = ADT;
+run;
+proc phreg data=adtte(where=(PARAMCD="RENAL"));
+  class TRT01P(ref="Placebo");
+  model AVAL*CNSR(1) = TRT01P BEGFR / ties=efron rl;
+  strata T2DSTRAT;
+run;`,
+  r:`egfr <- egfr |> arrange(USUBJID, ADT) |> group_by(USUBJID) |>
+  mutate(conf = PCHG <= -50 & lead(PCHG) <= -50 &
+                as.numeric(lead(ADT) - ADT) >= 28)
+coxph(Surv(AVAL, 1 - CNSR) ~ TRT01P + BEGFR + strata(T2DSTRAT),
+      data = filter(adtte, PARAMCD == "RENAL"))`},
+ {rank:"S5",name:"All-cause death",type:"time to first event",pnum:0.01,
+  est:"Hazard ratio",
+  def:"Death from any cause (Protocol §2.2). Vital status is sought at closure even after withdrawal (Protocol §3.10).",
+  cens:"Assumed: alive patients censored at the earlier of last known alive and SED.",model:"Assumed Cox PH stratified by T2D. <span class=\"as-tag\">A9</span>",
+  sens:"—",src:"Protocol §2.2",
+  sas:`proc phreg data=adtte(where=(PARAMCD="ACMORT"));
+  class TRT01P(ref="Placebo");
+  model AVAL*CNSR(1) = TRT01P / ties=efron rl;
+  strata T2DSTRAT;
+run;`,
+  r:`coxph(Surv(AVAL, 1 - CNSR) ~ TRT01P + strata(T2DSTRAT),
+      data = filter(adtte, PARAMCD == "ACMORT"))`}
+];
+let lang="sas";
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* nav */
+const navBtns=[...document.querySelectorAll("#nav button")];
+function show(id){navBtns.forEach(b=>b.setAttribute("aria-selected",b.dataset.s===id));
+  document.querySelectorAll("main>section").forEach(s=>s.hidden=s.id!==id);}
+navBtns.forEach(b=>b.addEventListener("click",()=>{show(b.dataset.s);try{history.replaceState(null,"","#"+b.dataset.s)}catch(e){}}));
+const h=(location.hash||"").slice(1); if(navBtns.some(b=>b.dataset.s===h)) show(h);
+
+/* endpoints */
+const list=document.getElementById("epList");
+function renderEPs(){
+ const open=[...list.querySelectorAll(".ep .body:not([hidden])")].map(b=>b.parentNode.dataset.i);
+ list.innerHTML=EPS.map((e,i)=>`<div class="ep" data-i="${i}">
+  <button aria-expanded="${open.includes(String(i))}"><span class="rank">${e.rank}</span>
+   <span><div class="name">${e.name}</div><div class="type">${e.type} · ${e.est}</div></span>
+   <span class="pill n">${i===0?'primary':'hierarchy step '+i}</span></button>
+  <div class="body" ${open.includes(String(i))?'':'hidden'}>
+   <dl class="kv">
+    <dt>Event</dt><dd>${e.def}</dd><dt>Censoring</dt><dd>${e.cens}</dd>
+    <dt>Model</dt><dd>${e.model}</dd><dt>Sensitivity</dt><dd>${e.sens}</dd>
+    <dt>Summary measure</dt><dd>${e.est}, 95% CI, two-sided p</dd>
+   </dl>
+   <pre>${esc(e[lang])}</pre>
+   <div class="src">${e.src}</div>
+  </div></div>`).join("");
+ if(typeof bindTags==="function")bindTags(list);
+ list.querySelectorAll(".ep>button").forEach(b=>b.addEventListener("click",()=>{
+  const body=b.nextElementSibling; body.hidden=!body.hidden; b.setAttribute("aria-expanded",!body.hidden);}));
+}
+if(!list.querySelector(".ep")){renderEPs(); list.querySelector(".ep>button").click();}
+document.querySelectorAll("#langToggle button").forEach(b=>b.addEventListener("click",()=>{
+ lang=b.dataset.l; document.querySelectorAll("#langToggle button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderEPs();}));
+document.querySelectorAll('.tabs[data-group] button').forEach(b=>b.addEventListener("click",()=>{
+ const g=b.parentNode.dataset.group; b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+ document.querySelectorAll(`pre[data-group="${g}"]`).forEach(p=>p.hidden=p.dataset.l!==b.dataset.l);}));
+
+/* hierarchy */
+const chain=document.getElementById("chain"), alphaIn=document.getElementById("alpha");
+const pvals=EPS.map(e=>e.pnum);
+function renderChain(){
+ const a=parseFloat(alphaIn.value)||0.02496; let stopped=false, stopAt=null; let html="";
+ EPS.forEach((e,i)=>{
+  let cls,lab;
+  if(stopped){cls="nom";lab='<span class="pill n">not tested · nominal</span>';}
+  else if(pvals[i]<=a){cls="ok";lab='<span class="pill p">reject</span>';}
+  else{cls="stop";lab='<span class="pill f">fail · stop</span>';stopped=true;stopAt=e;}
+  html+=(i?'<div class="link"></div>':'')+`<div class="step ${cls}"><span class="dot"></span>
+   <span><b class="mono">${e.rank}</b> ${e.name}<br><label style="flex-direction:row;align-items:center;gap:6px;margin-top:4px">one-sided p
+   <input type="number" step="0.00001" value="${pvals[i]}" data-i="${i}" id="p${i}" style="width:110px"></label></span>${lab}</div>`;
+ });
+ chain.innerHTML=html;
+ chain.querySelectorAll("input").forEach(inp=>inp.addEventListener("change",()=>{pvals[+inp.dataset.i]=parseFloat(inp.value);renderChain();document.getElementById("p"+inp.dataset.i).focus();}));
+ document.getElementById("chainWhy").innerHTML=stopAt
+  ? `The chain stops at <b>${stopAt.rank}</b>. Everything below it can only be reported with nominal p-values, so a later endpoint with p below 0.05 still can't support a confirmatory claim.`
+  : `Every hypothesis in the sequence is rejected at α = ${a}.`;
+}
+renderChain(); alphaIn.addEventListener("change",renderChain);
+document.getElementById("resetP").addEventListener("click",()=>{EPS.forEach((e,i)=>pvals[i]=e.pnum);alphaIn.value=0.02496;renderChain();});
+
+/* censoring calculator */
+const ids=["rand","pacd","cea","evt","ncv","woc"], f={}; ids.forEach(k=>f[k]=document.getElementById("c_"+k));
+const d=v=>v?new Date(v+"T00:00:00Z"):null, fmt=x=>x.toISOString().slice(0,10), days=(a,b)=>Math.round((b-a)/864e5)+1;
+/* Pure rule: primary-endpoint censoring (assumptions A1-A3). Shared by the calculator, tests and dry run. */
+function primCensor(x){
+ const R=d(x.rand),P=d(x.pacd),C=d(x.cea),E=d(x.evt),N=d(x.ncv),W=d(x.woc);
+ if(!R||!P) return null;
+ const limits=[W,N].filter(x=>x&&x<=P);   // WoC/death after SED is outside follow-up
+ const earlyStop=limits.length?new Date(Math.min(...limits)):null;
+ if(E && E<=P && (!earlyStop || E<=earlyStop))
+   return {cnsr:0,adt:fmt(E),aval:days(R,E),fu:"complete",why:`Primary event on ${fmt(E)} is on or before SED${earlyStop?" and before WoC/non-CV death":""}, so it counts. <b>AVAL = event − rand + 1.</b>`};
+ let cd,why,fu;
+ if(earlyStop){cd=earlyStop;
+   const isW=W&&+W===+earlyStop;
+   why=isW?`Patient withdrew consent on ${fmt(W)}. Rule: censor at the earliest of WoC or non-CV death when applicable.`:`Non-CV death on ${fmt(N)} is a competing terminal event; censor at the date of death.`;
+   fu=isW?"incomplete":"complete";
+ } else {
+   cd=(AS.A1===0&&C&&C<P)?C:P;
+   why=(AS.A1===0&&C&&C<P)?`Last event assessment ${fmt(C)} is before SED, so follow-up is incomplete and the patient is censored at the last assessment, not at SED.`:(AS.A1===1?`Under decision A1 (option 2), event-free patients are censored at <b>SED</b> regardless of their last assessment.`:`Event assessment reached on/after SED, so censor at <b>SED</b>.`);
+   fu=(AS.A1===0&&C&&C<P)?"incomplete":"complete";
+ }
+ if(E&&E>P) why+=` The event on ${fmt(E)} has onset after SED; it is adjudicated but excluded from the primary analysis.`;
+ if(E&&earlyStop&&E>earlyStop) why+=` The event on ${fmt(E)} falls after the censoring date and is ignored.`;
+ return {cnsr:1,adt:fmt(cd),aval:days(R,cd),fu,why};
+}
+function calc(){
+ const r=primCensor(Object.fromEntries(ids.map(k=>[k,f[k].value])));
+ const set=(c,a,v,fu,why)=>{o_cnsr.textContent=c;o_adt.textContent=a;o_aval.textContent=v;o_fu.textContent=fu;o_why.innerHTML=why;};
+ if(!r){set("–","–","–","–","Enter randomization date and SED.");return;}
+ set(r.cnsr,r.adt,r.aval,r.fu,r.why);
+}
+const PRE={complete:{cea:"2019-07-02",evt:"",ncv:"",woc:""},event:{cea:"2019-07-02",evt:"2018-11-20",ncv:"",woc:""},
+ late:{cea:"2019-07-02",evt:"2019-06-25",ncv:"",woc:""},ncv:{cea:"2019-01-08",evt:"",ncv:"2019-01-10",woc:""},
+ woc:{cea:"2018-09-30",evt:"",ncv:"",woc:"2018-10-04"},gap:{cea:"2019-02-14",evt:"",ncv:"",woc:""}};
+document.querySelectorAll("#presets button").forEach(b=>b.addEventListener("click",()=>{
+ Object.entries(PRE[b.dataset.p]).forEach(([k,v])=>f[k].value=v);
+ document.querySelectorAll("#presets button").forEach(x=>x.setAttribute("aria-pressed",x===b)); calc();}));
+ids.forEach(k=>f[k].addEventListener("input",calc)); calc();
+
+/* eligibility */
+const INC=[["AGE >= 18","Age ≥18 years"],["NYHA in (II,III,IV) for ≥2 months","Symptomatic HFrEF, NYHA II–IV, diagnosed ≥2 months"],["LVEF <= 40","LVEF ≤40%"],["NT-proBNP elevated","Elevated NT-proBNP (≥600 pg/mL; lower threshold if recent HHF)"],["on SoC HF therapy","Background standard-of-care HF therapy"],["eGFR >= 30 at V1","eGFR ≥30 mL/min/1.73m² (CKD-EPI) at visit 1"]];
+const EXC=[["SGLT2i within 8 wk","SGLT2 inhibitor within 8 weeks or prior intolerance"],["T1DM","Type 1 diabetes"],["SBP < 95 (2 of 3)","Symptomatic hypotension or SBP <95 mmHg at 2 of 3 readings"],["ADHF / HHF < 4 wk","Acute decompensated HF or HF hospitalization <4 weeks ago"],["MI/UA/stroke/TIA < 12 wk","MI, unstable angina, stroke or TIA within 12 weeks"],["revasc/valve < 12 wk","Coronary revascularization or valve repair within 12 weeks or planned"],["CRT < 12 wk","CRT implanted within 12 weeks or planned"],["transplant / VAD","Heart transplant or VAD, current or expected"],["excluded HF etiology","Restrictive/hypertrophic CM, myocarditis, constriction, uncorrected valve disease"],["brady / AV block","Symptomatic bradycardia or 2nd/3rd-degree block without pacemaker"],["eGFR < 30 / unstable renal","Severe, unstable or rapidly progressing renal disease"]];
+const mk=(arr,pre,def)=>arr.map(([c,t],i)=>`<label class="check" style="flex-direction:row;font:inherit;color:inherit"><input type="checkbox" id="${pre}${i}" ${def?"checked":""}><span>${t}<br><code>${c}</code></span></label>`).join("");
+incl.innerHTML=mk(INC,"i",true); excl.innerHTML=mk(EXC,"x",false);
+function elig(){const fi=INC.filter((_,i)=>!document.getElementById("i"+i).checked).length, fx=EXC.filter((_,i)=>document.getElementById("x"+i).checked).length;
+ eligOut.innerHTML=(fi||fx)?`<span style="color:var(--fail)">Screen failure</span> <span class="why" style="font-size:13px;font-weight:400">${fi} inclusion unmet, ${fx} exclusion met</span>`:`<span style="color:var(--pass)">Eligible</span>`;}
+document.querySelectorAll("#incl input,#excl input").forEach(i=>i.addEventListener("change",elig)); elig();
+
+/* ===== Computable estimands ===== */
+/* Rule: recurrent-event cleaning (assumption A4) */
+function recurrentClean(evts,censor){
+ const s=[...evts].sort((a,b)=>a.date.localeCompare(b.date)||(a.type==="CVD"?1:-1));
+ const cvd=s.find(e=>e.type==="CVD"); const out=[];
+ for(const e of s){
+  if(e.type!=="HHF"&&e.type!=="CVD") continue;              // urgent HF visits excluded
+  if(e.date>censor) continue;                               // onset after SED
+  if(cvd&&e.date>cvd.date) continue;                        // CV death is terminal
+  if(e.type==="CVD"&&e!==cvd) continue;                     // duplicate death record
+  if(AS.A4===0&&e.type==="HHF"&&cvd&&e.date===cvd.date) continue;  // same day: keep CV death only (A4)
+  out.push(e.type+" "+e.date);
+ }
+ return out;
+}
+/* Rule: sustained >=50% eGFR decline (assumption A5): onset = first of two consecutive qualifying values far enough apart */
+function renalOnset(base,series){
+ const s=[...series].sort((a,b)=>a.date.localeCompare(b.date));
+ const q=v=>(v-base)/base*100<=-50;
+ for(let i=0;i<s.length-1;i++){
+  if(q(s[i].egfr)&&q(s[i+1].egfr)&&days(d(s[i].date),d(s[i+1].date))-1>=RENALGAP[AS.A5]) return s[i].date;
+ }
+ return null;
+}
+/* Rule: KCCQ composite rank, worst to best (assumption A6, default option) */
+function kccqOrder(pts){
+ const bad=p=>p.status!=="alive";
+ return [...pts].sort((a,b)=>{
+  if(bad(a)!==bad(b)) return bad(a)?-1:1;
+  return bad(a)?a.last-b.last:a.chg-b.chg;
+ }).map(p=>p.id);
+}
+const BASE={rand:"2018-03-12",pacd:"2019-06-17",cea:"2019-07-02",evt:"",ncv:"",woc:""};
+const pc=o=>{const r=primCensor({...BASE,...o});return {cnsr:r.cnsr,adt:r.adt,aval:r.aval};};
+
+const ESTS=[
+{id:"E1",tab:"Primary",level:"Primary",obj:"Determine whether dapagliflozin is superior to placebo, added to standard of care, in reducing CV death or a worsening HF event.",
+ attrs:{Population:"Adults with symptomatic HFrEF (NYHA II–IV, LVEF ≤40%, elevated NT-proBNP) meeting protocol criteria; FAS",
+  Treatment:"Dapagliflozin 10 mg once daily vs matching placebo, both on background standard of care",
+  Variable:"Time from randomization to first CV death, HF hospitalization or urgent HF visit (CEA-adjudicated)",
+  "Summary measure":"Hazard ratio, Cox model stratified by T2D, adjusted for prior HHF"},
+ ices:[["Discontinuation of study drug","Treatment policy","Events after stopping drug count"],
+       ["Start of open-label SGLT2 inhibitor","Treatment policy","Logged as a protocol deviation only"],
+       ["Non-CV death","Censored","Implies a cause-specific hazard; not one of the E9(R1) strategies (A2)"],
+       ["Withdrawal of consent","Censored (missing data)","Assumes non-informative censoring; tipping-point sensitivity"]],
+ source:["CE: adjudicated HF events, CV death","DS: WoC, study completion","DM: randomization date","eCRF event-assessment page"],
+ adam:"ADTTE · PARAMCD = PRIMCOMP · AVAL, CNSR, ADT, STARTDT, EVNTDESC, CNSDTDSC",
+ rules:[{name:"Primary censoring and day count",src:"Assumptions A1, A2, A12",desc:"Event ≤ SED and before WoC/non-CV death counts; otherwise censor at the earliest of WoC or non-CV death, else at the A1 date. AVAL = end − rand + 1.",
+   fn:pc,tests:[
+    ["No event, full follow-up",{},{cnsr:1,adt:"2019-06-17",aval:463}],
+    ["Event before SED",{evt:"2018-11-20"},{cnsr:0,adt:"2018-11-20",aval:254}],
+    ["Event after SED is excluded",{evt:"2019-06-25"},{cnsr:1,adt:"2019-06-17",aval:463}],
+    ["Non-CV death censors on death date",{cea:"2019-01-08",ncv:"2019-01-10"},{cnsr:1,adt:"2019-01-10",aval:305}],
+    ["Withdrawal of consent",{cea:"2018-09-30",woc:"2018-10-04"},{cnsr:1,adt:"2018-10-04",aval:207}],
+    ["Event after WoC is ignored",{woc:"2018-10-04",evt:"2018-12-01"},{cnsr:1,adt:"2018-10-04",aval:207}],
+    ["Missed final assessment",{cea:"2019-02-14"},{cnsr:1,adt:"2019-02-14",aval:340}],
+    ["Non-CV death after SED (regression, found by stress test)",{ncv:"2019-08-01"},{cnsr:1,adt:"2019-06-17",aval:463}]]}],
+ out:{id:"T-EFF-01",title:"Time to first CV death, HHF or urgent HF visit (FAS)",rows:[["Patients with event, n (%)","xx (xx.x)","xx (xx.x)"],["Event rate per 100 patient-years","xx.x","xx.x"],["Hazard ratio (95% CI)","x.xx (x.xx, x.xx)",""],["p-value (2-sided)","x.xxxx",""]]}},
+{id:"E2",tab:"Recurrent HHF + CV death",level:"Secondary (2)",obj:"Compare dapagliflozin vs placebo on the total number of HF hospitalizations and CV death.",
+ attrs:{Population:"FAS",Treatment:"As primary",Variable:"Total first and recurrent HF hospitalizations plus CV death; urgent HF visits excluded",
+  "Summary measure":"Rate ratio; the model is decision A7"},
+ ices:[["Discontinuation of study drug","Treatment policy","All events through SED"],["CV death","Part of the variable","Terminal event; no HHF counted after it"],["Non-CV death","Censored","Ends follow-up"]],
+ source:["CE: each adjudicated HHF and death","DS: WoC","DM: randomization date"],
+ adam:"ADREC · one row per interval · TSTART, TSTOP, EVENT, EVNTTYPE",
+ rules:[{name:"Recurrent-event cleaning",src:"Assumption A4",desc:"Keep HHF and CV death with onset ≤ SED; drop urgent HF visits; drop anything after CV death; when HHF and CV death share a date keep only the death.",
+   fn:x=>recurrentClean(x.e,x.c),tests:[
+    ["Same-day HHF and CV death",{e:[{type:"HHF",date:"2018-06-01"},{type:"HHF",date:"2018-09-10"},{type:"CVD",date:"2018-09-10"}],c:"2019-06-17"},["HHF 2018-06-01","CVD 2018-09-10"]],
+    ["Record after CV death is dropped",{e:[{type:"CVD",date:"2018-05-01"},{type:"HHF",date:"2018-06-01"}],c:"2019-06-17"},["CVD 2018-05-01"]],
+    ["Event after SED is dropped",{e:[{type:"HHF",date:"2018-06-01"},{type:"HHF",date:"2019-07-01"}],c:"2019-06-17"},["HHF 2018-06-01"]],
+    ["Urgent HF visit excluded",{e:[{type:"UHFV",date:"2018-04-02"},{type:"HHF",date:"2018-08-15"}],c:"2019-06-17"},["HHF 2018-08-15"]],
+    ["Duplicate CV death record counts once (regression, found by stress test)",{e:[{type:"CVD",date:"2018-09-10"},{type:"HHF",date:"2018-03-01"},{type:"CVD",date:"2018-09-10"}],c:"2019-06-17"},["HHF 2018-03-01","CVD 2018-09-10"]]],
+   q:"A record dated after CV death is a data error, not just an exclusion. The protocol is silent; add a data-cleaning check so it gets queried."}],
+ out:{id:"T-EFF-03",title:"Total HF hospitalizations and CV death (FAS)",rows:[["Total events","xx","xx"],["Rate ratio (95% CI)","x.xx (x.xx, x.xx)",""],["p-value (2-sided)","x.xxxx",""]]}},
+{id:"E3",tab:"KCCQ-TSS",level:"Secondary (3)",obj:"Compare the effect of dapagliflozin vs placebo on KCCQ total symptom score.",
+ attrs:{Population:"FAS",Treatment:"As primary",Variable:"@A6VAR",
+  "Summary measure":"@A6SM"},
+ ices:[["Death before 8 months","@A6STRAT","@A6TXT"],["Discontinuation of study drug","Treatment policy","Assessments after stopping drug are used"],
+       ["Missed 8-month assessment, alive","Missing data","Handling is decision A15"]],
+ source:["QS: KCCQ item responses","DS/DD: death date","CE: HF events (imputation covariate)"],
+ adam:"ADQS · PARAMCD = KCCQTSS · AVISIT = Month 8 · CHG, DTHB8MFL, LASTCHG, imputation index",
+ rules:[{name:"Composite ranking",src:"Assumption A6 (default option)",desc:"Deaths before 8 months (and unknown vital status) take the worst ranks, ordered among themselves by last change while alive; survivors ordered by change.",
+   fn:kccqOrder,tests:[
+    ["Death outranks any survivor as worse",[{id:"A",status:"alive",chg:-50},{id:"B",status:"dead",last:20},{id:"C",status:"alive",chg:10},{id:"D",status:"dead",last:-10}],["D","B","A","C"]],
+    ["Unknown vital status ranked with deaths",[{id:"E",status:"unknown",last:0},{id:"F",status:"alive",chg:-30}],["E","F"]]],
+   q:"Patients with unknown vital status are assumed to take the worst ranks with deaths, but how they sort against actual deaths needs a decision. This model mixes them by last change."}],
+ out:{id:"T-EFF-04",title:"KCCQ-TSS change from baseline at 8 months, composite with death (FAS)",rows:[["Mean change (SD), survivors","x.x (xx.x)","x.x (xx.x)"],["Deaths before month 8, n (%)","xx (x.x)","xx (x.x)"],["Win ratio (95% CI)","x.xx (x.xx, x.xx)",""],["p-value, rank ANCOVA","x.xxxx",""]]}},
+{id:"E4",tab:"Renal composite",level:"Secondary (4)",obj:"Determine whether dapagliflozin reduces a composite of worsening renal function.",
+ attrs:{Population:"FAS",Treatment:"As primary",Variable:"Time to first ≥50% sustained eGFR decline, ESRD (sustained eGFR <15, chronic dialysis, transplant) or renal death",
+  "Summary measure":"Hazard ratio, Cox model stratified by T2D, adjusted for baseline eGFR"},
+ ices:[["Non-renal death (incl. undetermined)","Censored","Undetermined deaths are not renal deaths"],["Discontinuation of study drug","Treatment policy",""]],
+ source:["LB: central serum creatinine","PR/CE: dialysis, transplant","CE: renal death"],
+ adam:"ADLB · PARAMCD = EGFR (CKD-EPI from creatinine); ADTTE · PARAMCD = RENAL",
+ rules:[{name:"Sustained ≥50% eGFR decline",src:"Protocol §2.2 + assumption A5",desc:"Two consecutive central values each ≥50% below baseline, far enough apart per A5 (default 28 days). Onset is the first of the pair. Exactly 50% qualifies.",
+   fn:x=>renalOnset(x.b,x.s),tests:[
+    ["Confirmed decline",{b:60,s:[{date:"2018-05-01",egfr:29},{date:"2018-06-05",egfr:28}]},"2018-05-01"],
+    ["Recovery breaks the pair",{b:60,s:[{date:"2018-05-01",egfr:29},{date:"2018-06-05",egfr:40}]},null],
+    ["Exactly 50% at 28 days qualifies",{b:60,s:[{date:"2018-05-01",egfr:30},{date:"2018-05-29",egfr:30}]},"2018-05-01"],
+    ["Pair too close; next pair confirms",{b:60,s:[{date:"2018-05-01",egfr:25},{date:"2018-05-15",egfr:24},{date:"2018-07-01",egfr:24}]},"2018-05-15"]],
+   q:"In the last test all three values qualify, but the first pair is only 14 days apart. Read literally, onset is 15 May; clinically it might be 1 May. The protocol defers \"sustained\" to the CEA charter, which needs to settle this."}],
+ out:{id:"T-EFF-05",title:"Time to renal composite (FAS)",rows:[["Patients with event, n (%)","xx (x.x)","xx (x.x)"],["Hazard ratio (95% CI)","x.xx (x.xx, x.xx)",""],["p-value (2-sided)","x.xxxx",""]]}}
+];
+const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const show_=v=>typeof v==="object"&&v!==null?JSON.stringify(v):String(v);
+let curE=0;
+function usdm(e){
+ return JSON.stringify({instanceType:"Estimand",id:e.id,label:e.tab,
+  populationSummary:e.attrs["Summary measure"],
+  analysisPopulation:{instanceType:"AnalysisPopulation",text:e.attrs.Population},
+  variableOfInterest:{instanceType:"Endpoint",level:e.level,text:e.attrs.Variable},
+  interventions:["Dapagliflozin 10 mg","Placebo"],
+  intercurrentEvents:e.ices.map(([n,s,t])=>({instanceType:"IntercurrentEvent",name:n,strategy:s,description:t})),
+  "x-derivations":e.rules.map(r=>({name:r.name,source:r.src,tests:r.tests.length})),
+  "x-adam":e.adam,"x-output":e.out.id},null,2);
+}
+function bindTags(root){root.querySelectorAll(".as-tag").forEach(t=>{const id=t.textContent.trim();if(/^A\d+$/.test(id)&&!t.dataset.b){t.dataset.b=1;t.classList.add("as-link");t.addEventListener("click",()=>{show("assume");const el=document.getElementById("as-"+id);if(el)el.scrollIntoView({block:"start"});});}});}
+function renderEst(){
+ const e0=ESTS[curE];
+ const a6=AS.A6===0;
+ const sub=v=>typeof v!=="string"?v:v.replace("@A6VAR",a6?"Change from baseline to 8 months in KCCQ-TSS, combined with vital status at 8 months":"Change from baseline to 8 months in KCCQ-TSS among patients alive at 8 months")
+   .replace("@A6SM",a6?"Win ratio; rank ANCOVA with CMH test":"Mean difference from MMRM")
+   .replace("@A6STRAT",a6?"Composite":"While on treatment (while alive)").replace("@A6TXT",a6?"Ranked worse than every survivor (A6)":"Outcome defined only while alive (A6)");
+ const e={...e0,attrs:Object.fromEntries(Object.entries(e0.attrs).map(([k,v])=>[k,sub(v)])),ices:e0.ices.map(r=>r.map(sub))};
+ estTabs.innerHTML=ESTS.map((x,i)=>`<button aria-pressed="${i===curE}" data-i="${i}">${x.id} · ${x.tab}</button>`).join("");
+ estTabs.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{curE=+b.dataset.i;renderEst();}));
+ lineage.innerHTML=[["obj","Objective"],["est","Estimand"],["src","Source data"],["adam","ADaM"],["rules","Derivations"],["out","Output"]]
+  .map(([k,l],i)=>(i?'<i>→</i>':'')+`<a href="#" data-k="${k}">${l}</a>`).join("");
+ let total=0,pass=0;
+ const rulesHtml=e.rules.map(r=>{
+  const t=r.tests.map(([n,inp,exp])=>{let got,ok;try{got=r.fn(inp);ok=eq(got,exp);}catch(err){got="error: "+err.message;ok=false;}
+   total++;if(ok)pass++;
+   return `<div class="test ${ok?'ok':'bad'}"><span class="mk">${ok?'✓':'✗'}</span><span>${n}<br><code>expect ${esc(show_(exp))}</code>${ok?'':`<br><code>got ${esc(show_(got))}</code>`}</span></div>`;}).join("");
+  const inactive=r.name==="Composite ranking"&&AS.A6===1;
+   return `<div class="rule"><div class="rule-h"><b>${r.name}</b><span class="src">${r.src}${inactive?' · not used under the A6 option you chose':''}</span></div>
+   <div class="rule-b"><div>${r.desc}</div><div class="tests">${t}</div>${r.q?`<div class="q"><b>Open spec question.</b> ${r.q}</div>`:''}</div></div>`;}).join("");
+ estBody.innerHTML=`
+ <div class="panel" id="k-obj"><h3>Objective · ${e.level}</h3><div>${e.obj}</div></div>
+ <div class="panel" id="k-est"><h3>Estimand ${e.id}</h3>
+  <div class="attr">${Object.entries(e.attrs).map(([k,v])=>`<div><div class="k">${k}</div>${v}</div>`).join("")}</div>
+  <div><div class="eyebrow" style="margin-bottom:4px">Intercurrent events</div>
+   ${e.ices.map(([n,s,t])=>`<div class="ice"><span>${n}${t?`<br><span class="why" style="font-size:13px">${t}</span>`:''}</span><span class="pill ${s.startsWith('Treatment')?'p':s==='Censored'||s.startsWith('Censored')?'w':'n'}">${s}</span></div>`).join("")}</div>
+  <details><summary class="src" style="cursor:pointer">USDM-style export (simplified, with x- extensions)</summary><pre style="margin-top:8px">${esc(usdm(e))}</pre></details>
+ </div>
+ <div class="grid2">
+  <div class="panel" id="k-src"><h3>Source data (SDTM)</h3><ul class="tight">${e.source.map(s=>`<li>${s}</li>`).join("")}</ul></div>
+  <div class="panel" id="k-adam"><h3>ADaM</h3><code style="white-space:normal;line-height:1.7">${e.adam}</code></div>
+ </div>
+ <div class="panel" id="k-rules"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3>Derivation rules</h3>
+  <span class="pill ${pass===total?'p':'f'}">${pass}/${total} tests pass</span></div>${rulesHtml}</div>
+ <div class="panel" id="k-out"><h3>${e.out.id} · ${e.out.title}</h3>
+  <div class="tbl"><table class="shell"><thead><tr><th></th><th>Dapagliflozin</th><th>Placebo</th></tr></thead>
+  <tbody>${e.out.rows.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join("")}</tbody></table></div>
+  <div class="src">Table shell; placeholders are filled only when real data are unblinded</div></div>`;
+ bindTags(estBody);
+ lineage.querySelectorAll("a").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();document.getElementById("k-"+a.dataset.k).scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"});}));
+}
+renderEst();
+
+/* ===== Dependency graph ===== */
+const COLS=[["Protocol",[["P_prim","Primary objective"],["P_rec","Sec: total HHF + CV death"],["P_kccq","Sec: KCCQ"],["P_renal","Sec: renal composite"]]],
+ ["Estimand",[["E1","E1 primary"],["E2","E2 recurrent"],["E3","E3 KCCQ-TSS"],["E4","E4 renal"]]],
+ ["SDTM",[["S_CE","CE adjudicated events"],["S_DS","DS disposition"],["S_QS","QS KCCQ items"],["S_LB","LB central labs"],["S_MH","MH T2D history"]]],
+ ["Derivation",[["R_cens","Primary censoring"],["R_rec","Recurrent cleaning"],["R_kccq","KCCQ composite rank"],["R_mi","TSS imputation"],["R_egfr","eGFR (CKD-EPI)"],["R_renal","Sustained eGFR decline"],["R_beg","Baseline eGFR"],["R_t2d","Analysis T2D flag"]]],
+ ["ADaM",[["A_TTEP","ADTTE PRIMCOMP"],["A_TTER","ADTTE RENAL"],["A_REC","ADREC"],["A_QS","ADQS TSS"],["A_LB","ADLB eGFR"],["A_SLSUB","ADSL subgroups"]]],
+ ["Output",[["O_prim","Primary HR + KM"],["O_rec","Recurrent RR"],["O_frail","Joint frailty components"],["O_kccq","KCCQ win ratio"],["O_resp","TSS responders"],["O_renal","Renal HR"],["O_forest","Subgroup forest"]]]];
+const EDGES=`P_prim>E1 P_rec>E2 P_kccq>E3 P_renal>E4 E1>R_cens E2>R_rec E3>R_kccq E3>R_mi E4>R_renal
+S_CE>R_cens S_DS>R_cens S_CE>R_rec S_DS>R_rec S_QS>R_kccq S_DS>R_kccq S_CE>R_mi S_LB>R_egfr S_CE>R_renal S_MH>R_t2d S_LB>R_t2d
+R_egfr>A_LB A_LB>R_renal A_LB>R_beg R_cens>A_TTEP R_rec>A_REC R_kccq>A_QS R_mi>A_QS R_renal>A_TTER R_beg>A_SLSUB R_t2d>A_SLSUB R_beg>O_renal
+A_TTEP>O_prim A_TTEP>O_forest A_REC>O_rec A_REC>O_frail A_QS>O_kccq A_QS>O_resp A_TTER>O_renal A_SLSUB>O_forest`.trim().split(/\s+/).map(e=>e.split(">"));
+const LABEL=Object.fromEntries(COLS.flatMap(([,n])=>n));
+function walk(starts,dir){const seen=new Set(),q=[...starts];
+ while(q.length){const n=q.shift();for(const [a,b] of EDGES){const nxt=dir==="down"?(a===n?b:null):(b===n?a:null);if(nxt&&!seen.has(nxt)&&!starts.includes(nxt)){seen.add(nxt);q.push(nxt);}}}
+ return [...seen];}
+let AMENDS=[];
+let curA=0, selNode=null;
+function renderImpact(){
+ AMENDS=ASSUME.filter(a=>a.roots.length).map(a=>({v:a.id,t:a.topic,roots:a.roots,why:`Decision ${a.id}. Currently: ${a.opts[AS[a.id]]}. ${a.protocol}`}));
+ amendList.innerHTML=AMENDS.map((x,i)=>`<button aria-pressed="${selNode===null&&i===curA}" data-i="${i}"><span class="v">${x.v}</span>${x.t}</button>`).join("");
+ amendList.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{curA=+b.dataset.i;selNode=null;renderImpact();}));
+ let roots=[],down=[],up=[];
+ if(selNode){down=walk([selNode],"down");up=walk([selNode],"up");}
+ else{roots=AMENDS[curA].roots;down=walk(roots,"down");}
+ trace.innerHTML=COLS.map(([h,nodes])=>`<div class="col"><div class="colh">${h}</div>${nodes.map(([id,l])=>{
+   const c=roots.includes(id)?"root":down.includes(id)?"hit":up.includes(id)?"up":"";
+   return `<button class="node ${c} ${selNode===id?'sel':''}" data-id="${id}">${l}</button>`;}).join("")}</div>`).join("");
+ trace.querySelectorAll(".node").forEach(b=>b.addEventListener("click",()=>{selNode=selNode===b.dataset.id?null:b.dataset.id;renderImpact();}));
+ if(selNode){impTitle.textContent=`${LABEL[selNode]}: ${up.length} upstream, ${down.length} downstream`;
+  impWhy.textContent=down.length?`Changing this would reach: ${down.map(n=>LABEL[n]).join(", ")}.`:"Nothing depends on this node.";}
+ else{impTitle.textContent=`${roots.length} changed directly, ${down.length} affected downstream`;impWhy.textContent=AMENDS[curA].why;}
+}
+renderImpact();
+
+/* ===== Stats engine ===== */
+function erf(x){const t=1/(1+0.3275911*Math.abs(x));const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return x>=0?y:-y;}
+const Phi=z=>0.5*(1+erf(z/Math.SQRT2)), phi=z=>Math.exp(-z*z/2)/Math.sqrt(2*Math.PI);
+function qnorm(p){
+ const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239],
+ b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572],
+ c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783],
+ e=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416],pl=0.02425;let q,r;
+ if(p<pl){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((e[0]*q+e[1])*q+e[2])*q+e[3])*q+1);}
+ if(p>1-pl){q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((e[0]*q+e[1])*q+e[2])*q+e[3])*q+1);}
+ q=p-0.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+function biv(c1,c2,rho){const s=Math.sqrt(1-rho*rho),lo=-8,n=2000,h=(c1-lo)/n;let sum=0;
+ for(let i=0;i<=n;i++){const x=lo+i*h,w=(i===0||i===n)?1:(i%2?4:2);sum+=w*phi(x)*Phi((c2-rho*x)/s);}return sum*h/3;}
+function hpFinal(alpha,t,ia){const c1=qnorm(1-ia),rho=Math.sqrt(t);let lo=0,hi=6;
+ for(let k=0;k<50;k++){const m=(lo+hi)/2;(1-biv(c1,m,rho)>alpha)?lo=m:hi=m;}const c2=(lo+hi)/2;return{c1,c2,rho,nominal:1-Phi(c2)};}
+const schoenfeld=(hr,alpha,pow)=>4*Math.pow(qnorm(1-alpha)+qnorm(pow),2)/Math.pow(Math.log(hr),2);
+function powerAt(hr,D,hp,t){const th=-Math.log(hr)*Math.sqrt(D/4);return 1-biv(hp.c1-th*Math.sqrt(t),hp.c2-th,hp.rho);}
+function expEvents(t,N,A,rate,hr){let tot=0;if(t<=0)return 0;const l0=-Math.log(1-rate)/12;
+ for(const l of [l0,l0*hr]){const n=N/2;tot+=t<A?n*(t/A)*(1-(1-Math.exp(-l*t))/(l*t)):n*(1-(Math.exp(-l*(t-A))-Math.exp(-l*t))/(l*A));}return tot;}
+function timeTo(D,N,A,rate,hr){if(expEvents(600,N,A,rate,hr)<D)return null;let lo=0,hi=600;for(let k=0;k<60;k++){const m=(lo+hi)/2;expEvents(m,N,A,rate,hr)<D?lo=m:hi=m;}return(lo+hi)/2;}
+
+/* ===== SVG line chart ===== */
+function lineChart(el,{series,xmax,ymax,xticks,yticks,xfmt=v=>v,yfmt=v=>v,xlabel="",hlines=[],vlines=[],step=false,id}){
+ const W=560,H=250,L=52,R=14,T=14,B=38,sx=x=>L+(x/xmax)*(W-L-R),sy=y=>T+(1-y/ymax)*(H-T-B);
+ let g=yticks.map(v=>`<line class="grid" x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}"/><text x="${L-6}" y="${sy(v)+4}" text-anchor="end">${yfmt(v)}</text>`).join("");
+ g+=xticks.map(v=>`<text x="${sx(v)}" y="${H-B+16}" text-anchor="middle">${xfmt(v)}</text>`).join("");
+ g+=`<line class="axis" x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}"/><text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">${xlabel}</text>`;
+ g+=hlines.map(h=>`<line x1="${L}" x2="${W-R}" y1="${sy(h.y)}" y2="${sy(h.y)}" stroke="var(--muted)" stroke-dasharray="4 4"/><text x="${W-R-4}" y="${sy(h.y)-5}" text-anchor="end">${h.label}</text>`).join("");
+ g+=vlines.map(v=>`<line x1="${sx(v.x)}" x2="${sx(v.x)}" y1="${T}" y2="${H-B}" stroke="var(--ink)" stroke-width="1"/><text x="${sx(v.x)+5}" y="${T+10}">${v.label}</text>`).join("");
+ const path=pts=>{let d="";pts.forEach(([x,y],i)=>{const X=sx(Math.min(x,xmax)).toFixed(1),Y=sy(Math.min(y,ymax)).toFixed(1);
+   if(i===0)d+=`M${X},${Y}`;else if(step){d+=`H${X}V${Y}`;}else d+=`L${X},${Y}`;});return d;};
+ g+=series.map(s=>`<path d="${path(s.pts)}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`).join("");
+ g+=`<line id="${id}-x" y1="${T}" y2="${H-B}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/><rect id="${id}-hit" x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent"/>`;
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${xlabel} chart">${g}</svg>`;
+ return {sx,inv:px=>(px-L)/(W-L-R)*xmax,W};
+}
+function hover(el,id,ch,onX){const svg=el.querySelector("svg"),hit=el.querySelector(`#${id}-hit`),ln=el.querySelector(`#${id}-x`);
+ const mv=ev=>{const r=svg.getBoundingClientRect();const px=(ev.clientX-r.left)/r.width*ch.W;const x=Math.max(0,ch.inv(px));
+   ln.setAttribute("x1",ch.sx(x));ln.setAttribute("x2",ch.sx(x));ln.setAttribute("visibility","visible");onX(x);};
+ hit.addEventListener("pointermove",mv);hit.addEventListener("pointerdown",mv);}
+
+/* ===== Design simulator ===== */
+const SIMF=["hr","alpha","pow","rate","n","acc","t","ia"],sv=k=>parseFloat(document.getElementById("s_"+k).value);
+function renderSim(){
+ const hr=sv("hr"),alpha=sv("alpha"),pw=sv("pow"),rate=sv("rate"),N=sv("n"),A=sv("acc"),t=sv("t"),ia=sv("ia");
+ if(!(hr>0&&hr<1&&alpha>0&&alpha<.5&&pw>0&&pw<1&&rate>0&&rate<1&&N>0&&A>0&&t>0&&t<1&&ia>0&&ia<alpha)){simWhy.textContent="Check inputs: HR between 0 and 1, interim α smaller than total α.";return;}
+ const Draw=schoenfeld(hr,alpha,pw),D=Math.round(Draw),hp=hpFinal(alpha,t,ia),pow=powerAt(hr,D,hp,t),
+  tD=timeTo(D,N,A,rate,hr),tI=timeTo(D*t,N,A,rate,hr),pI=1-Phi(hp.c1-(-Math.log(hr))*Math.sqrt(D*t/4));
+ simOut.innerHTML=[["Events needed",D.toLocaleString()],["Final one-sided α",hp.nominal.toFixed(5)],["Power with interim",(pow*100).toFixed(1)+"%"],
+  ["Interim at",Math.round(D*t)+" events"],["P(stop at interim)",(pI*100).toFixed(1)+"%"],["Months to final",tD?tD.toFixed(1):"never"]]
+  .map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+ simWhy.innerHTML=`Schoenfeld gives ${Draw.toFixed(1)} events (protocol: 844). Haybittle–Peto with the interim at ${Math.round(t*100)}% and interim α ${ia} (decision A8) leaves a final nominal α of ${hp.nominal.toFixed(5)}. Under these assumptions the target is reached about <b>${tD?tD.toFixed(0):"–"} months</b> after the first patient (protocol: 18-month accrual and ~24-month mean follow-up, roughly 33 months).`;
+ const xmax=Math.max(36,Math.ceil(((tD||48)+8)/12)*12),pts=[];for(let m=0;m<=xmax;m+=0.5)pts.push([m,expEvents(m,N,A,rate,hr)]);
+ const ymax=Math.ceil(Math.max(D*1.15,pts[pts.length-1][1])/250)*250;
+ const ch=lineChart(evChart,{id:"ev",series:[{pts,color:"var(--s1)"}],xmax,ymax,xticks:[...Array(xmax/6+1)].map((_,i)=>i*6),yticks:[...Array(ymax/250+1)].map((_,i)=>i*250),
+  xlabel:"Months from first randomization",hlines:[{y:D,label:`target ${D}`},{y:D*t,label:"interim"}],vlines:tD?[{x:tD,label:tD.toFixed(1)+" mo"}]:[]});
+ hover(evChart,"ev",ch,x=>{});
+ const pp=[];for(let h=0.6;h<=1.0001;h+=0.01)pp.push([h,powerAt(h,D,hp,t)]);
+ lineChart(powChart,{id:"pw",series:[{pts:pp.map(([h,p])=>[1-h,p]),color:"var(--s1)"}],xmax:0.4,ymax:1,xticks:[0,.1,.2,.3,.4],xfmt:v=>(1-v).toFixed(1),
+  yticks:[0,.25,.5,.75,1],yfmt:v=>Math.round(v*100)+"%",xlabel:"True hazard ratio",hlines:[{y:pw,label:`${Math.round(pw*100)}% target`}],vlines:[{x:1-hr,label:"design HR"}]});
+}
+SIMF.forEach(k=>document.getElementById("s_"+k).addEventListener("input",renderSim));
+renderSim();
+
+/* ===== Run the trial ===== */
+function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const T0=Date.UTC(2017,1,8),addD=n=>fmt(new Date(T0+Math.round(n)*864e5));
+function inv2(I){const[a,b]=I[0],[c,dd]=I[1],det=a*dd-b*c;return[[dd/det,-b/det],[-c/det,a/det]];}
+function cox(rows){let beta=[0,0],I;
+ const st={};rows.forEach(r=>(st[r.s]??=[]).push(r));const groups=Object.values(st).map(a=>a.sort((u,v)=>v.time-u.time));
+ for(let it=0;it<30;it++){const U=[0,0];I=[[0,0],[0,0]];
+  for(const a of groups){let S0=0;const S1=[0,0],S2=[[0,0],[0,0]];let i=0;
+   while(i<a.length){const tm=a[i].time;let j=i;const ev=[];
+    while(j<a.length&&a[j].time===tm){const r=a[j],w=Math.exp(r.x[0]*beta[0]+r.x[1]*beta[1]);S0+=w;
+     for(let k=0;k<2;k++){S1[k]+=w*r.x[k];for(let l=0;l<2;l++)S2[k][l]+=w*r.x[k]*r.x[l];}if(r.event)ev.push(r);j++;}
+    for(const r of ev)for(let k=0;k<2;k++){U[k]+=r.x[k]-S1[k]/S0;for(let l=0;l<2;l++)I[k][l]+=S2[k][l]/S0-S1[k]*S1[l]/(S0*S0);}
+    i=j;}}
+  const V=inv2(I),dl=[V[0][0]*U[0]+V[0][1]*U[1],V[1][0]*U[0]+V[1][1]*U[1]];beta=[beta[0]+dl[0],beta[1]+dl[1]];
+  if(Math.abs(dl[0])+Math.abs(dl[1])<1e-10)break;}
+ return{beta,V:inv2(I)};}
+function km(rows){const s=[...rows].sort((a,b)=>a.time-b.time);let n=s.length,S=1;const pts=[[0,0]];let i=0;
+ while(i<s.length){const t=s[i].time;let d=0,c=0;while(i<s.length&&s[i].time===t){s[i].event?d++:c++;i++;}if(d){S*=1-d/n;pts.push([t,1-S]);}n-=d+c;}return pts;}
+let lastRun=null;
+function runTrial(){
+ const N=Math.max(200,Math.round(+r_n.value)),HR=+r_hr.value,rate=+r_rate.value,TGT=Math.round(+r_ev.value),R=rng(+r_seed.value||1);
+ const exp=l=>-Math.log(1-R())/l, perDay=r=>-Math.log(1-r)/365.25, norm=(0.53+0.47*1.4)*(0.55+0.45*1.25);
+ const blocks={};const P=[];
+ for(let i=0;i<N;i++){const t2d=R()<0.45,hhf=R()<0.47,key=+t2d;
+  if(!blocks[key]||!blocks[key].length){const b=[1,1,0,0];for(let k=3;k>0;k--){const j=Math.floor(R()*(k+1));[b[k],b[j]]=[b[j],b[k]];}blocks[key]=b;}
+  const trt=blocks[key].pop(),entry=R()*548;
+  const lam=perDay(rate)/norm*(trt?HR:1)*(hhf?1.4:1)*(t2d?1.25:1);
+  const te=exp(lam),tn=exp(perDay(0.025)),tw=exp(perDay(0.004)),u=R();
+  const type=u<0.40?"CV death":u<0.95?"HF hospitalization":"Urgent HF visit";
+  P.push({id:i+1,t2d,hhf,trt,entry,te,tn,tw,type,miss:R()<0.015,mu:R()});}
+ const cal=P.filter(p=>p.te<Math.min(p.tn,p.tw)).map(p=>p.entry+p.te).sort((a,b)=>a-b);
+ const reached=cal.length>=TGT&&cal[TGT-1]<3650,pacd=reached?cal[TGT-1]:Math.min(3650,cal.length?cal[cal.length-1]:3650);
+ const rows=[];
+ for(const p of P){if(p.entry>pacd)continue;
+  const rec={rand:addD(p.entry),pacd:addD(pacd),cea:addD(p.miss?p.entry+p.mu*(pacd-p.entry):pacd+15),
+   evt:p.te<Math.min(p.tn,p.tw)?addD(p.entry+p.te):"",ncv:p.tn<p.tw?addD(p.entry+p.tn):"",woc:p.tw<=p.tn?addD(p.entry+p.tw):""};
+  const r=primCensor(rec);rows.push({p,rec,r,time:r.aval,event:r.cnsr===0?1:0,x:[p.trt,+p.hhf],s:+p.t2d});}
+ const fit=cox(rows),b=fit.beta[0],se=Math.sqrt(fit.V[0][0]),z=b/se,pv=2*(1-Phi(Math.abs(z)));
+ const arm=a=>rows.filter(r=>r.p.trt===a),ev=a=>arm(a).filter(r=>r.event).length,py=a=>arm(a).reduce((s,r)=>s+r.time,0)/365.25;
+ const inc=rows.filter(r=>r.r.fu==="incomplete").length;
+ lastRun={rows,pacd,reached,hr:Math.exp(b)};
+ runOut.innerHTML=[["Randomized",rows.length.toLocaleString()],["SED",addD(pacd)],["Events (dapa / pbo)",`${ev(1)} / ${ev(0)}`],
+  ["Rate per 100 PY",`${(ev(1)/py(1)*100).toFixed(1)} / ${(ev(0)/py(0)*100).toFixed(1)}`],["Hazard ratio",Math.exp(b).toFixed(2)],
+  ["95% CI",`${Math.exp(b-1.96*se).toFixed(2)}–${Math.exp(b+1.96*se).toFixed(2)}`],["p (2-sided)",pv<1e-4?"<0.0001":pv.toFixed(4)]]
+  .map(([k,v])=>`<div><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`).join("");
+ runWhy.innerHTML="Mock data from the protocol's design assumptions, not study results. "+(reached?`The ${TGT}th event fell ${(pacd/30.44).toFixed(1)} months after first randomization, so that date became the study end date (SED) and every patient was cut there by the censoring rule.`
+  :`<b>Target not reached</b> within 10 years at this event rate; censored at the last event.`)+
+  ` ${inc} patients (${(inc/rows.length*100).toFixed(1)}%) had incomplete follow-up. Model: Cox stratified by T2D with treatment and prior HHF, Breslow ties and Wald test (the protocol doesn't specify; see A14).`;
+ const k1=km(arm(1)),k0=km(arm(0)),xmax=Math.ceil(Math.max(...rows.map(r=>r.time))/30.44/6)*6;
+ const toM=pts=>pts.map(([t,y])=>[t/30.44,y]),ymax=Math.max(0.05,Math.ceil(Math.max(k0[k0.length-1][1],k1[k1.length-1][1])*20)/20);
+ const yt=[];for(let v=0;v<=ymax+1e-9;v+=ymax>0.3?0.1:0.05)yt.push(+v.toFixed(2));
+ const ch=lineChart(kmChart,{id:"km",series:[{pts:toM(k1),color:"var(--s1)"},{pts:toM(k0),color:"var(--s2)"}],xmax,ymax:yt[yt.length-1],step:true,
+  xticks:[...Array(xmax/6+1)].map((_,i)=>i*6),yticks:yt,yfmt:v=>Math.round(v*100)+"%",xlabel:"Months since randomization"});
+ const at=(pts,m)=>{let y=0;for(const [t,v] of pts){if(t/30.44<=m)y=v;else break;}return y;};
+ hover(kmChart,"km",ch,m=>{kmRead.textContent=`Month ${m.toFixed(1)}: dapagliflozin ${(at(k1,m)*100).toFixed(1)}% · placebo ${(at(k0,m)*100).toFixed(1)}%`;});
+ adtte.innerHTML=`<table><thead><tr><th>USUBJID</th><th>TRT01P</th><th>STARTDT</th><th>ADT</th><th>AVAL</th><th>CNSR</th><th>EVNTDESC</th></tr></thead><tbody>${
+  rows.slice(0,8).map(r=>`<tr><td class="num">D1699-${String(r.p.id).padStart(5,"0")}</td><td>${r.p.trt?"Dapa 10 mg":"Placebo"}</td><td class="num">${r.rec.rand}</td><td class="num">${r.r.adt}</td><td class="num">${r.r.aval}</td><td class="num">${r.r.cnsr}</td><td>${r.event?r.p.type:r.r.fu==="incomplete"?"Censored: incomplete":"Censored"}</td></tr>`).join("")}</tbody></table>`;
+ const types=["CV death","HF hospitalization","Urgent HF visit"];
+ compTbl.innerHTML=`<table><thead><tr><th>First event type</th><th>Dapagliflozin</th><th>Placebo</th></tr></thead><tbody>${
+  types.map(t=>`<tr><td>${t}</td><td class="num">${arm(1).filter(r=>r.event&&r.p.type===t).length}</td><td class="num">${arm(0).filter(r=>r.event&&r.p.type===t).length}</td></tr>`).join("")}
+  <tr><td>Non-CV death (censored)</td><td class="num">${arm(1).filter(r=>!r.event&&r.rec.ncv&&r.r.adt===r.rec.ncv).length}</td><td class="num">${arm(0).filter(r=>!r.event&&r.rec.ncv&&r.r.adt===r.rec.ncv).length}</td></tr></tbody></table>`;
+}
+runBtn.addEventListener("click",runTrial);
+runTrial();
+
+/* ===== Spec checks ===== */
+function fuzz(n,seed){const R=rng(seed),ri=(a,b)=>a+Math.floor(R()*(b-a+1)),D0=Date.UTC(2017,0,1),ds=x=>fmt(new Date(D0+x*864e5));const fails=[];
+ for(let i=0;i<n;i++){const r=ri(0,800),pacd=900,o={rand:ds(r),pacd:ds(pacd),cea:ds(ri(r,pacd+30)),evt:R()<.4?ds(ri(r,pacd+60)):"",ncv:R()<.2?ds(ri(r,pacd+60)):"",woc:R()<.1?ds(ri(r,pacd)):""};
+  const x=primCensor(o),bad=[];
+  if(![0,1].includes(x.cnsr))bad.push("CNSR not 0/1");if(x.aval<1)bad.push("AVAL < 1");if(x.adt<o.rand)bad.push("ADT before randomization");
+  if(x.adt>o.pacd)bad.push("ADT after SED");if(x.cnsr===0&&x.adt!==o.evt)bad.push("event ADT ≠ event date");
+  if(bad.length)fails.push({o,x,bad});}
+ return fails;}
+function fuzzRec(n,seed){const R=rng(seed),ds=x=>fmt(new Date(Date.UTC(2017,0,1)+x*864e5));let bad=0,ex=null;
+ for(let i=0;i<n;i++){const ev=[...Array(1+Math.floor(R()*6))].map(()=>({type:["HHF","HHF","CVD","UHFV"][Math.floor(R()*4)],date:ds(Math.floor(R()*700))}));
+  const out=recurrentClean(ev,ds(600)),dates=out.map(s=>s.split(" ")[1]),cv=out.filter(s=>s.startsWith("CVD"));
+  const ok=dates.every((d_,k)=>!k||d_>=dates[k-1])&&cv.length<=1&&(!cv.length||out[out.length-1].startsWith("CVD"))&&!out.some(s=>s.startsWith("UHFV"))&&dates.every(d_=>d_<=ds(600));
+  if(!ok){bad++;ex=ex||{ev,out};}}return{bad,ex};}
+function fuzzRenal(n,seed){const R=rng(seed),ds=x=>fmt(new Date(Date.UTC(2017,0,1)+x*864e5));let bad=0;
+ for(let i=0;i<n;i++){const base=30+R()*60;let day=0;const s=[...Array(2+Math.floor(R()*6))].map(()=>({date:ds(day+=7+Math.floor(R()*60)),egfr:Math.round(base*(0.2+R()))}));
+  const o=renalOnset(base,s);if(o!==null){const v=s.find(x=>x.date===o);if(!v||(v.egfr-base)/base*100>-50)bad++;}}return bad;}
+function fuzzKccq(n,seed){const R=rng(seed);let bad=0;
+ for(let i=0;i<n;i++){const pts=[...Array(2+Math.floor(R()*8))].map((_,k)=>{const st=["alive","alive","alive","dead","unknown"][Math.floor(R()*5)];return{id:"p"+k,status:st,chg:Math.round(R()*200-100),last:Math.round(R()*200-100)};});
+  const ord=kccqOrder(pts).map(id=>pts.find(p=>p.id===id));let seenAlive=false,prev=-Infinity,ok=true;
+  for(const p of ord){if(p.status==="alive"){if(!seenAlive)prev=-Infinity;seenAlive=true;if(p.chg<prev)ok=false;prev=p.chg;}else if(seenAlive)ok=false;}
+  if(!ok)bad++;}return bad;}
+const E9=["Treatment policy","Composite","Hypothetical","While on treatment","While on treatment (while alive)","Principal stratum","Missing data"];
+function runLint(){
+ const C=[];const add=(cat,status,title,det,go)=>C.push({cat,status,title,det,go});
+ const D=schoenfeld(0.8,0.025,0.9);
+ add("Design arithmetic",Math.abs(D-844)<1?"pass":"fail","Sample size reproduces",`HR 0.80, one-sided α 2.5%, 90% power gives <b>${D.toFixed(1)}</b> events by Schoenfeld; protocol §8.2 states 844.`,"sim");
+ const ia=IA_OPTS[AS.A8],hp=hpFinal(0.025,0.75,ia);
+ add("Design arithmetic","warn","Interim α not stated in the protocol",`The protocol names a Haybittle–Peto interim at 75% but gives no α. With the assumed interim α of ${ia} (A8), the final one-sided level is <b>${hp.nominal.toFixed(5)}</b>.`,"assume");
+ const tD=timeTo(844,4500,18,0.11,0.8),planned=24+18/2;
+ add("Design arithmetic",Math.abs(tD-planned)<=6?"pass":"warn","Planned duration is consistent",`18-month accrual with ~24-month mean follow-up implies about ${planned} months in total. The protocol's own assumptions give 844 events at about <b>${tD.toFixed(1)} months</b>.`,"sim");
+ const nOpen=ASSUME.filter(a=>!DEC[a.id]).length,nWired=ASSUME.filter(a=>a.wired).length;
+ add("Protocol coverage",nOpen?"warn":"pass","Analysis decisions the protocol leaves open",`${ASSUME.length} rules needed for analysis aren't settled by the protocol; <b>${nOpen}</b> are still open. ${nWired} of them drive derivation code directly.`,"assume");
+ const changed=ASSUME.filter(a=>a.wired&&AS[a.id]!==0).map(a=>a.id);
+ const covered=["P","S2","S3","S4"];
+ add("Model completeness",covered.length===EPS.length?"pass":"warn","Every tested endpoint has a structured estimand",`${covered.length} of ${EPS.length} endpoints in the hierarchy have one. Missing: <b>S1</b> (CV death or HHF) and <b>S5</b> (all-cause death).`,"estimands");
+ const nonE9=[];ESTS.forEach(e=>e.ices.forEach(([n,s])=>{if(!E9.includes(s))nonE9.push(`${e.id}: ${n} → “${s}”`);}));
+ add("ICH E9(R1)",nonE9.length?"warn":"pass","Intercurrent-event strategies are E9(R1) strategies",
+  nonE9.length?`${nonE9.length} handlings are not one of the five named strategies: ${nonE9.join("; ")}. Censoring at non-CV death implies a hypothetical or cause-specific target that the protocol never states.`:"All strategies conform.","estimands");
+ let tot=0,ok=0;ESTS.forEach(e=>e.rules.forEach(r=>r.tests.forEach(([,i,x])=>{tot++;try{if(eq(r.fn(i),x))ok++;}catch(_){}})));
+ add("Derivation tests",ok===tot?"pass":changed.length?"warn":"fail","Unit tests",ok===tot?`${ok} of ${tot} hand-written cases pass.`:`${ok} of ${tot} pass. The failures encode the default option of ${changed.join(", ")}, which you changed; rewrite those tests when the decision is final.`,"estimands");
+ const ff=fuzz(5000,7);
+ add("Stress test",ff.length?"fail":"pass","Primary censoring: 5,000 random patients",ff.length?`${ff.length} violations, e.g. ${ff[0].bad.join(", ")} for ${JSON.stringify(ff[0].o)}`:
+  "Invariants hold on every case: CNSR ∈ {0,1}, AVAL ≥ 1, randomization ≤ ADT ≤ SED, events dated on the event. This check found a real bug in the first draft (a non-CV death after SED censored the patient after SED); it is now fixed and kept as a unit test.","censor");
+ const fr=fuzzRec(3000,11);
+ add("Stress test",fr.bad?"fail":"pass","Recurrent cleaning: 3,000 random histories",fr.bad?`${fr.bad} violations`:"Output is date-ordered, has at most one CV death and it is last, no urgent visits, nothing after SED. This check caught duplicate death records being counted twice; fixed and kept as a unit test.","estimands");
+ const fn=fuzzRenal(3000,13);
+ add("Stress test",fn?"fail":"pass","Renal onset: 3,000 random eGFR series",fn?`${fn} violations`:"Every returned onset is an observed date whose value is ≥50% below baseline.","estimands");
+ const fk=fuzzKccq(3000,17);
+ add("Stress test",fk?"fail":"pass","KCCQ ranking: 3,000 random cohorts",fk?`${fk} violations`:"Deaths and unknown vital status always rank below every survivor; survivors are ordered by change.","estimands");
+ add("Cross-registry","warn","KCCQ score differs between registries",`Protocol v2.0 and ClinicalTrials.gov use the <b>total symptom score</b>. The EU Clinical Trials Register entry (2016-003897-41) still lists the <b>overall summary score</b>. <a href="https://www.clinicaltrialsregister.eu/ctr-search/trial/2016-003897-41/SE" target="_blank" rel="noopener">EU CTR entry</a>`);
+ add("Cross-registry","pass","Primary endpoint matches across sources","CV death, HF hospitalization and urgent HF visit appear identically in the protocol, ClinicalTrials.gov and the EU register.");
+ add("Open questions","warn","Ambiguities found while writing tests",`${ESTS.filter(e=>e.rules.some(r=>r.q)).length} spec questions need a written ruling (renal onset, unknown vital status ranking, records after CV death).`,"estimands");
+ const n={pass:0,warn:0,fail:0};C.forEach(c=>n[c.status]++);
+ lintSum.innerHTML=[["Checks",C.length],["Pass",n.pass],["Warnings",n.warn],["Failures",n.fail]].map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+ const ord={fail:0,warn:1,pass:2};
+ lintList.innerHTML=C.sort((a,b)=>ord[a.status]-ord[b.status]).map(c=>`<div class="lint"><span class="pill ${c.status==="pass"?"p":c.status==="warn"?"w":"f"}">${c.status}</span>
+  <div><div class="cat">${c.cat}</div><b>${c.title}</b><div class="det">${c.det}${c.go?` <a href="#${c.go}" data-go="${c.go}" style="color:var(--accent)">Open</a>`:""}</div></div></div>`).join("");
+ lintList.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();show(a.dataset.go);}));
+ return {C,n,tests:tot,fuzz:5000+3000*3};
+}
+let LINT=runLint();
+
+/* ===== Beyond USDM ===== */
+const CAPS=[["Objectives, endpoints, arms, eligibility","yes","yes","design"],
+ ["Schedule of activities and timelines","yes","no",null],
+ ["Estimand attributes (E9(R1))","yes","yes+","estimands"],
+ ["Links to Biomedical Concepts","yes","part",null],
+ ["Derivation logic as executable rules","no","yes","estimands"],
+ ["Censoring and date rules","no","yes","censor"],
+ ["Multiplicity and alpha control","no","yes","hier"],
+ ["Recompute sample size and power","no","yes","sim"],
+ ["Simulate data and run the analysis","no","yes","run"],
+ ["Randomized stress tests of rules","no","yes","lint"],
+ ["Change impact down to outputs","part","yes","impact"],
+ ["Cross-registry consistency checks","no","yes","lint"],
+ ["Protocol gaps turned into a decision log","no","yes","assume"],
+ ["Regulatory exchange format","yes","part",null]];
+const mark=v=>v==="yes"?'<span class="yes">Yes</span>':v==="yes+"?'<span class="yes">Yes, checked against the 5 strategies</span>':v==="part"?'<span class="part">Partial</span>':'<span class="no">No</span>';
+capTable.innerHTML=CAPS.map(([c,u,m,g])=>`<tr><td>${c}</td><td>${mark(u)}</td><td>${mark(m)}</td><td>${g?`<a href="#${g}" data-go="${g}">Open</a>`:"–"}</td></tr>`).join("");
+const nodes=COLS.reduce((s,[,n])=>s+n.length,0);
+function renderOverview(){
+capGrid.innerHTML=[[LINT.C.length,"automated spec checks","lint"],[LINT.fuzz.toLocaleString(),"randomized stress-test cases","lint"],[LINT.tests,"derivation unit tests","estimands"],
+ [`${nodes} / ${EDGES.length}`,"graph nodes / links","impact"],[lastRun?lastRun.rows.length.toLocaleString():"–","synthetic patients analysed","run"],[ASSUME.filter(a=>!DEC[a.id]).length,"open analysis decisions","assume"]]
+ .map(([v,l,g])=>`<button data-go="${g}"><span class="big">${v}</span><span class="lbl">${l}</span></button>`).join("");
+capGrid.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();show(a.dataset.go);}));}
+renderOverview();
+document.querySelectorAll("#capTable [data-go]").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();show(a.dataset.go);}));
+
+/* ===== Decision register UI ===== */
+let asF="All";
+function renderAssume(){
+ const nOpen=ASSUME.filter(a=>!DEC[a.id]).length,nChg=ASSUME.filter(a=>AS[a.id]!==0).length;
+ asSum.innerHTML=[["Decisions",ASSUME.length],["Open",nOpen],["Drive code",ASSUME.filter(a=>a.wired).length],["Changed from default",nChg]].map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+ asFilter.innerHTML=["All","Open","Drive code"].map(f=>`<button aria-pressed="${f===asF}" data-f="${f}">${f}</button>`).join("");
+ asFilter.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{asF=b.dataset.f;renderAssume();}));
+ asList.innerHTML=ASSUME.filter(a=>asF==="All"||(asF==="Open"&&!DEC[a.id])||(asF==="Drive code"&&a.wired)).map(a=>`<div class="as ${DEC[a.id]?"done":""}" id="as-${a.id}">
+  <div class="as-h"><span class="as-tag">${a.id}</span><b>${a.topic}</b>${a.wired?'<span class="pill p">drives code</span>':'<span class="pill n">documented</span>'}${AS[a.id]!==0?'<span class="pill w">changed</span>':""}
+   <label class="as-dec" for="asd_${a.id}"><input type="checkbox" id="asd_${a.id}" data-id="${a.id}" ${DEC[a.id]?"checked":""}>Decided</label></div>
+  <div class="why"><b>Protocol:</b> ${a.protocol}</div>
+  <label for="as_${a.id}">Option used in this model<select id="as_${a.id}" data-id="${a.id}">${a.opts.map((o,i)=>`<option value="${i}"${i===AS[a.id]?" selected":""}>${i===0?"Default: ":""}${o}</option>`).join("")}</select></label>
+  ${a.roots.length?`<div class="why">Affects ${walk(a.roots,"down").length+a.roots.length} objects. <a href="#impact" data-graph="${a.id}">Show impact</a></div>`:""}
+ </div>`).join("");
+ asList.querySelectorAll("select").forEach(x=>x.addEventListener("change",()=>{AS[x.dataset.id]=+x.value;applyAssume(x.dataset.id);}));
+ asList.querySelectorAll("input[type=checkbox]").forEach(x=>x.addEventListener("change",()=>{DEC[x.dataset.id]=x.checked;refreshAll();}));
+ asList.querySelectorAll("[data-graph]").forEach(x=>x.addEventListener("click",ev=>{ev.preventDefault();curA=AMENDS.findIndex(m=>m.v===x.dataset.graph);selNode=null;renderImpact();show("impact");}));
+}
+function applyAssume(id){
+ if(id==="A8"){const ia=IA_OPTS[AS.A8];document.getElementById("s_ia").value=ia;renderSim();alphaIn.value=hpFinal(0.025,0.75,ia).nominal.toFixed(5);renderChain();}
+ if(id==="A1"){calc();runTrial();}
+ refreshAll();
+ const el=document.getElementById("as_"+id);if(el)el.focus();
+}
+function refreshAll(){renderEst();LINT=runLint();renderImpact();renderOverview();renderAssume();}
+renderAssume();
+document.querySelectorAll(".as-tag").forEach(t=>{const id=t.textContent.trim();if(/^A\d+$/.test(id)){t.classList.add("as-link");t.addEventListener("click",()=>{show("assume");const el=document.getElementById("as-"+id);if(el)el.scrollIntoView({block:"start"});});}});
+</script>

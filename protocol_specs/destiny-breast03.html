@@ -1,0 +1,1022 @@
+<title>DESTINY-Breast03 Analysis Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: left rail of protocol sections (stacks to tabs on phone), main pane shows one section as a structured spec */
+:root{
+  --bg:#f5f7f9; --panel:#ffffff; --ink:#15212e; --muted:#5a6878; --line:#d9e0e7;
+  --accent:#1d5d8f; --accent-soft:#e3eef7; --code-bg:#eef2f6;
+  --s1:#2a78d6; --s2:#eb6834; --pass:#1c7a4c; --pass-soft:#e1f3e9; --fail:#b23b2e; --fail-soft:#f8e4e1; --warn:#9a6a00; --warn-soft:#fbf0d6;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f161d; --panel:#16202a; --ink:#e3e9ef; --muted:#93a2b2; --line:#2a3846;
+  --accent:#6eb2e6; --accent-soft:#18324a; --code-bg:#0c131a;
+  --s1:#3987e5; --s2:#d95926; --pass:#5cc791; --pass-soft:#143426; --fail:#ec8678; --fail-soft:#3a1d19; --warn:#e2b44c; --warn-soft:#352a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f161d; --panel:#16202a; --ink:#e3e9ef; --muted:#93a2b2; --line:#2a3846;
+  --accent:#6eb2e6; --accent-soft:#18324a; --code-bg:#0c131a;
+  --s1:#3987e5; --s2:#d95926; --pass:#5cc791; --pass-soft:#143426; --fail:#ec8678; --fail-soft:#3a1d19; --warn:#e2b44c; --warn-soft:#352a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+header{display:flex;flex-direction:column;gap:6px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(26px,4vw,36px)/1.1 var(--f-display);margin:0;text-wrap:balance}
+h2{font:600 22px/1.2 var(--f-display);margin:0 0 4px;text-wrap:balance}
+h3{font:600 16px/1.3 var(--f-display);margin:0;letter-spacing:.01em}
+.sub{color:var(--muted);max-width:70ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font:500 12px var(--f-mono);padding:3px 8px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--muted)}
+.chip b{color:var(--ink);font-weight:500}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;margin-top:22px}
+nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);align-self:start}
+nav button{all:unset;cursor:pointer;padding:8px 12px;border-radius:6px;font:500 14px var(--f-body);color:var(--muted);display:flex;gap:10px;align-items:baseline}
+nav button span{font:12px var(--f-mono);opacity:.7;min-width:3.2em}
+nav button:hover{color:var(--ink);background:var(--panel)}
+nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{min-width:0}
+section{display:flex;flex-direction:column;gap:18px}
+.lede{color:var(--muted);max-width:72ch;margin:0}
+.src{font:12px var(--f-mono);color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+dl.kv{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:8px 16px;margin:0}
+dl.kv dt{font:500 12px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+dl.kv dd{margin:0;min-width:0}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--code-bg);padding:1px 5px;border-radius:3px}
+pre{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font:13px/1.55 var(--f-mono);color:var(--ink)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{all:unset;cursor:pointer;font:500 12px var(--f-mono);padding:4px 10px;border:1px solid var(--line);border-radius:4px;color:var(--muted)}
+.tabs button[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ep-list{display:flex;flex-direction:column;gap:8px}
+.ep{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}
+.ep>button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px}
+.ep>button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ep .rank{font:600 13px var(--f-mono);color:var(--accent)}
+.ep .name{font-weight:600}
+.ep .type{font:12px var(--f-mono);color:var(--muted)}
+.ep .body{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:14px}
+.pill{font:500 11px var(--f-mono);padding:2px 7px;border-radius:999px;white-space:nowrap}
+.pill.p{background:var(--pass-soft);color:var(--pass)} .pill.f{background:var(--fail-soft);color:var(--fail)} .pill.w{background:var(--warn-soft);color:var(--warn)} .pill.n{background:var(--code-bg);color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:13px;white-space:nowrap}
+/* hierarchy */
+.chain{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.step .dot{width:14px;height:14px;border-radius:50%;justify-self:center;border:2px solid var(--muted)}
+.step.ok{border-color:var(--pass)} .step.ok .dot{background:var(--pass);border-color:var(--pass)}
+.step.stop{border-color:var(--fail)} .step.stop .dot{background:var(--fail);border-color:var(--fail)}
+.step.nom{opacity:.75;border-style:dashed}
+.link{width:2px;height:14px;background:var(--line);margin-left:25px}
+.ctrl{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font:500 12px var(--f-mono);color:var(--muted)}
+input,select{font:14px var(--f-mono);padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink);min-width:0}
+input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.out div{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--bg)}
+.out .k{font:11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.out .v{font:600 18px var(--f-mono);font-variant-numeric:tabular-nums}
+.why{font-size:14px;color:var(--muted)}
+.why b{color:var(--ink)}
+.note{border-left:3px solid var(--warn);background:var(--warn-soft);padding:10px 12px;border-radius:0 6px 6px 0;font-size:14px}
+ul.tight{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.check{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--line)}
+.check:last-child{border-bottom:0}
+.check code{white-space:nowrap}
+.check input{margin-top:4px}
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+footer a{color:var(--accent)}
+/* estimands */
+.estbody{display:flex;flex-direction:column;gap:14px}
+.lineage{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lineage a{font:500 12px var(--f-mono);color:var(--accent);text-decoration:none;padding:4px 9px;border:1px solid var(--accent);border-radius:4px;background:var(--accent-soft)}
+.lineage a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lineage i{font-style:normal;color:var(--muted);font-size:12px}
+.attr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.attr>div{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--bg);min-width:0}
+.attr .k{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.ice{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.ice:last-child{border-bottom:0}
+.rule{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.rule-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg)}
+.rule-b{padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.tests{display:flex;flex-direction:column;gap:4px}
+.test{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font-size:13px;align-items:start}
+.test .mk{font:600 13px var(--f-mono)}
+.test.ok .mk{color:var(--pass)} .test.bad .mk{color:var(--fail)}
+.test code{font-size:12px}
+.q{border-left:3px solid var(--warn);background:var(--warn-soft);padding:8px 10px;border-radius:0 6px 6px 0;font-size:13px}
+.shell td:first-child{font-weight:500}
+/* impact */
+.amend-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
+.amend-list button{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--panel);display:flex;flex-direction:column;gap:3px;font-size:14px}
+.amend-list button .v{font:500 11px var(--f-mono);color:var(--muted)}
+.amend-list button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.amend-list button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.trace{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:8px;overflow-x:auto;padding-bottom:4px}
+.trace .col{display:flex;flex-direction:column;gap:6px;min-width:130px}
+.trace .colh{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.trace .node{font-size:12.5px;line-height:1.35;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--muted)}
+.trace .node.hit{border-color:var(--warn);background:var(--warn-soft);color:var(--ink);font-weight:500}
+/* v3 additions */
+.navh{font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 12px 4px}
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.cap-grid button{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel);display:flex;flex-direction:column;gap:4px}
+.cap-grid button:hover{border-color:var(--accent)}
+.cap-grid button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cap-grid .big{font:600 22px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.cap-grid .lbl{font-size:13px;color:var(--muted)}
+td .yes{color:var(--pass);font-weight:600} td .no{color:var(--muted)} td .part{color:var(--warn);font-weight:600}
+td a{color:var(--accent)}
+.btn{font:500 14px var(--f-body);padding:7px 16px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:var(--panel);cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chart{width:100%;overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:300px;height:auto}
+.chart text{fill:var(--muted);font:11px var(--f-mono)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .axis{stroke:var(--muted);stroke-width:1}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.km-read{font:13px var(--f-mono);color:var(--muted);min-height:1.5em}
+.lint-list{display:flex;flex-direction:column;gap:8px}
+.lint{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 12px;align-items:start;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--panel)}
+.lint .cat{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.lint .det{font-size:14px;color:var(--muted)}
+.lint .det b{color:var(--ink)}
+.trace .node{cursor:pointer;text-align:left;font:inherit}
+.trace .node.root{border-color:var(--fail);background:var(--fail-soft);color:var(--ink);font-weight:600}
+.trace .node.up{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.trace .node.sel{outline:2px solid var(--ink);outline-offset:1px}
+.trace .node:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.bcref{font:500 11.5px var(--f-mono);color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:1px 6px;cursor:pointer;white-space:nowrap}
+.bcref:hover{text-decoration:underline}
+.bc-list{display:flex;flex-direction:column;gap:8px}
+details.bc{border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+details.bc>summary{cursor:pointer;padding:11px 14px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;list-style:none}
+details.bc>summary::-webkit-details-marker{display:none}
+details.bc>summary .mono{color:var(--accent);font-size:12.5px}
+details.bc>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+details.bc[open]>summary{border-bottom:1px solid var(--line)}
+.bc-b{padding:14px;display:flex;flex-direction:column;gap:12px}
+.erec{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.erec label{gap:5px}
+#rcTable input,#rcTable select{font-size:13px;padding:4px 6px}
+#rcTable td{vertical-align:middle}
+@media (max-width:760px){
+  .navh{display:none}
+  .layout{grid-template-columns:minmax(0,1fr);gap:16px}
+  nav{flex-direction:row;overflow-x:auto;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:6px;z-index:2;margin-inline:-16px;padding-inline:16px}
+  nav button{white-space:nowrap}
+  nav button span{display:none}
+  dl.kv{grid-template-columns:minmax(0,1fr)}
+  dl.kv dd{margin-bottom:6px}
+  .ep>button{grid-template-columns:40px minmax(0,1fr)}
+  .ep>button .pill{grid-column:2;justify-self:start}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">NCT03529110 · Daiichi Sankyo / AstraZeneca DS8201-A-U302 · Protocol v6.0 (25 Sep 2020)</div>
+  <h1>DESTINY-Breast03 Analysis Spec</h1>
+  <p class="sub">Trastuzumab deruxtecan vs trastuzumab emtansine in HER2-positive metastatic breast cancer, as an executable model. Built from the protocol alone, with no study results: every data element is a CDISC Biomedical Concept, RECIST 1.1 runs as code, censoring rules test themselves, and a dry run on mock data exercises every derivation before real data exist.</p>
+  <div class="meta">
+    <span class="chip">Phase <b>3</b></span>
+    <span class="chip">Open-label <b>1:1</b></span>
+    <span class="chip">N <b>~500 planned</b></span>
+    <span class="chip">PFS events <b>234 / 335</b></span>
+    <span class="chip">OS events <b>~250</b></span>
+    <span class="chip">Strata <b>HR · pertuzumab · visceral</b></span>
+  </div>
+</header>
+
+<div class="layout">
+<nav role="tablist" aria-label="Spec sections" id="nav">
+  <button role="tab" data-s="overview" aria-selected="true"><span>★</span>Overview</button>
+  <div class="navh">Specify</div>
+  <button role="tab" data-s="design"><span>§3</span>Design</button>
+  <button role="tab" data-s="estimands"><span>E9(R1)</span>Estimands</button>
+  <button role="tab" data-s="bcs"><span>BC</span>Biomedical Concepts</button>
+  <button role="tab" data-s="alpha"><span>§11.5</span>Testing &amp; alpha</button>
+  <button role="tab" data-s="elig"><span>§4</span>Eligibility</button>
+  <div class="navh">Execute</div>
+  <button role="tab" data-s="recist"><span>RECIST</span>Response engine</button>
+  <button role="tab" data-s="sim"><span>§11.6</span>Design simulator</button>
+  <button role="tab" data-s="run"><span>▶</span>Dry run</button>
+  <div class="navh">Govern</div>
+  <button role="tab" data-s="lint"><span>✓</span>Spec checks</button>
+  <button role="tab" data-s="graph"><span>Δ</span>Dependency graph</button>
+</nav>
+
+<main>
+<!-- OVERVIEW -->
+<section id="overview">
+  <div><h2>What this model does</h2><p class="lede">Oncology specs fail in predictable places: RECIST arithmetic, response confirmation, PFS censoring after missed scans or new therapy, and data elements that drift from their CDISC definitions. Each of those is code here, tested on load, and tied to a Biomedical Concept from the CDISC library.</p></div>
+  <div class="cap-grid" id="capGrid"></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Capability</th><th>USDM 4</th><th>This model</th><th>Try it</th></tr></thead>
+    <tbody id="capTable"></tbody>
+  </table></div>
+  <div class="note">The posted protocol is readable but the SAP section is not, so oncology conventions the SAP would normally fix (the two-missed-scans rule, the confirmation window, the minimum SD duration) are modelled as explicit parameters and flagged in Spec checks rather than presented as the sponsor's rules.</div>
+</section>
+
+<!-- DESIGN -->
+<section id="design" hidden>
+  <div><h2>Study design</h2><p class="lede">Randomized, open-label, active-controlled phase 3. Because investigators know the arm, the primary endpoint is PFS by blinded independent central review (BICR).</p></div>
+  <div class="grid2">
+    <div class="panel"><h3>Arms</h3><dl class="kv">
+      <dt>Experimental</dt><dd>Trastuzumab deruxtecan (T-DXd) 5.4 mg/kg IV every 3 weeks</dd>
+      <dt>Control</dt><dd>Trastuzumab emtansine (T-DM1) 3.6 mg/kg IV every 3 weeks</dd>
+      <dt>Dose basis</dt><dd>Body weight (<span class="bcref" data-bc="C81328">BC C81328</span>), so weight changes drive dose recalculation</dd>
+      <dt>Duration</dt><dd>Until progression, unacceptable toxicity or withdrawal</dd></dl>
+      <div class="src">Protocol §5.2–5.4</div></div>
+    <div class="panel"><h3>Randomization</h3><dl class="kv">
+      <dt>Ratio</dt><dd>1:1</dd>
+      <dt>Strata</dt><dd>Hormone receptor status (<span class="bcref" data-bc="C16150">ER</span> / <span class="bcref" data-bc="C16149">PR</span>), prior pertuzumab, history of visceral disease → 8 strata</dd>
+      <dt>Planned N</dt><dd>~500, 1:1</dd></dl>
+      <div class="src">Protocol §3.1</div></div>
+    <div class="panel"><h3>Tumor assessments</h3><dl class="kv">
+      <dt>Criteria</dt><dd>Modified RECIST 1.1 (Protocol §17.4)</dd>
+      <dt>Baseline</dt><dd>Within the screening window before randomization</dd>
+      <dt>On study</dt><dd>Every 6 weeks (±7 days); the posted text also mentions a later move to 8-weekly, which the model flags</dd>
+      <dt>Primary reader</dt><dd>BICR; investigator assessment is a secondary endpoint</dd></dl>
+      <div class="src">Protocol §6.4, §17.4</div></div>
+    <div class="panel"><h3>Analyses</h3><dl class="kv">
+      <dt>PFS interim</dt><dd>~234 BICR events (70% information)</dd>
+      <dt>PFS final</dt><dd>335 BICR events</dd>
+      <dt>OS</dt><dd>Tested only if PFS is significant; looks at ~96, ~153 and ~250 deaths, Lan–DeMets O'Brien–Fleming spending</dd>
+      <dt>Alpha</dt><dd>Two-sided 0.05 overall</dd></dl>
+      <div class="src">Protocol §11.5–11.6</div></div>
+  </div>
+  <div class="panel"><h3>Planned analyses and output shells</h3>
+    <div class="tbl"><table><thead><tr><th>Analysis</th><th>Trigger</th><th>Tested</th><th>Output shells</th></tr></thead><tbody>
+      <tr><td>PFS interim</td><td class="num">~234 BICR PFS events</td><td>PFS (BICR); OS look 1 if PFS crosses</td><td>T-EFF-01, T-EFF-02, F-KM-01</td></tr>
+      <tr><td>PFS final</td><td class="num">335 BICR PFS events</td><td>PFS (BICR); OS look 2</td><td>T-EFF-01 to T-EFF-04, F-KM-01, F-WF-01</td></tr>
+      <tr><td>OS final</td><td class="num">~250 deaths</td><td>OS</td><td>T-EFF-02, F-KM-02</td></tr>
+    </tbody></table></div>
+    <div class="src">Triggers from Protocol §11.5–11.6. Shell IDs are this model's; the sponsor's TLF plan may differ.</div>
+  </div>
+</section>
+
+<!-- ESTIMANDS -->
+<section id="estimands" hidden>
+  <div><h2>Computable estimands</h2><p class="lede">Each estimand links forward to its Biomedical Concepts, derivation rules (tested live) and output. Oncology adds what cardiology didn't need: response confirmation, scan schedules and a hypothetical strategy for new anticancer therapy.</p></div>
+  <div class="tabs" id="estTabs" aria-label="Estimand"></div>
+  <div class="lineage" id="lineage"></div>
+  <div id="estBody" class="estbody"></div>
+</section>
+
+<!-- BCS -->
+<section id="bcs" hidden>
+  <div><h2>Biomedical Concepts</h2><p class="lede">Every data element the analysis depends on, as defined in the CDISC Biomedical Concepts library (COSMoS). Each card shows the concept, its data element concepts, its SDTM dataset specialization, and which derivations in this model consume it.</p></div>
+  <div class="out" id="bcSum"></div>
+  <div class="tabs" id="bcFilter" aria-label="Filter concepts"></div>
+  <div class="bc-list" id="bcList"></div>
+  <div class="panel"><h3>Concepts this trial needs that the library doesn't cover</h3><div id="bcGaps"></div>
+  <div class="src">Checked against the COSMoS export in the cdisc-org/COSMoS repository (biomedical concepts and SDTM dataset specializations, latest export)</div></div>
+</section>
+
+<!-- ALPHA -->
+<section id="alpha" hidden>
+  <div><h2>Testing and alpha</h2><p class="lede">PFS by BICR is tested first. Only if it is significant does OS get tested, across three looks with Lan–DeMets O'Brien–Fleming spending. The boundaries are computed in the page by recursive numerical integration, so a DMC or programmer can see in advance exactly what result would cross at each look.</p></div>
+  <div class="panel">
+    <div class="ctrl">
+      <label for="a_alpha">Two-sided α<input id="a_alpha" type="number" step="0.005" value="0.05"></label>
+      <label for="a_t1">OS look 1 information<input id="a_t1" type="number" step="0.01" value="0.384"></label>
+      <label for="a_t2">OS look 2 information<input id="a_t2" type="number" step="0.01" value="0.612"></label>
+    </div>
+    <div class="tbl" id="gsTable"></div>
+    <p class="why" id="gsWhy"></p>
+    <div class="src">Information fractions from Protocol §11.5 (≈96, 153, 250 deaths). At a real look the boundary is recomputed from the actual number of deaths; change the fractions to rehearse that.</div>
+  </div>
+  <div class="panel"><h3>Decision rehearsal</h3>
+    <div class="ctrl">
+      <label for="dc_look">Look<select id="dc_look"><option value="0">OS look 1</option><option value="1">OS look 2</option><option value="2">OS final</option></select></label>
+      <label for="dc_d">Deaths at look<input id="dc_d" type="number" value="96"></label>
+      <label for="dc_hr">Hypothetical HR<input id="dc_hr" type="number" step="0.01" value="0.65"></label>
+    </div>
+    <div class="out" id="dcOut"></div>
+    <p class="why" id="dcWhy"></p>
+  </div>
+  <div class="panel"><h3>Hierarchy</h3>
+    <div class="chain" id="chain"></div>
+  </div>
+</section>
+
+<!-- ELIG -->
+<section id="elig" hidden>
+  <div><h2>Eligibility as executable checks</h2><p class="lede">Each criterion reads a Biomedical Concept from a patient record and returns a decision. Pick an example patient or edit the values.</p></div>
+  <div class="tabs" id="eligPresets" aria-label="Example patients"></div>
+  <div class="grid2">
+    <div class="panel"><h3>Patient record (by BC)</h3><div class="erec" id="eligRec"></div></div>
+    <div class="panel"><h3>Criteria</h3><div id="eligChecks"></div><div class="out"><div><div class="k">Decision</div><div class="v" id="eligOut">–</div></div></div></div>
+  </div>
+  <div class="note">Only thresholds stated in the posted protocol text are coded (ECOG 0–1, LVEF ≥50%, QTc limits, ≥1 measurable lesion, HER2-positive). Laboratory thresholds are listed as "adequate organ function" in the extracted text, so they are shown as unmapped rather than guessed.</div>
+</section>
+
+<!-- RECIST -->
+<section id="recist" hidden>
+  <div><h2>RECIST 1.1 response engine</h2><p class="lede">Enter target-lesion sums and non-target status by visit. The engine applies the RECIST 1.1 timepoint table, confirms responses, and derives best overall response and the PFS date. These are the same functions the Estimands tab tests and the simulated trial uses.</p></div>
+  <div class="tabs" id="rcPresets" aria-label="Example patients"></div>
+  <div class="panel">
+    <div class="ctrl">
+      <label for="rc_gap">Confirmation gap (days)<input id="rc_gap" type="number" value="28"></label>
+      <label for="rc_sd">Minimum SD duration (days)<input id="rc_sd" type="number" value="35"></label>
+    </div>
+    <div class="tbl"><table id="rcTable"></table></div>
+    <div class="out" id="rcOut"></div>
+    <p class="why" id="rcWhy"></p>
+  </div>
+  <div class="panel"><h3>Sum of diameters</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Sum of target diameters</span><span><i style="background:var(--muted)"></i>PD threshold (nadir +20% and +5 mm)</span></div>
+    <div class="chart" id="rcChart"></div></div>
+</section>
+
+<!-- SIM -->
+<section id="sim" hidden>
+  <div><h2>Design simulator</h2><p class="lede">The protocol fixes 335 PFS events but the extracted text doesn't state the assumed hazard ratio or power. This works them out from the event count and projects when each analysis would trigger. Control median and accrual are assumptions you set.</p></div>
+  <div class="panel">
+    <div class="ctrl">
+      <label for="s_ev">PFS events<input id="s_ev" type="number" value="335"></label>
+      <label for="s_hr">Assumed HR<input id="s_hr" type="number" step="0.01" value="0.70"></label>
+      <label for="s_med">Control median PFS (mo)<input id="s_med" type="number" step="0.1" value="7.0"></label>
+      <label for="s_n">Randomized N<input id="s_n" type="number" value="500"></label>
+      <label for="s_acc">Accrual (months)<input id="s_acc" type="number" value="22"></label>
+    </div>
+    <div class="out" id="simOut"></div>
+    <p class="why" id="simWhy"></p>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Expected PFS events over time</h3><div class="chart" id="evChart"></div><div class="src">Exponential PFS, uniform accrual, no dropout</div></div>
+    <div class="panel"><h3>Power by true hazard ratio</h3><div class="chart" id="powChart"></div><div class="src">Two-sided α 0.05 at the event target</div></div>
+  </div>
+</section>
+
+<!-- RUN -->
+<section id="run" hidden>
+  <div><h2>Dry run on mock data</h2><p class="lede">Before any real data exist, this simulates patients down to individual scans: tumor sums at every 6-week visit with window jitter and missed scans, new lesions, new anticancer therapy and deaths. Each scan becomes BC-conformant SDTM (TR, RS), the RECIST engine derives responses, the PFS rule cuts the data at the 335th BICR event, and a Cox model stratified by the 8 randomization strata gives the hazard ratio.</p></div>
+  <div class="panel">
+    <div class="ctrl">
+      <label for="r_n">Patients<input id="r_n" type="number" value="500"></label>
+      <label for="r_hr">Assumed PFS HR<input id="r_hr" type="number" step="0.01" value="0.70"></label>
+      <label for="r_med">Control median PFS (mo, assumed)<input id="r_med" type="number" step="0.1" value="7.0"></label>
+      <label for="r_ev">Cut at PFS events<input id="r_ev" type="number" value="335"></label>
+      <label for="r_miss">Missed-scan rate<input id="r_miss" type="number" step="0.01" value="0.05"></label>
+      <label for="r_seed">Seed<input id="r_seed" type="number" value="303"></label>
+      <button class="btn" id="runBtn">Run</button>
+    </div>
+    <div class="out" id="runOut"></div>
+    <p class="why" id="runWhy"></p>
+  </div>
+  <div class="panel"><h3>Kaplan–Meier: PFS by BICR</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>T-DXd</span><span><i style="background:var(--s2)"></i>T-DM1</span></div>
+    <div class="chart" id="kmChart"></div><div class="km-read" id="kmRead">Hover the chart to read PFS by month.</div></div>
+  <div class="grid2">
+    <div class="panel"><h3>Waterfall: best % change in target sum</h3>
+      <div class="legend"><span><i style="background:var(--s1)"></i>T-DXd</span><span><i style="background:var(--s2)"></i>T-DM1</span></div>
+      <div class="chart" id="wfChart"></div></div>
+    <div class="panel"><h3>How PFS was derived</h3><div class="tbl" id="pfsReasons"></div></div>
+  </div>
+  <div class="panel"><h3>Generated SDTM, checked against BC specializations</h3><div class="tbl" id="sdtmPrev"></div><p class="why" id="sdtmWhy"></p></div>
+</section>
+
+<!-- LINT -->
+<section id="lint" hidden>
+  <div><h2>Spec checks</h2><p class="lede">Run on every load: design arithmetic, internal consistency of the group-sequential plan, E9(R1) conformance, unit and randomized stress tests of the oncology rules, and coverage of the trial's data by the CDISC Biomedical Concepts library.</p></div>
+  <div class="out" id="lintSum"></div>
+  <div class="lint-list" id="lintList"></div>
+</section>
+
+<!-- GRAPH -->
+<section id="graph" hidden>
+  <div><h2>Dependency graph</h2><p class="lede">Biomedical Concepts sit at the root. Pick a what-if change to see what it would touch, or tap any node for its full lineage. Impact is computed by walking the links, not listed by hand.</p></div>
+  <div class="amend-list" id="amendList"></div>
+  <div class="panel">
+    <div class="legend"><span><i style="background:var(--fail)"></i>Changed directly</span><span><i style="background:var(--warn)"></i>Affected downstream</span><span><i style="background:var(--accent)"></i>Upstream of selected node</span></div>
+    <h3 id="impTitle">Traceability</h3>
+    <div class="trace" id="trace"></div>
+    <p class="why" id="impWhy"></p>
+  </div>
+</section>
+</main>
+</div>
+
+<footer>
+  <div>Sources: <a href="https://cdn.clinicaltrials.gov/large-docs/10/NCT03529110/Prot_SAP_001.pdf" target="_blank" rel="noopener">DESTINY-Breast03 protocol v6.0 (ClinicalTrials.gov)</a> · <a href="https://github.com/cdisc-org/COSMoS" target="_blank" rel="noopener">CDISC COSMoS Biomedical Concepts</a>. No study results are used anywhere on this page.</div>
+  <div>Code is an illustrative model of the protocol, not the sponsor's programs. Rules marked as assumptions follow common oncology SAP practice and should be checked against the actual SAP.</div>
+</footer>
+</div>
+
+<script>
+/* ===================== utilities ===================== */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const showv=v=>typeof v==="object"&&v!==null?JSON.stringify(v):String(v);
+const navBtns=[...document.querySelectorAll("#nav button")];
+function show(id){navBtns.forEach(b=>b.setAttribute("aria-selected",b.dataset.s===id));
+ document.querySelectorAll("main>section").forEach(s=>s.hidden=s.id!==id);try{history.replaceState(null,"","#"+id)}catch(e){}}
+navBtns.forEach(b=>b.addEventListener("click",()=>show(b.dataset.s)));
+{const h=(location.hash||"").slice(1);if(navBtns.some(b=>b.dataset.s===h))show(h);}
+function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function erf(x){const t=1/(1+0.3275911*Math.abs(x));const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return x>=0?y:-y;}
+const Phi=z=>0.5*(1+erf(z/Math.SQRT2)),phi=z=>Math.exp(-z*z/2)/Math.sqrt(2*Math.PI);
+function qnorm(p){const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239],
+ b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572],
+ c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783],
+ e=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416],pl=0.02425;let q,r;
+ if(p<pl){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((e[0]*q+e[1])*q+e[2])*q+e[3])*q+1);}
+ if(p>1-pl){q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((e[0]*q+e[1])*q+e[2])*q+e[3])*q+1);}
+ q=p-0.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+const fmtP=p=>p<1e-15?"<10⁻¹⁵":p<1e-4?p.toExponential(1).replace("e-","×10^-"):p.toFixed(4);
+
+/* ===================== oncology rules ===================== */
+/* RECIST 1.1 target-lesion response at one timepoint. nadir = smallest prior sum incl. baseline. */
+function targetResp(x){
+ if(x.ne) return "NE";
+ if(x.cur===0) return "CR";
+ if(x.cur-x.nadir>=0.2*x.nadir && x.cur-x.nadir>=5) return "PD";
+ if((x.base-x.cur)/x.base>=0.3) return "PR";
+ return "SD";}
+/* RECIST 1.1 overall response table (target × non-target × new lesion) */
+function overallResp(t,nt,newLes){
+ if(newLes||nt==="PD"||t==="PD") return "PD";
+ if(t==="CR") return (nt==="CR"||nt==="ND")?"CR":"PR";
+ if(t==="PR") return "PR";
+ if(t==="SD") return "SD";
+ return "NE";}
+/* Apply both across a visit series; baseline is visits[0] */
+function recistSeries(visits){
+ const base=visits[0].sum;let nadir=base;const out=[];
+ visits.slice(1).forEach(v=>{
+  const ne=v.ne||v.sum==null||isNaN(v.sum);
+  const t=targetResp({base,nadir,cur:v.sum,ne});
+  const o=overallResp(t,v.nt||"NON-CR/NON-PD",!!v.newLes);
+  out.push({day:v.day,sum:v.sum,nadir,trg:t,ovr:o,pctBase:ne?null:(v.sum-base)/base*100,pctNadir:ne?null:(nadir?(v.sum-nadir)/nadir*100:null)});
+  if(!ne) nadir=Math.min(nadir,v.sum);});
+ return out;}
+/* Best overall response with confirmation (assessments after first PD ignored) */
+function borConfirm(s,gap=28,sdMin=35){
+ const v=[];for(const a of [...s].sort((a,b)=>a.day-b.day)){v.push(a);if(a.ovr==="PD")break;}
+ const pair=ok=>v.some((a,i)=>ok.includes(a.ovr)&&v.slice(i+1).some(b=>ok.includes(b.ovr)&&b.day-a.day>=gap));
+ if(v.some((a,i)=>a.ovr==="CR"&&v.slice(i+1).some(b=>b.ovr==="CR"&&b.day-a.day>=gap))) return "CR";
+ if(pair(["PR","CR"])) return "PR";
+ if(v.some(a=>["SD","PR","CR"].includes(a.ovr)&&a.day>=sdMin)) return "SD";
+ if(v.some(a=>a.ovr==="PD")) return "PD";
+ return "NE";}
+function respStart(s,gap=28){const v=[...s].sort((a,b)=>a.day-b.day);
+ for(let i=0;i<v.length;i++){if(v[i].ovr==="PD")return null;if(["PR","CR"].includes(v[i].ovr)&&v.slice(i+1).some(b=>["PR","CR"].includes(b.ovr)&&b.day-v[i].day>=gap))return v[i].day;}return null;}
+/* PFS: event at first PD or death; censor at last adequate assessment for new therapy, >=2 missed scans, or no event. Days from randomization (day 0). */
+function pfsDerive(x){
+ const I=x.interval??42,W=x.window??7,maxGap=2*I+W;
+ const A=[...x.assess].filter(a=>a.day<=x.cutoff).sort((a,b)=>a.day-b.day);
+ const adequate=A.filter(a=>a.ovr!=="NE");
+ const pd=adequate.find(a=>a.ovr==="PD");
+ const death=(x.death!=null&&x.death<=x.cutoff)?x.death:null;
+ let evDay=null,evType=null;
+ if(pd&&(death==null||pd.day<=death)){evDay=pd.day;evType="Progression";}else if(death!=null){evDay=death;evType="Death";}
+ const lastAdeq=lim=>{let l=0;for(const a of adequate)if(a.day<=lim&&a.ovr!=="PD")l=a.day;return l;};
+ if(x.newtx!=null&&x.newtx<=x.cutoff&&(evDay==null||x.newtx<evDay)){const c=lastAdeq(x.newtx);return{cnsr:1,adt:c,aval:c+1,reason:"Censored: new anticancer therapy"};}
+ if(evDay!=null){const prev=lastAdeq(evDay-1);
+  if(evDay-prev>maxGap)return{cnsr:1,adt:prev,aval:prev+1,reason:"Censored: event after ≥2 missed scans"};
+  return{cnsr:0,adt:evDay,aval:evDay+1,reason:evType};}
+ const c=lastAdeq(x.cutoff);return{cnsr:1,adt:c,aval:c+1,reason:c?"Censored: no event":"Censored: no adequate post-baseline scan"};}
+function dorDerive(x){const st=respStart(x.assess,x.gap??28);if(st==null)return null;
+ const r=pfsDerive(x);return{cnsr:r.cnsr,start:st,adt:r.adt,aval:r.adt-st+1,reason:r.reason};}
+function osDerive(x){if(x.death!=null&&x.death<=x.cutoff)return{cnsr:0,adt:x.death,aval:x.death+1};
+ const c=Math.min(x.lastAlive,x.cutoff);return{cnsr:1,adt:c,aval:c+1};}
+
+/* ===================== Biomedical Concepts ===================== */
+const BC=[{"id":"C63321","name":"Absolute Neutrophil Count","def":"The real number of white blood cells (WBC) that are neutrophils. It is derived by multiplying the WBC count by the percent of neutrophils in the differential WBC count. The normal range for ANC is 1.5 to 8.0 (1,500 to 8,000/mm3).","pkg":"2025-07-01","cat":"Laboratory Tests;Hematology Tests;Blood Cell Counts;Leukocyte Counts;Neutrophil Counts","decs":["Biospecimen Type","Collection Date Time","Fasting Status Indicator","Observation Result","Unit of Number Concentration"],"specs":[{"vlm":"NEUTBLD","domain":"LB","vars":[["LBTESTCD","NEUT","Topic"],["LBTEST","Neutrophils","Qualifier"],["LBCAT","HEMATOLOGY","Qualifier"],["LBORRES","","Qualifier"],["LBORRESU","10^9/L","Qualifier"],["LBSTRESC","","Qualifier"],["LBSTRESN","","Qualifier"],["LBSTRESU","10^9/L","Qualifier"],["LBLOINC","26499-4","Qualifier"],["LBSPEC","BLOOD","Qualifier"],["LBFAST","N;Y","Qualifier"],["LBDTC","","Timing"]]}]},{"id":"C117786","name":"Aggregate QTCF Interval","def":"A QT aggregate interval corrected for heart rate using Fridericia's formula.","pkg":"2025-11-18","cat":"Electrocardiogram Findings;Electrocardiogram Measurements;ECG Measurements","decs":["Body Position","Category","Collection Date Time","Duration","Evaluator","Lead Device","Observation End Date Time","Test Method","Unit of Time"],"specs":[{"vlm":"QTCFAG","domain":"EG","vars":[["EGTESTCD","QTCFAG","Topic"],["EGTEST","QTcF Interval, Aggregate","Qualifier"],["EGORRES","","Qualifier"],["EGORRESU","ms;s","Qualifier"],["EGSTRESC","","Qualifier"],["EGSTRESN","","Qualifier"],["EGSTRESU","ms","Qualifier"],["EGCAT","INTERVAL","Qualifier"],["EGPOS","POSITION","Qualifier"],["EGMETHOD","EGMETHOD","Qualifier"],["EGEVAL","ADJUDICATION COMMITTEE;INDEPENDENT ASSESSOR;INVESTIGATOR;VENDOR","Qualifier"],["EGDTC","","Timing"],["EGENDTC","","Timing"]]}]},{"id":"C64433","name":"Alanine Aminotransferase Measurement","def":"A quantitative measurement of alanine aminotransferase present in a sample.","pkg":"2025-07-01","cat":"Laboratory Tests;Chemistry Tests;Liver Function Tests;Drug-Induced Liver Injury;DILI","decs":["Biospecimen Type","Collection Date Time","Fasting Status Indicator","Observation Result","Unit of Catalytic Activity Concentration"],"specs":[{"vlm":"ALTSERPL","domain":"LB","vars":[["LBTESTCD","ALT","Topic"],["LBTEST","Alanine Aminotransferase","Qualifier"],["LBCAT","CHEMISTRY","Qualifier"],["LBORRES","","Qualifier"],["LBORRESU","U/L;ukat/L;IU/L;nkat/L","Qualifier"],["LBSTRESC","","Qualifier"],["LBSTRESN","","Qualifier"],["LBSTRESU","nkat/L","Qualifier"],["LBLOINC","1742-6","Qualifier"],["LBSPEC","SERUM OR PLASMA","Qualifier"],["LBFAST","N;Y","Qualifier"],["LBDTC","","Timing"]]}]},{"id":"C94536","name":"Best Overall Response","def":"The most clinically favorable response recorded from the start of the study treatment until the end of treatment.","pkg":"2024-06-27","cat":"Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST","decs":["Category","Clinical Trial Epoch","Collection Date Time","Disease Response Link Group","Evaluator","Evaluator Identifier","Observation Result"],"specs":[{"vlm":"BESTRESP","domain":"RS","vars":[["RSLNKGRP","","Identifier"],["RSTESTCD","BESTRESP","Topic"],["RSTEST","Best Overall Response","Qualifier"],["RSCAT","RECIST 1.1","Qualifier"],["RSORRES","CR;NE;PD;PR;SD;NED;NON-CR/NON-PD","Qualifier"],["RSSTRESC","CR;NE;PD;PR;SD;NED;NON-CR/NON-PD","Qualifier"],["RSEVAL","INVESTIGATOR;INDEPENDENT ASSESSOR","Qualifier"],["RSEVALID","RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3","Qualifier"],["RSDTC","","Timing"]]}]},{"id":"C81328","name":"Body Weight","def":"The weight of a subject.","pkg":"2025-11-18","cat":"Vital Signs;Body Measurements","decs":["Collection Date Time","Observation Result","Unit of Weight"],"specs":[{"vlm":"WEIGHT","domain":"VS","vars":[["VSTESTCD","WEIGHT","Topic"],["VSTEST","Weight","Qualifier"],["VSORRES","","Qualifier"],["VSORRESU","LB;g;kg","Qualifier"],["VSSTRESC","","Qualifier"],["VSSTRESN","","Qualifier"],["VSSTRESU","VSRESU","Qualifier"],["VSDTC","","Timing"]]}]},{"id":"C102408","name":"ECOG - Performance Status","def":"Eastern Cooperative Oncology Group (ECOG) Performance status.","pkg":"2025-09-23","cat":"QRS;Clinical or Research Assessment Classification;Eastern Cooperative Oncology Group Performance Status Clinical Classification;ECOG;ECOG1;ECOG Clinical Classification Question","decs":["Category","Clinical or Research Assessment Answer","Collection Date Time","Ordinal Position"],"specs":[{"vlm":"ECOG101","domain":"RS","vars":[["RSTESTCD","ECOG101","Topic"],["RSTEST","ECOG1-Performance Status","Qualifier"],["RSCAT","ECOG","Qualifier"],["RSORRES","ECOG101OR","Qualifier"],["RSSTRESC","ECOG101STR","Qualifier"],["RSSTRESN","ECOG101STR","Qualifier"],["RSDTC","","Timing"]]}]},{"id":"C16150","name":"Estrogen Receptor Status","def":"The estrogen receptor level measured in a primary tumor or in metastases.  There are essentially two distinct forms of breast cancer, one that tends to have an early onset and is characterized by an ER- status, and one that tends to have a late onset and is ch","pkg":"2025-09-23","cat":"Laboratory Tests;Chemistry Tests;Protein or Enzyme Type Measurements;Endocrine Tests;Hormone Measurements","decs":["Biospecimen Type","Category","Collection Date Time","Measurement, Test or Examination Detail","Observation Result","Specimen Anatomic Site","Subcategory"],"specs":[]},{"id":"C16152","name":"HER2/Neu Status","def":"The presence or absence of Her2/Neu on a tissue sample.","pkg":"2025-09-23","cat":"Genetic Testing;Gene Expression Analysis;Gene Products;Genetic Variation;Genetic Variation Analysis;Cancer Biomarkers","decs":["Biospecimen Type","Category","Collection Date Time","Measurement, Test or Examination Detail","Observation Result","Specimen Anatomic Site","Subcategory"],"specs":[]},{"id":"C94189","name":"Lesion Identification","def":"The identification of a non-neoplastic or neoplastic pathologic process during the diagnostic work-up of a disease.","pkg":"2023-07-06","cat":"Findings;Identification;Work-ups","decs":[],"specs":[]},{"id":"C96684","name":"Longest Diameter","def":"The longest possible length of a straight line passing through the center of a circular or spheroid object that connects two points on the circumference.","pkg":"2026-05-26","cat":"Oncology Standards;Tumor/Lesion Results;TR;RECIST 1.1","decs":["Collection Date Time","Evaluator","Evaluator Identifier","Observation Result","Test Method","Tumor Results Group Identifier","Tumor Results Link Group","Tumor Results Link Identifier","Tumor Results Reference Identifier","Unit of Length"],"specs":[{"vlm":"LDIAM_RECIST1_1","domain":"TR","vars":[["TRTESTCD","LDIAM","Topic"],["TRTEST","Longest Diameter","Qualifier"],["TRORRES","","Qualifier"],["TRORRESU","mm","Qualifier"],["TRSTRESC","","Qualifier"],["TRSTRESN","","Qualifier"],["TRSTRESU","mm","Qualifier"],["TRMETHOD","CT SCAN;CALIPER MEASUREMENT METHOD;ENDOSCOPY;LYMPHANGIOGRAPHY;MAMMOGRAPHY;MRI;NUCLEAR RADIOLOGY;PET SCAN;PET/CT SCAN;PET/MRI SCAN;PHOTOGRAPHY;SCINTIGRAPHY;TOTAL BODY RADIOGRAPHY;ULTRASOUND;X-RAY","Qualifier"],["TREVAL","INVESTIGATOR;INDEPENDENT ASSESSOR;RADIOLOGIST","Qualifier"],["TREVALID","RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3","Qualifier"],["TRGRPID","","Identifier"],["TRREFID","","Identifier"],["TRLNKID","","Identifier"],["TRLNKGRP","","Identifier"],["TRSTAT","NOT DONE","Qualifier"],["TRREASND","NOT EVALUABLE","Qualifier"],["TRREASNE","POOR SCAN QUALITY;NON-COMPATIBLE TECHNIQUE;OBSCURING DUE TO PHYSICAL CHANGES;RESECTION OR FOCAL THERAPY PERFORMED","Qualifier"],["TRDTC","","Timing"]]}]},{"id":"C142362","name":"New Lesion Indicator","def":"An indication as to whether a lesion is newly identified, in comparison to a previous timepoint.","pkg":"2026-05-26","cat":"Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;iRECIST;LUGANO CLASSIFICATION;RANO;IRANO 2015","decs":["Category","Collection Date Time","Evaluator","Evaluator Identifier","Observation Result"],"specs":[]},{"id":"C96613","name":"Overall Response","def":"An assessment of the overall response of the disease to the therapy.","pkg":"2024-06-27","cat":"Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST;LUGANO CLASSIFICATION;RANO;IRANO 2015;PONTE-DI-LEGNO CONSORTIUM 2022;RAJKUMAR MYELOMA 2011","decs":["Category","Collection Date Time","Disease Response Link Group","Evaluator","Evaluator Identifier","Observation Result"],"specs":[{"vlm":"OVRLRESP","domain":"RS","vars":[["RSLNKGRP","","Identifier"],["RSTESTCD","OVRLRESP","Topic"],["RSTEST","Overall Response","Qualifier"],["RSCAT","RECIST 1.1","Qualifier"],["RSORRES","CR;NE;PD;PR;SD;NED;NON-CR/NON-PD","Qualifier"],["RSSTRESC","CR;NE;PD;PR;SD;NED;NON-CR/NON-PD","Qualifier"],["RSEVAL","INVESTIGATOR;INDEPENDENT ASSESSOR","Qualifier"],["RSEVALID","RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3","Qualifier"],["RSDTC","","Timing"]]}]},{"id":"C51951","name":"Platelet Count","def":"The determination of the number of platelets in a biospecimen.","pkg":"2025-07-01","cat":"Laboratory Tests;Hematology Tests","decs":["Biospecimen Type","Collection Date Time","Fasting Status Indicator","Observation Result","Unit of Number Concentration"],"specs":[{"vlm":"PLATBLD","domain":"LB","vars":[["LBTESTCD","PLAT","Topic"],["LBTEST","Platelets","Qualifier"],["LBCAT","HEMATOLOGY","Qualifier"],["LBORRES","","Qualifier"],["LBORRESU","10^9/L","Qualifier"],["LBSTRESC","","Qualifier"],["LBSTRESN","","Qualifier"],["LBSTRESU","10^9/L","Qualifier"],["LBLOINC","26515-7","Qualifier"],["LBSPEC","BLOOD","Qualifier"],["LBFAST","N;Y","Qualifier"],["LBDTC","","Timing"]]}]},{"id":"C16149","name":"Progesterone Receptor Status","def":"Indicates the progesterone receptor level measured in a primary tumor or in metastases. (>=10 is positive if measured in fmols/mg cytosol protein; Otherwise use institutional standards)","pkg":"2025-09-23","cat":"Laboratory Tests;Chemistry Tests;Endocrine Tests;Hormone Measurements;Protein or Enzyme Type Measurement","decs":["Biospecimen Type","Category","Collection Date Time","Measurement, Test or Examination Detail","Observation Result","Specimen Anatomic Site","Subcategory"],"specs":[]},{"id":"C28234","name":"Progression-free Survival","def":"The length of time during and after treatment in which a patient is living with a disease that does not get worse. Progression-free survival may be used in a clinical study or trial to help find out how well a new treatment works.","pkg":"2025-09-23","cat":"Disease Response;Disease Response Criteria;Survival","decs":["Category","Collection Date Time","Observation Result","Subcategory","Unit of Time"],"specs":[]},{"id":"C94535","name":"Response in Non-Target Lesion","def":"A qualitative or quantitative measurement of the response of a non-target lesion(s) to the therapy.","pkg":"2024-06-27","cat":"Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST;LUGANO CLASSIFICATION","decs":["Category","Collection Date Time","Evaluator","Evaluator Identifier","Observation Result"],"specs":[{"vlm":"NTRGRESP","domain":"RS","vars":[["RSTESTCD","NTRGRESP","Topic"],["RSTEST","Non-target Response","Qualifier"],["RSCAT","RECIST 1.1","Qualifier"],["RSORRES","NON-CR/NON-PD;PD;NE;CR","Qualifier"],["RSSTRESC","NON-CR/NON-PD;PD;NE;CR","Qualifier"],["RSEVAL","INVESTIGATOR;INDEPENDENT ASSESSOR","Qualifier"],["RSEVALID","RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3","Qualifier"],["RSDTC","","Timing"]]}]},{"id":"C94534","name":"Response in Target Lesion","def":"A qualitative or quantitative measurement of the response of a target lesion(s) to the therapy.","pkg":"2024-06-27","cat":"Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST;LUGANO CLASSIFICATION;RANO;IRANO 2015","decs":["Category","Collection Date Time","Evaluator","Evaluator Identifier","Observation Result"],"specs":[{"vlm":"TRGRESP","domain":"RS","vars":[["RSTESTCD","TRGRESP","Topic"],["RSTEST","Target Response","Qualifier"],["RSCAT","RECIST 1.1","Qualifier"],["RSORRES","CR;NE;PD;PR;SD","Qualifier"],["RSSTRESC","CR;NE;PD;PR;SD","Qualifier"],["RSEVAL","INVESTIGATOR;INDEPENDENT ASSESSOR","Qualifier"],["RSEVALID","RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3","Qualifier"],["RSDTC","","Timing"]]}]},{"id":"C38037","name":"Total Bilirubin Measurement","def":"The measurement of the total amount of bilirubin present in a particular substrate. The substrate most often tested is blood, but other fluids extracted from the body may be used periodically depending on the purpose of the test.","pkg":"2025-07-01","cat":"Laboratory Tests;Chemistry Tests;Liver Function Tests;Drug-Induced Liver Injury;DILI","decs":["Biospecimen Type","Collection Date Time","Fasting Status Indicator","Observation Result","Unit of Concentration"],"specs":[{"vlm":"BILISERPL","domain":"LB","vars":[["LBTESTCD","BILI","Topic"],["LBTEST","Bilirubin","Qualifier"],["LBCAT","CHEMISTRY","Qualifier"],["LBORRES","","Qualifier"],["LBORRESU","mg/dL;mg/L;mmol/L;umol/L","Qualifier"],["LBSTRESC","","Qualifier"],["LBSTRESN","","Qualifier"],["LBSTRESU","umol/L","Qualifier"],["LBLOINC","1975-2;14631-6","Qualifier"],["LBSPEC","SERUM OR PLASMA","Qualifier"],["LBFAST","N;Y","Qualifier"],["LBDTC","","Timing"]]}]}];
+const BCX={ /* how this model uses each concept */
+ C96684:{role:"Tumor measurement",use:["Sum of diameters and nadir","Measurable-disease eligibility","Waterfall plot"]},
+ C94189:{role:"Tumor identification",use:["Target / non-target designation at baseline"]},
+ C94534:{role:"Response",use:["Output of targetResp()"]},
+ C94535:{role:"Response",use:["Input to overallResp()"]},
+ C142362:{role:"Response",use:["Input to overallResp(): any new lesion is PD"]},
+ C96613:{role:"Response",use:["Output of overallResp()","Input to borConfirm() and pfsDerive()"]},
+ C94536:{role:"Response",use:["Output of borConfirm()","ORR numerator"]},
+ C28234:{role:"Endpoint",use:["Library concept for PFS as a collected result; this model derives it instead"]},
+ C102408:{role:"Eligibility",use:["ECOG 0–1 inclusion check"]},
+ C16152:{role:"Eligibility",use:["HER2-positive inclusion check"]},
+ C16150:{role:"Stratification",use:["Hormone receptor stratum"]},
+ C16149:{role:"Stratification",use:["Hormone receptor stratum"]},
+ C81328:{role:"Dosing",use:["mg/kg dose for both arms"]},
+ C117786:{role:"Eligibility",use:["QTcF exclusion check"]},
+ C63321:{role:"Eligibility",use:["Adequate bone marrow (threshold not extracted)"]},
+ C51951:{role:"Eligibility",use:["Adequate bone marrow (threshold not extracted)"]},
+ C64433:{role:"Eligibility",use:["Adequate hepatic function (threshold not extracted)"]},
+ C38037:{role:"Eligibility",use:["Adequate hepatic function (threshold not extracted)"]}};
+const BCGAPS=[
+ ["Sum of target lesion diameters","No concept. Every RECIST derivation depends on it, so it lives in the derivation layer here."],
+ ["Left ventricular ejection fraction","No concept found (searched name and synonyms). Needed for the LVEF ≥50% eligibility check and cardiac safety."],
+ ["Interstitial lung disease / pneumonitis (adjudicated)","No concept. ILD is the key T-DXd safety risk and has its own adjudication committee."],
+ ["New anticancer therapy start","No concept found. It drives the PFS hypothetical strategy (censoring)."],
+ ["New Lesion Indicator, RECIST 1.1 specialization","Concept C142362 exists, but SDTM specializations are published only for Lugano and RANO, not RECIST 1.1."],
+ ["ER, PR and HER2 status specializations","Concepts C16150, C16149, C16152 exist with no SDTM dataset specialization, so the domain and variables aren't standardized."],
+ ["Lesion Identification specialization","Concept C94189 exists with no SDTM (TU) specialization."]];
+const bcById=Object.fromEntries(BC.map(b=>[b.id,b]));
+let bcF="All";
+function renderBCs(){
+ const roles=["All",...new Set(Object.values(BCX).map(x=>x.role))];
+ bcFilter.innerHTML=roles.map(r=>`<button aria-pressed="${r===bcF}" data-r="${r}">${r}</button>`).join("");
+ bcFilter.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{bcF=b.dataset.r;renderBCs();}));
+ const withSpec=BC.filter(b=>b.specs.length).length;
+ bcSum.innerHTML=[["Concepts used",BC.length],["With SDTM specialization",withSpec],["Without",BC.length-withSpec],["Gaps in library",BCGAPS.length]].map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+ const order=Object.keys(BCX);
+ bcList.innerHTML=BC.filter(b=>bcF==="All"||BCX[b.id]?.role===bcF).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id)).map(b=>{
+  const x=BCX[b.id]||{role:"",use:[]};const sp=b.specs[0];
+  return `<details class="bc" id="bc-${b.id}"><summary><span class="mono">${b.id}</span><b>${esc(b.name)}</b><span class="pill n">${x.role}</span>${sp?`<span class="pill p">${sp.domain} · ${sp.vlm}</span>`:'<span class="pill w">no SDTM specialization</span>'}</summary>
+   <div class="bc-b"><div class="why">${esc(b.def)}</div>
+   <dl class="kv"><dt>Used by</dt><dd>${x.use.map(esc).join("; ")}</dd>
+   <dt>Categories</dt><dd>${esc(b.cat.split(";").slice(0,4).join(" · "))}</dd>
+   <dt>Data elements</dt><dd>${b.decs.length?b.decs.map(esc).join(", "):"–"}</dd>
+   <dt>Package</dt><dd class="mono">${b.pkg}</dd></dl>
+   ${sp?`<div class="tbl"><table><thead><tr><th>SDTM variable</th><th>Value / value list</th><th>Role</th></tr></thead><tbody>${sp.vars.map(v=>`<tr><td class="num">${v[0]}</td><td>${esc(v[1]||"–")}</td><td>${v[2]}</td></tr>`).join("")}</tbody></table></div>`:""}</div></details>`;}).join("");
+ bcGaps.innerHTML=BCGAPS.map(([n,t])=>`<div class="ice"><span><b>${n}</b><br><span class="why" style="font-size:13px">${t}</span></span><span class="pill w">gap</span></div>`).join("");
+}
+renderBCs();
+document.querySelectorAll(".bcref").forEach(s=>s.addEventListener("click",()=>{show("bcs");bcF="All";renderBCs();const el=$("bc-"+s.dataset.bc);if(el){el.open=true;el.scrollIntoView({block:"start"});}}));
+
+/* ===================== Estimands ===================== */
+const V=(arr)=>arr.map(([day,ovr])=>({day,ovr}));
+const ESTS=[
+{id:"E1",tab:"PFS (BICR)",level:"Primary",obj:"Demonstrate superiority of T-DXd over T-DM1 in progression-free survival by blinded independent central review.",
+ attrs:{Population:"HER2+ unresectable or metastatic breast cancer previously treated with trastuzumab and a taxane; FAS (all randomized)",
+  Treatment:"T-DXd 5.4 mg/kg q3w vs T-DM1 3.6 mg/kg q3w",
+  Variable:"Time from randomization to first BICR-assessed RECIST 1.1 progression or death from any cause",
+  "Summary measure":"Hazard ratio from Cox model stratified by the 3 randomization factors; stratified log-rank test"},
+ ices:[["Treatment discontinuation without progression","Treatment policy","Scans continue; later progression counts"],
+       ["New anticancer therapy before progression","Hypothetical","Censored at last adequate scan before the new therapy"],
+       ["Death before progression","Composite","Death is part of the event"],
+       ["Two or more missed scans before the event","Missing data, not an intercurrent event","Censored at last adequate scan; assumption flagged"]],
+ bcs:["C96684","C94534","C94535","C142362","C96613"],
+ adam:"ADTTE · PARAMCD = PFSBICR · AVAL, CNSR, ADT, STARTDT, EVNTDESC, CNSDTDSC",
+ rules:[{name:"PFS event and censoring",src:"Protocol §11.4.1.1; censoring details assumed",desc:"Event at the first PD or death. Censor at the last adequate scan when new therapy starts before the event, when the event follows a gap longer than 2 × 42 + 7 days, or when there is no event. NE scans are not adequate.",
+   fn:x=>{const r=pfsDerive(x);return[r.cnsr,r.adt,r.aval];},tests:[
+    ["Progression at week 12",{assess:V([[42,"SD"],[84,"PD"]]),cutoff:600},[0,84,85]],
+    ["Death without missed scans",{assess:V([[42,"SD"]]),death:70,cutoff:600},[0,70,71]],
+    ["Death after two missed scans",{assess:V([[42,"SD"]]),death:150,cutoff:600},[1,42,43]],
+    ["New therapy before progression",{assess:V([[42,"SD"],[84,"SD"],[126,"PD"]]),newtx:100,cutoff:600},[1,84,85]],
+    ["No scans, alive",{assess:[],cutoff:600},[1,0,1]],
+    ["No scans, early death",{assess:[],death:60,cutoff:600},[0,60,61]],
+    ["One NE scan is tolerated",{assess:V([[42,"SD"],[84,"NE"],[126,"PD"]]),cutoff:600},[0,126,127]],
+    ["Two NE scans are two missed",{assess:V([[42,"SD"],[84,"NE"],[126,"NE"],[168,"PD"]]),cutoff:600},[1,42,43]],
+    ["Progression after cutoff",{assess:V([[42,"SD"],[620,"PD"]]),cutoff:600},[1,42,43]]],
+   q:"The posted text mentions moving to 8-weekly scans later in treatment. A fixed 91-day gap would then call every on-schedule scan a double miss. The threshold has to follow the schedule in force at the time, and the SAP must say how."},
+  {name:"RECIST 1.1 target response",src:"Protocol §17.4 (modified RECIST 1.1)",desc:"CR when all target lesions disappear; PD when the sum rises ≥20% above the nadir and by ≥5 mm; PR when it falls ≥30% from baseline; otherwise SD.",
+   fn:targetResp,tests:[
+    ["30% shrink is PR",{base:100,nadir:100,cur:70},"PR"],
+    ["29% shrink is SD",{base:100,nadir:100,cur:71},"SD"],
+    ["+20% and +5 mm is PD",{base:60,nadir:40,cur:48},"PD"],
+    ["+20% but only +2.4 mm is not PD",{base:20,nadir:12,cur:14.4},"SD"],
+    ["All lesions gone is CR",{base:35,nadir:10,cur:0},"CR"],
+    ["Not evaluable",{base:50,nadir:50,cur:0,ne:true},"NE"]],
+   q:"Nodal target lesions count as CR at <10 mm short axis, so their sum need not reach 0. This model only recognises CR at a zero sum; real data need a nodal flag from TU/TR."},
+  {name:"RECIST 1.1 overall response",src:"RECIST 1.1 table 1",desc:"Any new lesion or non-target PD makes the visit PD. Target CR with non-target non-CR/non-PD or not evaluated is PR.",
+   fn:x=>overallResp(x.t,x.nt,x.nl),tests:[
+    ["New lesion overrides target PR",{t:"PR",nt:"NON-CR/NON-PD",nl:true},"PD"],
+    ["Non-target PD overrides target SD",{t:"SD",nt:"PD",nl:false},"PD"],
+    ["Target CR, non-target present",{t:"CR",nt:"NON-CR/NON-PD",nl:false},"PR"],
+    ["Target CR, no non-target lesions",{t:"CR",nt:"ND",nl:false},"CR"],
+    ["Target NE, non-target stable",{t:"NE",nt:"NON-CR/NON-PD",nl:false},"NE"]]}],
+ out:{id:"T-EFF-01",title:"PFS by BICR (FAS)",rows:[["Patients with event, n (%)","xx (xx.x)","xx (xx.x)","ev"],["Median PFS, months (95% CI)","xx.x (xx.x, xx.x)","xx.x (xx.x, xx.x)","med"],["Hazard ratio (95% CI)","x.xx (x.xx, x.xx)","","hr"],["Stratified log-rank p","x.xxxx","","p"]]}},
+{id:"E2",tab:"OS",level:"Key secondary",obj:"Compare overall survival between T-DXd and T-DM1.",
+ attrs:{Population:"FAS",Treatment:"As primary",Variable:"Time from randomization to death from any cause",
+  "Summary measure":"Hazard ratio, stratified Cox; stratified log-rank against Lan–DeMets O'Brien–Fleming boundaries"},
+ ices:[["Subsequent anticancer therapy","Treatment policy","Deaths after any later therapy count"],["Treatment discontinuation","Treatment policy","Survival follow-up every 3 months"]],
+ bcs:[],
+ adam:"ADTTE · PARAMCD = OS · AVAL, CNSR, ADT",
+ rules:[{name:"OS censoring",src:"Protocol §2.3.2",desc:"Death on or before cutoff is an event; otherwise censor at the earlier of last known alive and cutoff.",
+   fn:x=>{const r=osDerive(x);return[r.cnsr,r.adt];},tests:[
+    ["Death before cutoff",{death:400,lastAlive:390,cutoff:600},[0,400]],
+    ["Alive, contact after cutoff",{lastAlive:640,cutoff:600},[1,600]],
+    ["Lost to contact",{lastAlive:300,cutoff:600},[1,300]],
+    ["Death after cutoff is censored",{death:610,lastAlive:590,cutoff:600},[1,590]]]}],
+ out:{id:"T-EFF-02",title:"Overall survival (FAS), by look",rows:[["Deaths, n (%)","xx (xx.x)","xx (xx.x)"],["Hazard ratio (95% CI)","x.xx (x.xx, x.xx)",""],["Stratified log-rank p","x.xxxx",""],["Boundary at this look (2-sided p)","from Testing & alpha",""]]}},
+{id:"E3",tab:"Confirmed ORR",level:"Secondary",obj:"Compare the proportion of patients with confirmed objective response by BICR.",
+ attrs:{Population:"FAS with measurable disease at baseline",Treatment:"As primary",Variable:"Best overall response of confirmed CR or PR before progression or new therapy",
+  "Summary measure":"Response rate per arm and difference; CMH stratified by randomization factors"},
+ ices:[["New anticancer therapy before response","Composite","Counts as non-responder"],["Death before response","Composite","Non-responder"],["Treatment discontinuation","Treatment policy","Scans after stopping still count"]],
+ bcs:["C96613","C94536"],
+ adam:"ADRS · PARAMCD = BOR (confirmed), OVRLRESP by visit",
+ rules:[{name:"Confirmed best overall response",src:"RECIST 1.1 §4.4; window assumed",desc:"CR or PR must be repeated at least 28 days later with no PD in between. SD needs at least 35 days on study (6 weeks minus the 7-day window). Scans after the first PD are ignored.",
+   fn:x=>borConfirm(x),tests:[
+    ["PR confirmed",V([[42,"PR"],[84,"PR"]]),"PR"],
+    ["Unconfirmed PR becomes SD",V([[42,"PR"],[84,"PD"]]),"SD"],
+    ["CR confirmed after a PR",V([[42,"PR"],[84,"CR"],[126,"CR"]]),"CR"],
+    ["SD too early is PD",V([[28,"SD"],[70,"PD"]]),"PD"],
+    ["NE between two CRs is allowed",V([[42,"CR"],[84,"NE"],[126,"CR"]]),"CR"],
+    ["Second PR only 21 days later",V([[42,"PR"],[63,"PR"],[84,"PD"]]),"SD"],
+    ["Only NE",V([[42,"NE"]]),"NE"],
+    ["CR then PR",V([[42,"CR"],[84,"PR"]]),"PR"]],
+   q:"A CR followed by a PR is not a valid RECIST sequence (after CR, only CR or PD should follow). The rule returns PR; the SAP should say whether to query these or derive PR."}],
+ out:{id:"T-EFF-03",title:"Confirmed objective response by BICR",rows:[["Confirmed ORR, n (%)","xx (xx.x)","xx (xx.x)","orr"],["Complete response, n (%)","xx (xx.x)","xx (xx.x)","cr"],["Difference (95% CI)","xx.x (xx.x, xx.x)",""]]}},
+{id:"E4",tab:"DoR",level:"Secondary",obj:"Describe duration of response by BICR.",
+ attrs:{Population:"Patients with a confirmed CR or PR",Treatment:"As primary",Variable:"Time from first documented response to PD or death",
+  "Summary measure":"Kaplan–Meier median per arm (descriptive)"},
+ ices:[["New anticancer therapy during response","Hypothetical","Same censoring as PFS"],["Death during response","Composite","Event"],
+       ["Being a responder","Conditioning on a post-randomization outcome","Not protected by randomization; flagged"]],
+ bcs:["C96613","C94536"],
+ adam:"ADTTE · PARAMCD = DORBICR · STARTDT = first response",
+ rules:[{name:"Duration of response",src:"Protocol §2.3.3; start rule assumed",desc:"Starts at the first CR/PR that was later confirmed; ends with the same event and censoring rules as PFS.",
+   fn:x=>{const r=dorDerive(x);return r?[r.cnsr,r.start,r.aval]:null;},tests:[
+    ["Responder who progresses",{assess:V([[42,"PR"],[84,"PR"],[126,"PD"]]),cutoff:600},[0,42,85]],
+    ["Responder censored at cutoff",{assess:V([[42,"PR"],[84,"CR"],[126,"CR"]]),cutoff:600},[1,42,85]],
+    ["Non-responder is excluded",{assess:V([[42,"SD"],[84,"PD"]]),cutoff:600},null]]}],
+ out:{id:"T-EFF-04",title:"Duration of response by BICR",rows:[["Responders, n","xx","xx"],["Median DoR, months (95% CI)","xx.x (xx.x, xx.x)","xx.x (xx.x, xx.x)"]]}}];
+let curE=0,fillDry=false;
+function renderEst(){
+ const e=ESTS[curE];
+ estTabs.innerHTML=ESTS.map((x,i)=>`<button aria-pressed="${i===curE}" data-i="${i}">${x.id} · ${x.tab}</button>`).join("");
+ estTabs.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{curE=+b.dataset.i;renderEst();}));
+ lineage.innerHTML=[["obj","Objective"],["est","Estimand"],["bc","Concepts"],["adam","ADaM"],["rules","Derivations"],["out","Output"]].map(([k,l],i)=>(i?'<i>→</i>':'')+`<a href="#" data-k="${k}">${l}</a>`).join("");
+ let tot=0,pass=0;
+ const rulesHtml=e.rules.map(r=>{const t=r.tests.map(([n,inp,exp])=>{let got,ok;try{got=r.fn(inp);ok=eq(got,exp);}catch(err){got="error: "+err.message;ok=false;}
+   tot++;if(ok)pass++;
+   return `<div class="test ${ok?'ok':'bad'}"><span class="mk">${ok?'✓':'✗'}</span><span>${n}<br><code>expect ${esc(showv(exp))}</code>${ok?'':`<br><code>got ${esc(showv(got))}</code>`}</span></div>`;}).join("");
+  return `<div class="rule"><div class="rule-h"><b>${r.name}</b><span class="src">${r.src}</span></div><div class="rule-b"><div>${r.desc}</div><div class="tests">${t}</div>${r.q?`<div class="q"><b>Open spec question.</b> ${r.q}</div>`:''}</div></div>`;}).join("");
+ const strat=s=>s==="Treatment policy"||s==="Composite"||s==="Hypothetical"?"p":"w";
+ estBody.innerHTML=`
+ <div class="panel" id="k-obj"><h3>Objective · ${e.level}</h3><div>${e.obj}</div></div>
+ <div class="panel" id="k-est"><h3>Estimand ${e.id}</h3>
+  <div class="attr">${Object.entries(e.attrs).map(([k,v])=>`<div><div class="k">${k}</div>${v}</div>`).join("")}</div>
+  <div><div class="eyebrow" style="margin-bottom:4px">Intercurrent events</div>${e.ices.map(([n,s,t])=>`<div class="ice"><span>${n}<br><span class="why" style="font-size:13px">${t}</span></span><span class="pill ${strat(s)}">${s}</span></div>`).join("")}</div></div>
+ <div class="grid2">
+  <div class="panel" id="k-bc"><h3>Biomedical Concepts</h3>${e.bcs.length?e.bcs.map(id=>`<div class="ice"><span><span class="bcref" data-bc="${id}">${id}</span> ${esc(bcById[id]?.name||"")}</span><span class="pill ${bcById[id]?.specs.length?'p':'w'}">${bcById[id]?.specs[0]?.domain||"no spec"}</span></div>`).join(""):'<div class="why">No library concept for date of death or last-known-alive; these come from DM/DS directly.</div>'}</div>
+  <div class="panel" id="k-adam"><h3>ADaM</h3><code style="white-space:normal;line-height:1.7">${e.adam}</code></div></div>
+ <div class="panel" id="k-rules"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3>Derivation rules</h3><span class="pill ${pass===tot?'p':'f'}">${pass}/${tot} tests pass</span></div>${rulesHtml}</div>
+ <div class="panel" id="k-out"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3>${e.out.id} · ${e.out.title}</h3>
+  <label style="flex-direction:row;align-items:center;gap:6px" for="fillDry"><input type="checkbox" id="fillDry" ${fillDry?"checked":""}>Fill from dry run</label></div>
+  <div class="tbl"><table><thead><tr><th></th><th>T-DXd</th><th>T-DM1</th></tr></thead><tbody>${e.out.rows.map(r=>{const f=fillDry&&RUN&&RUN.shell[r[3]];return `<tr><td>${r[0]}</td><td class="num">${f?f[0]:r[1]}</td><td class="num">${f?f[1]:r[2]}</td></tr>`;}).join("")}</tbody></table></div>
+  <div class="src">${fillDry?"MOCK DATA from the dry run, for checking programs only":"Table shell; placeholders are filled only when real data are unblinded"}</div></div>`;
+ $("fillDry").addEventListener("change",ev=>{fillDry=ev.target.checked;renderEst();});
+ lineage.querySelectorAll("a").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();$("k-"+a.dataset.k).scrollIntoView({block:"start"});}));
+ estBody.querySelectorAll(".bcref").forEach(s=>s.addEventListener("click",()=>{show("bcs");const el=$("bc-"+s.dataset.bc);if(el){el.open=true;el.scrollIntoView({block:"start"});}}));
+}
+renderEst();
+
+/* ===================== Group sequential ===================== */
+function gsBounds(alpha1,ts){
+ const sp=t=>2-2*Phi(qnorm(1-alpha1/2)/Math.sqrt(t));const N=400,res=[];let g=null,pT=0,pC=0;
+ const simp=(i)=>(i===0||i===N)?1:(i%2?4:2);
+ ts.forEach((t,k)=>{const cum=sp(t),inc=cum-pC;let b;
+  if(k===0){b=qnorm(1-inc);const lo=-8,h=(b-lo)/N,z=[],f=[];for(let i=0;i<=N;i++){const x=lo+i*h;z.push(x);f.push(phi(x));}g={z,f,h};}
+  else{const r=Math.sqrt(pT/t),s=Math.sqrt((t-pT)/t);
+   const cross=bb=>{let sum=0;for(let i=0;i<=N;i++)sum+=simp(i)*g.f[i]*(1-Phi((bb-r*g.z[i])/s));return sum*g.h/3;};
+   let lo=0,hi=8;for(let it=0;it<45;it++){const m=(lo+hi)/2;cross(m)>inc?lo=m:hi=m;}b=(lo+hi)/2;
+   const gl=-8,h=(b-gl)/N,z=[],f=[];for(let i=0;i<=N;i++){const y=gl+i*h;let sum=0;for(let j=0;j<=N;j++)sum+=simp(j)*g.f[j]*phi((y-r*g.z[j])/s)/s;z.push(y);f.push(sum*g.h/3);}g={z,f,h};}
+  res.push({t,cum,inc,b,p2:2*(1-Phi(b))});pT=t;pC=cum;});
+ return res;}
+let GS=null;const LOOKS=["OS look 1","OS look 2","OS final"];
+function renderAlpha(){
+ const a=+a_alpha.value,t1=+a_t1.value,t2=+a_t2.value;
+ if(!(a>0&&a<0.5&&t1>0&&t2>t1&&t2<1)){gsWhy.textContent="Information fractions must increase and stay below 1.";return;}
+ GS=gsBounds(a/2,[t1,t2,1]);
+ gsTable.innerHTML=`<table><thead><tr><th>Look</th><th>Information</th><th>Deaths (of 250)</th><th>Cumulative α (2-sided)</th><th>Boundary z</th><th>Nominal p (2-sided)</th><th>HR needed to cross</th></tr></thead><tbody>${
+  GS.map((g,i)=>{const D=Math.round(g.t*250);return `<tr><td>${LOOKS[i]}</td><td class="num">${g.t.toFixed(3)}</td><td class="num">${D}</td><td class="num">${(2*g.cum).toFixed(5)}</td><td class="num">${g.b.toFixed(3)}</td><td class="num">${g.p2.toFixed(5)}</td><td class="num">≤ ${Math.exp(-g.b*2/Math.sqrt(D)).toFixed(3)}</td></tr>`;}).join("")}</tbody></table>`;
+ gsWhy.innerHTML=`Read across a row: at look 1 with ${Math.round(GS[0].t*250)} deaths, OS crosses only if the hazard ratio is about ${Math.exp(-GS[0].b*2/Math.sqrt(GS[0].t*250)).toFixed(2)} or lower. A miss at an interim look doesn't stop OS testing; it continues to the next look. The three looks spend exactly the full ${a} α.`;
+ const steps=[["PFS by BICR","Tested at two-sided α 0.05 with a Haybittle–Peto interim","rule"],["OS, look 1",`Only if PFS crosses; p < ${GS[0].p2.toFixed(5)}`,"rule"],["OS, look 2",`p < ${GS[1].p2.toFixed(5)}`,"rule"],["OS, final",`p < ${GS[2].p2.toFixed(5)}`,"rule"],["ORR, DoR, PFS by investigator","Descriptive, no formal alpha","nom"]];
+ chain.innerHTML=steps.map(([n,d,c],i)=>(i?'<div class="link"></div>':'')+`<div class="step ${c==="nom"?"nom":""}"><span class="dot"></span><span><b>${n}</b><br><span class="why" style="font-size:13px">${d}</span></span><span class="pill ${c==="nom"?"n":"w"}">${c==="nom"?"nominal":"gated"}</span></div>`).join("");
+ renderDecision();
+}
+function renderDecision(){if(!GS)return;
+ const k=+dc_look.value,D=+dc_d.value,hr=+dc_hr.value;if(!(D>0&&hr>0)){dcWhy.textContent="Enter deaths and a hazard ratio.";return;}
+ const z=-Math.log(hr)*Math.sqrt(D/4),p=2*(1-Phi(Math.abs(z))),cross=hr<1&&z>=GS[k].b;
+ dcOut.innerHTML=[["z statistic",z.toFixed(3)],["2-sided p",p<1e-4?"<0.0001":p.toFixed(5)],["Boundary",GS[k].p2.toFixed(5)],["Decision",cross?"Crosses":"Continue"]].map(([kk,v])=>`<div><div class="k">${kk}</div><div class="v" style="font-size:16px">${v}</div></div>`).join("");
+ dcWhy.textContent=`Approximation z = −ln(HR) × √(deaths/4) for 1:1 allocation. This is a rehearsal with a hypothetical hazard ratio; nothing here comes from study data.`;}
+["dc_look","dc_d","dc_hr"].forEach(k=>$(k).addEventListener("input",renderDecision));
+["a_alpha","a_t1","a_t2"].forEach(k=>$(k).addEventListener("change",renderAlpha));
+renderAlpha();
+
+/* ===================== Eligibility ===================== */
+const ELIG=[
+ {id:"inc_her2",txt:"HER2-positive (ASCO-CAP, central)",bc:"C16152",f:r=>r.her2==="POSITIVE"},
+ {id:"inc_ecog",txt:"ECOG 0 or 1",bc:"C102408",f:r=>r.ecog<=1},
+ {id:"inc_meas",txt:"≥1 measurable lesion (non-nodal longest diameter ≥10 mm)",bc:"C96684",f:r=>r.lds.some(x=>x>=10)},
+ {id:"exc_lvef",txt:"LVEF ≥50%",bc:null,f:r=>r.lvef>=50},
+ {id:"exc_qtc",txt:"QTcF ≤470 ms (female) or ≤450 ms (male)",bc:"C117786",f:r=>r.qtcf<=(r.sex==="F"?470:450)},
+ {id:"exc_ild",txt:"No ILD/pneumonitis requiring steroids",bc:null,f:r=>!r.ild},
+ {id:"lab_anc",txt:"Adequate bone marrow: ANC",bc:"C63321",f:null},
+ {id:"lab_plt",txt:"Adequate bone marrow: platelets",bc:"C51951",f:null},
+ {id:"lab_alt",txt:"Adequate hepatic: ALT",bc:"C64433",f:null},
+ {id:"lab_bili",txt:"Adequate hepatic: bilirubin",bc:"C38037",f:null}];
+const EPRE={"Eligible":{her2:"POSITIVE",ecog:1,lds:"34, 18",lvef:60,qtcf:430,sex:"F",ild:false,anc:2.1,plt:210,alt:28,bili:0.6},
+ "LVEF 45%":{her2:"POSITIVE",ecog:0,lds:"40",lvef:45,qtcf:420,sex:"F",ild:false,anc:3.0,plt:250,alt:20,bili:0.5},
+ "ECOG 2":{her2:"POSITIVE",ecog:2,lds:"25, 12",lvef:58,qtcf:440,sex:"F",ild:false,anc:1.9,plt:180,alt:35,bili:0.8},
+ "No measurable lesion":{her2:"POSITIVE",ecog:0,lds:"8, 6",lvef:62,qtcf:425,sex:"F",ild:false,anc:2.5,plt:300,alt:22,bili:0.4},
+ "Male, QTcF 465":{her2:"POSITIVE",ecog:1,lds:"30",lvef:55,qtcf:465,sex:"M",ild:false,anc:2.2,plt:190,alt:30,bili:0.7}};
+let ePre="Eligible";
+function renderEligForm(){
+ const p=EPRE[ePre];
+ eligPresets.innerHTML=Object.keys(EPRE).map(k=>`<button aria-pressed="${k===ePre}" data-k="${k}">${k}</button>`).join("");
+ eligPresets.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ePre=b.dataset.k;renderEligForm();}));
+ const fld=(id,label,bc,inp)=>`<label for="${id}">${label}${bc?` <span class="bcref" data-bc="${bc}">${bc}</span>`:' <span class="pill w">no BC</span>'}${inp}</label>`;
+ eligRec.innerHTML=[
+  fld("e_her2","HER2 status","C16152",`<select id="e_her2"><option${p.her2==="POSITIVE"?" selected":""}>POSITIVE</option><option${p.her2==="NEGATIVE"?" selected":""}>NEGATIVE</option></select>`),
+  fld("e_ecog","ECOG","C102408",`<input id="e_ecog" type="number" min="0" max="4" value="${p.ecog}">`),
+  fld("e_lds","Target lesion longest diameters (mm)","C96684",`<input id="e_lds" value="${p.lds}">`),
+  fld("e_lvef","LVEF (%)",null,`<input id="e_lvef" type="number" value="${p.lvef}">`),
+  fld("e_qtcf","QTcF aggregate (ms)","C117786",`<input id="e_qtcf" type="number" value="${p.qtcf}">`),
+  fld("e_sex","Sex",null,`<select id="e_sex"><option${p.sex==="F"?" selected":""}>F</option><option${p.sex==="M"?" selected":""}>M</option></select>`),
+  fld("e_ild","ILD needing steroids",null,`<select id="e_ild"><option${!p.ild?" selected":""}>No</option><option${p.ild?" selected":""}>Yes</option></select>`),
+  fld("e_anc","ANC (10⁹/L)","C63321",`<input id="e_anc" type="number" step="0.1" value="${p.anc}">`),
+  fld("e_plt","Platelets (10⁹/L)","C51951",`<input id="e_plt" type="number" value="${p.plt}">`),
+  fld("e_alt","ALT (U/L)","C64433",`<input id="e_alt" type="number" value="${p.alt}">`),
+  fld("e_bili","Total bilirubin (mg/dL)","C38037",`<input id="e_bili" type="number" step="0.1" value="${p.bili}">`)].join("");
+ eligRec.querySelectorAll("input,select").forEach(i=>i.addEventListener("input",evalElig));
+ eligRec.querySelectorAll(".bcref").forEach(s=>s.addEventListener("click",ev=>{ev.preventDefault();show("bcs");const el=$("bc-"+s.dataset.bc);if(el){el.open=true;el.scrollIntoView({block:"start"});}}));
+ evalElig();}
+function evalElig(){
+ const r={her2:e_her2.value,ecog:+e_ecog.value,lds:e_lds.value.split(/[,\s]+/).filter(Boolean).map(Number),lvef:+e_lvef.value,qtcf:+e_qtcf.value,sex:e_sex.value,ild:e_ild.value==="Yes"};
+ let fail=0,un=0;
+ eligChecks.innerHTML=ELIG.map(c=>{let st;if(!c.f){st="unmapped";un++;}else{st=c.f(r)?"pass":"fail";if(st==="fail")fail++;}
+  return `<div class="ice"><span>${c.txt}${c.bc?`<br><span class="src">${c.bc} ${esc(bcById[c.bc]?.name||"")}</span>`:'<br><span class="src">no library concept</span>'}</span><span class="pill ${st==="pass"?"p":st==="fail"?"f":"n"}">${st==="unmapped"?"threshold not coded":st}</span></div>`;}).join("");
+ eligOut.innerHTML=fail?`<span style="color:var(--fail)">Screen failure</span> <span class="why" style="font-size:13px;font-weight:400">${fail} criterion failed</span>`:`<span style="color:var(--pass)">Eligible on coded criteria</span> <span class="why" style="font-size:13px;font-weight:400">${un} lab checks need thresholds</span>`;}
+renderEligForm();
+
+/* ===================== Charts ===================== */
+function lineChart(el,{series,xmax,ymax,ymin=0,xticks,yticks,xfmt=v=>v,yfmt=v=>v,xlabel="",hlines=[],vlines=[],step=false,id,dots=false}){
+ const W=560,H=250,L=52,R=14,T=14,B=38,sx=x=>L+(x/xmax)*(W-L-R),sy=y=>T+(1-(y-ymin)/(ymax-ymin))*(H-T-B);
+ let g=yticks.map(v=>`<line class="grid" x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}"/><text x="${L-6}" y="${sy(v)+4}" text-anchor="end">${yfmt(v)}</text>`).join("");
+ g+=xticks.map(v=>`<text x="${sx(v)}" y="${H-B+16}" text-anchor="middle">${xfmt(v)}</text>`).join("");
+ g+=`<line class="axis" x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}"/><text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">${xlabel}</text>`;
+ g+=hlines.map(h=>`<line x1="${L}" x2="${W-R}" y1="${sy(h.y)}" y2="${sy(h.y)}" stroke="var(--muted)" stroke-dasharray="4 4"/><text x="${W-R-4}" y="${sy(h.y)-5}" text-anchor="end">${h.label}</text>`).join("");
+ g+=vlines.map(v=>`<line x1="${sx(v.x)}" x2="${sx(v.x)}" y1="${T}" y2="${H-B}" stroke="var(--ink)" stroke-width="1"/><text x="${sx(v.x)+5}" y="${T+10}">${v.label}</text>`).join("");
+ const path=(pts,st)=>{let d="";pts.forEach(([x,y],i)=>{const X=sx(Math.min(x,xmax)).toFixed(1),Y=sy(Math.max(ymin,Math.min(y,ymax))).toFixed(1);if(i===0)d+=`M${X},${Y}`;else if(st)d+=`H${X}V${Y}`;else d+=`L${X},${Y}`;});return d;};
+ g+=series.map(s=>`<path d="${path(s.pts,s.step??step)}" fill="none" stroke="${s.color}" stroke-width="2" ${s.dash?'stroke-dasharray="5 4"':''} stroke-linejoin="round"/>`+(s.dots?s.pts.map(([x,y])=>`<circle cx="${sx(x)}" cy="${sy(y)}" r="4" fill="${s.color}" stroke="var(--panel)" stroke-width="2"/>`).join(""):"")).join("");
+ g+=`<line id="${id}-x" y1="${T}" y2="${H-B}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/><rect id="${id}-hit" x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent"/>`;
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${xlabel} chart">${g}</svg>`;
+ return{sx,inv:px=>(px-L)/(W-L-R)*xmax,W};}
+function hover(el,id,ch,onX){const svg=el.querySelector("svg"),hit=el.querySelector(`#${id}-hit`),ln=el.querySelector(`#${id}-x`);
+ const mv=ev=>{const r=svg.getBoundingClientRect();const x=Math.max(0,ch.inv((ev.clientX-r.left)/r.width*ch.W));ln.setAttribute("x1",ch.sx(x));ln.setAttribute("x2",ch.sx(x));ln.setAttribute("visibility","visible");onX(x);};
+ hit.addEventListener("pointermove",mv);hit.addEventListener("pointerdown",mv);}
+
+/* ===================== RECIST engine UI ===================== */
+const RPRE={
+ "Confirmed PR, then PD":{v:[[0,80,"NON-CR/NON-PD",0],[42,60,"NON-CR/NON-PD",0],[84,52,"NON-CR/NON-PD",0],[126,50,"NON-CR/NON-PD",0],[168,55,"NON-CR/NON-PD",0],[210,66,"NON-CR/NON-PD",0]],death:"",newtx:""},
+ "Unconfirmed PR":{v:[[0,60,"NON-CR/NON-PD",0],[42,40,"NON-CR/NON-PD",0],[84,41,"NON-CR/NON-PD",1]],death:"",newtx:""},
+ "+20% but under 5 mm":{v:[[0,20,"NON-CR/NON-PD",0],[42,14,"NON-CR/NON-PD",0],[84,12,"NON-CR/NON-PD",0],[126,14.4,"NON-CR/NON-PD",0],[168,18,"NON-CR/NON-PD",0]],death:"",newtx:""},
+ "Complete response":{v:[[0,35,"CR",0],[42,10,"CR",0],[84,0,"CR",0],[126,0,"CR",0]],death:"",newtx:""},
+ "Missed scans, then death":{v:[[0,50,"NON-CR/NON-PD",0],[42,48,"NON-CR/NON-PD",0],[84,null,"NE",0],[126,null,"NE",0]],death:"160",newtx:""},
+ "New therapy before PD":{v:[[0,70,"NON-CR/NON-PD",0],[42,62,"NON-CR/NON-PD",0],[84,60,"NON-CR/NON-PD",0],[126,80,"NON-CR/NON-PD",0]],death:"",newtx:"100"}};
+let rPre="Confirmed PR, then PD";
+const NTO=["NON-CR/NON-PD","CR","PD","NE","ND"];
+function renderRecistForm(){
+ const p=RPRE[rPre];
+ rcPresets.innerHTML=Object.keys(RPRE).map(k=>`<button aria-pressed="${k===rPre}" data-k="${k}">${k}</button>`).join("");
+ rcPresets.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{rPre=b.dataset.k;renderRecistForm();}));
+ const rows=[...p.v];while(rows.length<6)rows.push([rows[rows.length-1][0]+42,"","NON-CR/NON-PD",0]);
+ rcTable.innerHTML=`<thead><tr><th>Visit</th><th>Day</th><th>Target sum (mm)</th><th>Non-target</th><th>New lesion</th><th>% vs base</th><th>% vs nadir</th><th>Target</th><th>Overall</th></tr></thead><tbody>${
+  rows.map((r,i)=>`<tr data-i="${i}"><td>${i?"Scan "+i:"Baseline"}</td><td><input id="rc_d${i}" type="number" value="${r[0]}" style="width:70px" ${i?"":"disabled"}></td>
+   <td><input id="rc_s${i}" type="number" step="0.1" value="${r[1]??""}" placeholder="${i?"blank = NE":""}" style="width:90px"></td>
+   <td>${i?`<select id="rc_n${i}">${NTO.map(o=>`<option${o===r[2]?" selected":""}>${o}</option>`).join("")}</select>`:"–"}</td>
+   <td>${i?`<input id="rc_l${i}" type="checkbox" ${r[3]?"checked":""}>`:"–"}</td>
+   <td class="num" id="rc_pb${i}"></td><td class="num" id="rc_pn${i}"></td><td id="rc_t${i}"></td><td id="rc_o${i}"></td></tr>`).join("")}</tbody>
+  <tfoot><tr><td colspan="9"><div class="ctrl" style="padding-top:6px"><label for="rc_death">Death (day)<input id="rc_death" type="number" value="${p.death}" style="width:90px"></label><label for="rc_newtx">New therapy (day)<input id="rc_newtx" type="number" value="${p.newtx}" style="width:90px"></label></div></td></tr></tfoot>`;
+ rcTable.querySelectorAll("input,select").forEach(x=>x.addEventListener("input",evalRecist));
+ evalRecist();}
+[rc_gap,rc_sd].forEach(x=>x.addEventListener("input",evalRecist));
+function evalRecist(){
+ const visits=[];for(let i=0;i<6;i++){const s=$("rc_s"+i).value,dd=+$("rc_d"+i).value;
+  if(i===0){visits.push({day:0,sum:+s});continue;}
+  const nt=$("rc_n"+i).value,nl=$("rc_l"+i).checked;
+  if(s===""&&nt!=="NE"&&!nl)continue;
+  visits.push({day:dd,sum:s===""?null:+s,ne:s==="",nt,newLes:nl,i});}
+ const res=recistSeries(visits);
+ for(let i=1;i<6;i++){["pb","pn","t","o"].forEach(k=>$("rc_"+k+i).textContent="");}
+ const pill=v=>`<span class="pill ${v==="PD"?"f":v==="CR"||v==="PR"?"p":v==="NE"?"n":"w"}">${v}</span>`;
+ res.forEach((r,j)=>{const i=visits[j+1].i;$("rc_pb"+i).textContent=r.pctBase==null?"–":(r.pctBase>0?"+":"")+r.pctBase.toFixed(1)+"%";
+  $("rc_pn"+i).textContent=r.pctNadir==null?"–":(r.pctNadir>0?"+":"")+r.pctNadir.toFixed(1)+"%";$("rc_t"+i).innerHTML=pill(r.trg);$("rc_o"+i).innerHTML=pill(r.ovr);});
+ const gap=+rc_gap.value||28,sdm=+rc_sd.value||35,bor=borConfirm(res,gap,sdm);
+ const death=rc_death.value===""?null:+rc_death.value,newtx=rc_newtx.value===""?null:+rc_newtx.value;
+ const pfs=pfsDerive({assess:res,death,newtx,cutoff:1e6}),st=respStart(res,gap);
+ rcOut.innerHTML=[["Best overall response",bor],["PFS",pfs.cnsr?"Censored":"Event"],["PFS day (ADT)",pfs.adt],["AVAL",pfs.aval],["Response start",st==null?"–":"Day "+st]].map(([k,v])=>`<div><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`).join("");
+ rcWhy.innerHTML=`<b>${pfs.reason}.</b> `+(bor==="SD"&&res.some(r=>r.ovr==="PR")?"A PR was seen but never confirmed ≥"+gap+" days later, so it counts only as stable disease. ":"")+
+  (res.some(r=>r.trg==="SD"&&r.pctNadir>=20)?"One scan rose ≥20% above nadir but by less than 5 mm, so it is not progression. ":"");
+ const meas=visits.filter(v=>!v.ne&&v.sum!=null),xmax=Math.max(84,Math.ceil((visits[visits.length-1].day+21)/42)*42);
+ const ymax=Math.max(20,Math.ceil(Math.max(...meas.map(v=>v.sum))*1.3/10)*10);
+ let nad=visits[0].sum;const thr=[];visits.forEach(v=>{thr.push([v.day,Math.max(nad*1.2,nad+5)]);if(!v.ne&&v.sum!=null)nad=Math.min(nad,v.sum);});
+ lineChart(rcChart,{id:"rc",series:[{pts:thr,color:"var(--muted)",step:true,dash:true},{pts:meas.map(v=>[v.day,v.sum]),color:"var(--s1)",dots:true}],xmax,ymax,
+  xticks:[...Array(xmax/42+1)].map((_,i)=>i*42),yticks:[...Array(6)].map((_,i)=>Math.round(ymax/5*i)),yfmt:v=>v+" mm",xlabel:"Study day"});
+}
+renderRecistForm();
+
+/* ===================== Design simulator ===================== */
+const pfsPower=(D,hr,a2=0.05)=>Phi(-Math.log(hr)*Math.sqrt(D/4)-qnorm(1-a2/2));
+const detectHR=(D,pw,a2=0.05)=>Math.exp(-(qnorm(1-a2/2)+qnorm(pw))*2/Math.sqrt(D));
+function expEv(t,N,A,med,hr){let tot=0;if(t<=0)return 0;const l0=Math.LN2/med;
+ for(const l of [l0,l0*hr]){const n=N/2;tot+=t<A?n*(t/A)*(1-(1-Math.exp(-l*t))/(l*t)):n*(1-(Math.exp(-l*(t-A))-Math.exp(-l*t))/(l*A));}return tot;}
+function tTo(D,N,A,med,hr){if(expEv(400,N,A,med,hr)<D)return null;let lo=0,hi=400;for(let k=0;k<60;k++){const m=(lo+hi)/2;expEv(m,N,A,med,hr)<D?lo=m:hi=m;}return(lo+hi)/2;}
+function renderSim(){
+ const D=+s_ev.value,hr=+s_hr.value,med=+s_med.value,N=+s_n.value,A=+s_acc.value;
+ if(!(D>10&&hr>0&&hr<1&&med>0&&N>0&&A>0)){simWhy.textContent="Check inputs.";return;}
+ const pw=pfsPower(D,hr),t1=tTo(D*0.7,N,A,med,hr),t2=tTo(D,N,A,med,hr);
+ simOut.innerHTML=[["Power at this HR",(pw*100).toFixed(1)+"%"],["HR detectable at 90%",detectHR(D,0.9).toFixed(3)],["HR detectable at 80%",detectHR(D,0.8).toFixed(3)],
+  ["Interim (70%) at",t1?t1.toFixed(1)+" mo":"never"],["Final at",t2?t2.toFixed(1)+" mo":"never"]].map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+ simWhy.innerHTML=`With ${D} events and two-sided α 0.05, the trial has 90% power for a true HR of ${detectHR(D,0.9).toFixed(2)} and 80% for ${detectHR(D,0.8).toFixed(2)}. Under the control median and accrual entered here, the interim at ${Math.round(D*0.7)} events would trigger about ${t1?t1.toFixed(0):"–"} months after the first patient.`;
+ const xmax=Math.max(24,Math.ceil(((t2||36)+6)/6)*6),pts=[];for(let m=0;m<=xmax;m+=0.5)pts.push([m,expEv(m,N,A,med,hr)]);
+ const ymax=Math.ceil(Math.max(D*1.15,pts[pts.length-1][1])/50)*50;
+ lineChart(evChart,{id:"ev",series:[{pts,color:"var(--s1)"}],xmax,ymax,xticks:[...Array(xmax/6+1)].map((_,i)=>i*6),yticks:[...Array(ymax/50+1)].map((_,i)=>i*50).filter((_,i,a)=>a.length<9||i%2===0),
+  xlabel:"Months from first randomization",hlines:[{y:D,label:`final ${D}`},{y:D*0.7,label:`interim ${Math.round(D*0.7)}`}],vlines:t2?[{x:t2,label:t2.toFixed(1)+" mo"}]:[]});
+ const pp=[];for(let h=0.4;h<=1.0001;h+=0.01)pp.push([1-h,pfsPower(D,h)]);
+ lineChart(powChart,{id:"pw",series:[{pts:pp,color:"var(--s1)"}],xmax:0.6,ymax:1,xticks:[0,.1,.2,.3,.4,.5,.6],xfmt:v=>(1-v).toFixed(1),yticks:[0,.25,.5,.75,1],yfmt:v=>Math.round(v*100)+"%",
+  xlabel:"True hazard ratio",hlines:[{y:0.9,label:"90%"}],vlines:[{x:1-hr,label:"assumed"}]});
+}
+["s_ev","s_hr","s_med","s_n","s_acc"].forEach(k=>$(k).addEventListener("input",renderSim));
+renderSim();
+
+/* ===================== Run the trial ===================== */
+function km(rows){const s=[...rows].sort((a,b)=>a.time-b.time);let n=s.length,S=1;const pts=[[0,1]];let i=0;
+ while(i<s.length){const t=s[i].time;let d=0,c=0;while(i<s.length&&s[i].time===t){s[i].event?d++:c++;i++;}if(d){S*=1-d/n;pts.push([t,S]);}n-=d+c;}return pts;}
+const kmMedian=pts=>{const p=pts.find(([,s])=>s<=0.5);return p?p[0]:null;};
+function coxStrat(rows){let b=0,I=1;const st={};rows.forEach(r=>(st[r.s]??=[]).push(r));const G=Object.values(st).map(a=>a.sort((u,v)=>v.time-u.time));
+ for(let it=0;it<40;it++){let U=0;I=0;for(const a of G){let S0=0,S1=0,i=0;while(i<a.length){const t=a[i].time;let j=i;const ev=[];
+   while(j<a.length&&a[j].time===t){const w=Math.exp(b*a[j].x);S0+=w;S1+=w*a[j].x;if(a[j].event)ev.push(a[j]);j++;}
+   for(const r of ev){U+=r.x-S1/S0;I+=S1/S0-(S1/S0)**2;}i=j;}}
+  const dl=U/I;b+=dl;if(Math.abs(dl)<1e-10)break;}
+ return{b,se:1/Math.sqrt(I)};}
+const ALLOWED={TRGRESP:"CR;NE;PD;PR;SD",NTRGRESP:"NON-CR/NON-PD;PD;NE;CR",OVRLRESP:"CR;NE;PD;PR;SD;NED;NON-CR/NON-PD"};
+let RUN=null;
+function runTrial(){
+ const N=Math.max(100,Math.round(+r_n.value)),HR=+r_hr.value,med=+r_med.value*30.44,TGT=Math.round(+r_ev.value),miss=+r_miss.value,R=rng(+r_seed.value||1);
+ const nrm=()=>{let u=0,v=0;while(!u)u=R();v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+ const ex=l=>-Math.log(1-R())/l,blocks={},P=[];
+ for(let i=0;i<N;i++){
+  const hrpos=R()<0.5,pert=R()<0.6,visc=R()<0.7,key=`${+hrpos}${+pert}${+visc}`;
+  if(!blocks[key]||!blocks[key].length){const bk=[1,1,0,0];for(let k=3;k>0;k--){const j=Math.floor(R()*(k+1));[bk[k],bk[j]]=[bk[j],bk[k]];}blocks[key]=bk;}
+  const trt=blocks[key].pop(),entry=R()*670,mult=(visc?1.15:0.7)*(hrpos?0.95:1.05);
+  const lam=Math.LN2/med*(trt?HR:1)*mult,tp=ex(lam);
+  let dep=Math.max(-0.15,Math.min(1,(trt?0.45:0.30)+nrm()*0.25));const cr=dep>=0.97;
+  const B=25+R()*125,tdPre=ex(0.00012),tdPost=tp+ex(Math.LN2/(20*30.44)),death=Math.min(tdPre,tdPost);
+  const newtx=R()<(trt?0.07:0.05)?tp*(0.3+R()*0.6):null,newLes=R()<0.45;
+  const scans=[];let day=0;
+  for(let k=1;k<200;k++){day=42*k+Math.round((R()*2-1)*7);if(day>=death||(newtx!=null&&day>newtx))break;
+   if(R()<miss)continue;
+   const t=day,pre=Math.min(t,tp);let s=cr?(t<tp?(t<84?B*(1-Math.min(1,t/84)):0):(t-tp)*0.15):B*(1-dep*(1-Math.exp(-pre/50)));
+   if(!cr&&t>tp)s=s*(1+(t-tp)*0.006);
+   s=Math.max(0,Math.round(s*(1+nrm()*0.03)*10)/10);if(cr&&t<tp&&t>=84)s=0;
+   const ne=R()<0.02;scans.push({day:t,sum:ne?null:s,ne,nt:cr&&t<tp?"CR":"NON-CR/NON-PD",newLes:newLes&&t>tp});}
+  const vis=[{day:0,sum:Math.round(B*10)/10},...scans],res=recistSeries(vis);
+  const firstPD=res.findIndex(r=>r.ovr==="PD");const resT=firstPD>=0?res.slice(0,firstPD+1):res;
+  P.push({id:i+1,trt,hrpos,pert,visc,key,entry,B,res:resT,death,newtx,lastAlive:death});}
+ const derive=C=>P.filter(p=>p.entry<=C).map(p=>({p,r:pfsDerive({assess:p.res,death:p.death,newtx:p.newtx,cutoff:C-p.entry})}));
+ let lo=0,hi=6000;if(derive(hi).filter(x=>!x.r.cnsr).length<TGT)lo=hi;else for(let k=0;k<40;k++){const m=(lo+hi)/2;derive(m).filter(x=>!x.r.cnsr).length>=TGT?hi=m:lo=m;}
+ const C=Math.ceil(hi),rows=derive(C);
+ const T=rows.map(({p,r})=>({p,r,time:r.aval,event:r.cnsr?0:1,x:p.trt,s:p.key}));
+ const fit=coxStrat(T),hr=Math.exp(fit.b),z=fit.b/fit.se,pv=2*(1-Phi(Math.abs(z)));
+ const arm=a=>T.filter(r=>r.p.trt===a),k1=km(arm(1)),k0=km(arm(0)),m1=kmMedian(k1),m0=kmMedian(k0);
+ const bor=x=>borConfirm(x.p.res.filter(r=>r.day<=C-x.p.entry&&(x.p.newtx==null||r.day<=x.p.newtx)));
+ const orr=a=>{const s=arm(a);return s.filter(x=>["CR","PR"].includes(bor(x))).length/s.length;};
+ RUN={T,C,hr};
+ const nA=a=>arm(a).length,evA=a=>arm(a).filter(r=>r.event).length,pc=(n,d)=>`${n} (${(n/d*100).toFixed(1)})`;
+ const crN=a=>arm(a).filter(x=>bor(x)==="CR").length,orN=a=>arm(a).filter(x=>["CR","PR"].includes(bor(x))).length;
+ RUN.shell={ev:[pc(evA(1),nA(1)),pc(evA(0),nA(0))],med:[m1?(m1/30.44).toFixed(1):"NE",m0?(m0/30.44).toFixed(1):"NE"],
+  hr:[`${hr.toFixed(2)} (${Math.exp(fit.b-1.96*fit.se).toFixed(2)}, ${Math.exp(fit.b+1.96*fit.se).toFixed(2)})`,""],p:[fmtP(pv),""],
+  orr:[pc(orN(1),nA(1)),pc(orN(0),nA(0))],cr:[pc(crN(1),nA(1)),pc(crN(0),nA(0))]};
+ runOut.innerHTML=[["Randomized",T.length],["Data cutoff",`month ${(C/30.44).toFixed(1)}`],["PFS events",`${arm(1).filter(r=>r.event).length} / ${arm(0).filter(r=>r.event).length}`],
+  ["Median PFS (mo)",`${m1?(m1/30.44).toFixed(1):"NR"} / ${m0?(m0/30.44).toFixed(1):"NR"}`],["Hazard ratio",hr.toFixed(2)],["95% CI",`${Math.exp(fit.b-1.96*fit.se).toFixed(2)}–${Math.exp(fit.b+1.96*fit.se).toFixed(2)}`],
+  ["p (2-sided)",fmtP(pv)],["Confirmed ORR",`${(orr(1)*100).toFixed(1)}% / ${(orr(0)*100).toFixed(1)}%`]].map(([k,v])=>`<div><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`).join("");
+ runWhy.innerHTML=`Mock data from design assumptions, not study results. Pairs read T-DXd / T-DM1. The ${TGT}th BICR event, as derived by the PFS rule, fell ${(C/30.44).toFixed(1)} months after the first patient, so that became the cutoff. Model: Cox stratified by the 8 randomization strata (Breslow ties, Wald test). Use this to build and validate programs before unblinding.`;
+ const xmax=Math.ceil(Math.max(...T.map(r=>r.time))/30.44/6)*6;
+ const ch=lineChart(kmChart,{id:"km",series:[{pts:k1.map(([t,s])=>[t/30.44,s]),color:"var(--s1)"},{pts:k0.map(([t,s])=>[t/30.44,s]),color:"var(--s2)"}],xmax,ymax:1,step:true,
+  xticks:[...Array(xmax/6+1)].map((_,i)=>i*6),yticks:[0,.25,.5,.75,1],yfmt:v=>Math.round(v*100)+"%",xlabel:"Months since randomization",hlines:[{y:.5,label:"median"}]});
+ const at=(pts,m)=>{let y=1;for(const [t,v] of pts){if(t/30.44<=m)y=v;else break;}return y;};
+ hover(kmChart,"km",ch,m=>{kmRead.textContent=`Month ${m.toFixed(1)}: T-DXd ${(at(k1,m)*100).toFixed(1)}% progression-free · T-DM1 ${(at(k0,m)*100).toFixed(1)}%`;});
+ /* waterfall */
+ const wf=T.map(x=>{const v=x.p.res.filter(r=>r.pctBase!=null&&r.day<=C-x.p.entry);return v.length?{trt:x.p.trt,v:Math.max(-100,Math.min(60,Math.min(...v.map(r=>r.pctBase))))}:null;}).filter(Boolean).sort((a,b)=>b.v-a.v);
+ const W=560,H=230,L=40,Rr=10,Tp=10,Bt=24,bw=(W-L-Rr)/wf.length,sy=v=>Tp+(60-v)/160*(H-Tp-Bt);
+ wfChart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Waterfall of best percent change">${[60,20,0,-30,-100].map(v=>`<line class="grid" x1="${L}" x2="${W-Rr}" y1="${sy(v)}" y2="${sy(v)}" ${v===20||v===-30?'stroke-dasharray="4 4"':''}/><text x="${L-5}" y="${sy(v)+4}" text-anchor="end">${v>0?"+":""}${v}%</text>`).join("")}${
+  wf.map((d,i)=>`<rect x="${(L+i*bw).toFixed(2)}" width="${Math.max(0.6,bw-0.4).toFixed(2)}" y="${Math.min(sy(0),sy(d.v)).toFixed(1)}" height="${Math.abs(sy(d.v)-sy(0)).toFixed(1)}" fill="${d.trt?"var(--s1)":"var(--s2)"}"/>`).join("")}</svg>`;
+ /* reasons */
+ const reasons=["Progression","Death","Censored: no event","Censored: new anticancer therapy","Censored: event after ≥2 missed scans","Censored: no adequate post-baseline scan"];
+ pfsReasons.innerHTML=`<table><thead><tr><th>PFS outcome</th><th>T-DXd</th><th>T-DM1</th></tr></thead><tbody>${reasons.map(rs=>`<tr><td>${rs}</td><td class="num">${arm(1).filter(x=>x.r.reason===rs).length}</td><td class="num">${arm(0).filter(x=>x.r.reason===rs).length}</td></tr>`).join("")}</tbody></table>`;
+ /* SDTM + BC validation */
+ let nRows=0,bad=0,unval=0;const prev=[];
+ T.forEach(x=>{const usub=`DB03-${String(x.p.id).padStart(4,"0")}`;const fr=[0.55,0.3,0.15];
+  const base={day:0,sum:Math.round(x.p.B*10)/10};
+  [base,...x.p.res].forEach((r,vi)=>{if(r.day>C-x.p.entry)return;
+   if(r.sum!=null){fr.forEach((f,li)=>{const row={USUBJID:usub,DOMAIN:"TR",TRLNKID:`T0${li+1}`,TRTESTCD:"LDIAM",TRORRES:(r.sum*f).toFixed(1),TRORRESU:"mm",TREVAL:"INDEPENDENT ASSESSOR",VISIT:vi?`SCAN ${vi}`:"BASELINE"};nRows++;if(row.TRORRESU!=="mm")bad++;if(prev.length<6)prev.push(row);});}
+   if(vi){[["TRGRESP",r.trg],["NTRGRESP",r.trg==="CR"?"CR":"NON-CR/NON-PD"],["OVRLRESP",r.ovr]].forEach(([tc,v])=>{nRows++;if(!ALLOWED[tc].split(";").includes(v))bad++;
+     if(prev.length<10)prev.push({USUBJID:usub,DOMAIN:"RS",TRLNKID:"",TRTESTCD:tc,TRORRES:v,TRORRESU:"",TREVAL:"INDEPENDENT ASSESSOR",VISIT:`SCAN ${vi}`});});
+    nRows++;unval++;}});});
+ sdtmPrev.innerHTML=`<table><thead><tr><th>USUBJID</th><th>Domain</th><th>Link ID</th><th>TESTCD</th><th>ORRES</th><th>Unit</th><th>Evaluator</th><th>Visit</th></tr></thead><tbody>${prev.map(r=>`<tr><td class="num">${r.USUBJID}</td><td>${r.DOMAIN}</td><td class="num">${r.TRLNKID||"–"}</td><td class="num">${r.TRTESTCD}</td><td class="num">${r.TRORRES}</td><td>${r.TRORRESU||"–"}</td><td>${r.TREVAL}</td><td>${r.VISIT}</td></tr>`).join("")}</tbody></table>`;
+ sdtmWhy.innerHTML=`${nRows.toLocaleString()} SDTM rows generated. <b>${bad}</b> violate a BC value list or unit. <b>${unval.toLocaleString()}</b> new-lesion rows (NEWLIND) could not be validated because the library has no RECIST 1.1 specialization for that concept.`;
+ RUN.sdtm={nRows,bad,unval};
+}
+runBtn.addEventListener("click",()=>{runTrial();renderEst();});
+runTrial();
+
+/* ===================== Spec checks ===================== */
+function fuzzPfs(n,seed){const R=rng(seed);let bad=0,ex=null;
+ for(let i=0;i<n;i++){const A=[];let d=0;const k=Math.floor(R()*8);for(let j=0;j<k;j++){d+=20+Math.floor(R()*80);A.push({day:d,ovr:["SD","SD","PR","CR","NE","PD"][Math.floor(R()*6)]});}
+  const x={assess:A,death:R()<0.3?Math.floor(R()*700):null,newtx:R()<0.2?Math.floor(R()*700):null,cutoff:200+Math.floor(R()*500)};
+  const r=pfsDerive(x),adq=A.filter(a=>a.ovr!=="NE"&&a.ovr!=="PD"&&a.day<=x.cutoff).map(a=>a.day);
+  const ok=[0,1].includes(r.cnsr)&&r.adt>=0&&r.adt<=x.cutoff&&r.aval===r.adt+1&&
+   (r.cnsr===0?(A.some(a=>a.ovr==="PD"&&a.day===r.adt)||x.death===r.adt):(r.adt===0||adq.includes(r.adt)))&&
+   !(x.newtx!=null&&x.newtx<=x.cutoff&&r.cnsr===0&&r.adt>x.newtx);
+  if(!ok){bad++;ex=ex||{x,r};}}return{bad,ex};}
+function fuzzRecist(n,seed){const R=rng(seed);let bad=0;
+ for(let i=0;i<n;i++){const base=10+R()*150,nadir=base*(0.3+R()*0.7),cur=R()<0.05?0:nadir*(0.5+R()*1.2),t=targetResp({base,nadir,cur});
+  const nt=NTO[Math.floor(R()*5)],nl=R()<0.2,o=overallResp(t,nt,nl);
+  if((nl||nt==="PD")&&o!=="PD")bad++;if(t==="PR"&&(base-cur)/base<0.3)bad++;if(t==="PD"&&!(cur-nadir>=5))bad++;if(o==="CR"&&t!=="CR")bad++;}return bad;}
+function fuzzBor(n,seed){const R=rng(seed);let bad=0;const rank={CR:4,PR:3,SD:2,PD:1,NE:0};
+ for(let i=0;i<n;i++){let d=0;const s=[...Array(1+Math.floor(R()*7))].map(()=>({day:d+=14+Math.floor(R()*60),ovr:["CR","PR","SD","PD","NE"][Math.floor(R()*5)]}));
+  const b=borConfirm(s),best=Math.max(...s.slice(0,(s.findIndex(x=>x.ovr==="PD")+1)||s.length).map(x=>rank[x.ovr]));
+  if(b!=="NE"&&b!=="PD"&&rank[b]>best)bad++;
+  if(b==="CR"){const c=s.filter(x=>x.ovr==="CR");if(!(c.length>=2&&c[c.length-1].day-c[0].day>=28))bad++;}}return bad;}
+function runLint(){const C=[],add=(cat,status,title,det,go)=>C.push({cat,status,title,det,go});
+ const h90=detectHR(335,0.9),h80=detectHR(335,0.8);
+ add("Design arithmetic","warn","Sample-size assumptions not stated in posted text",`The extracted protocol gives 335 events and two-sided α 0.05 but no assumed HR or power. Back-calculated: 90% power for HR ${h90.toFixed(2)}, 80% for HR ${h80.toFixed(2)}.`,"sim");
+ add("Design arithmetic",(234/335>0.69&&234/335<0.71)?"pass":"fail","PFS interim fraction",`234 / 335 = ${(234/335*100).toFixed(1)}% information, matching the stated 70%.`,"design");
+ add("Design arithmetic",(Math.abs(96/250-0.384)<0.001&&Math.abs(153/250-0.612)<0.001)?"pass":"fail","OS information fractions",`96 / 250 = 0.384 and 153 / 250 = 0.612, matching the stated fractions.`,"alpha");
+ add("Group sequential",GS&&Math.abs(2*GS[2].cum-0.05)<1e-5?"pass":"fail","OS spending uses exactly the full α",`Cumulative two-sided α at the final look is ${(2*GS[2].cum).toFixed(5)}, equal to 0.05.`,"alpha");
+ add("Group sequential",GS&&GS[0].b>GS[1].b&&GS[1].b>GS[2].b?"pass":"fail","OS boundaries relax across looks",`z boundaries ${GS.map(g=>g.b.toFixed(2)).join(" > ")}, as O'Brien–Fleming spending requires.`,"alpha");
+ add("Group sequential","warn","PFS interim boundary not machine-readable","The posted text names a Haybittle–Peto interim but its Table 11.1 values weren't extractable, so the PFS boundary can't be recomputed yet.","alpha");
+ add("Design arithmetic",(234<335)?"pass":"fail","Analysis triggers are ordered","PFS interim (234) precedes PFS final (335); OS looks (96, 153, 250) are tied to PFS analyses and to final OS.","design");
+ const E9=["Treatment policy","Composite","Hypothetical","While on treatment","Principal stratum"];
+ const non=[];ESTS.forEach(e=>e.ices.forEach(([n,s])=>{if(!E9.includes(s))non.push(`${e.id}: ${n} → “${s}”`);}));
+ add("ICH E9(R1)",non.length?"warn":"pass","Intercurrent-event strategies",non.length?`${non.length} items are not one of the five strategies: ${non.join("; ")}. Missed scans are missing data, not an intercurrent event. DoR conditions on a post-randomization outcome, so between-arm comparison is not randomization-protected.`:"All conform.","estimands");
+ add("ICH E9(R1)","warn","Hypothetical strategy in an open-label trial","Censoring at new anticancer therapy assumes those patients would have progressed like others had they stayed. In an open-label trial, investigators choose when to switch, so this assumption deserves a sensitivity analysis (for example, counting new therapy as an event).","estimands");
+ let tot=0,ok=0;ESTS.forEach(e=>e.rules.forEach(r=>r.tests.forEach(([,i,x])=>{tot++;try{if(eq(r.fn(i),x))ok++;}catch(_){}})));
+ add("Derivation tests",ok===tot?"pass":"fail","Unit tests",`${ok} of ${tot} hand-written cases pass across PFS, RECIST, BOR, DoR and OS rules.`,"estimands");
+ const fp=fuzzPfs(5000,21);
+ add("Stress test",fp.bad?"fail":"pass","PFS rule: 5,000 random scan histories",fp.bad?`${fp.bad} violations, e.g. ${esc(JSON.stringify(fp.ex))}`:"Event dates are always a PD scan or death; censor dates are always randomization or an adequate non-PD scan; nothing after cutoff; new therapy before the event always censors.","recist");
+ const fr=fuzzRecist(5000,22);
+ add("Stress test",fr?"fail":"pass","RECIST tables: 5,000 random timepoints",fr?`${fr} violations`:"New lesion or non-target PD always gives PD; PR always means ≥30% shrinkage; PD always means ≥5 mm growth; overall CR requires target CR.","recist");
+ const fb=fuzzBor(5000,23);
+ add("Stress test",fb?"fail":"pass","Confirmation: 5,000 random sequences",fb?`${fb} violations`:"Best response is never better than the best single timepoint before PD; every CR has two CR scans ≥28 days apart.","recist");
+ const spec=BC.filter(b=>b.specs.length).length;
+ add("Biomedical Concepts","pass","Every derivation input traced to a concept or flagged",`${BC.length} library concepts are used; ${BCGAPS.length} needed elements are documented as gaps.`,"bcs");
+ add("Biomedical Concepts","warn","No RECIST 1.1 specialization for New Lesion Indicator","C142362 has SDTM specializations for Lugano and RANO only. New-lesion rows in a RECIST trial can't be validated against a standard value list.","bcs");
+ add("Biomedical Concepts","warn","Stratification and eligibility markers lack SDTM specializations","ER (C16150), PR (C16149) and HER2 (C16152) status concepts exist without a dataset specialization, so their domain and variables are sponsor-defined.","bcs");
+ add("Biomedical Concepts","warn","Key oncology elements missing from the library","No concepts for sum of target diameters, LVEF, ILD/pneumonitis adjudication or new anticancer therapy start.","bcs");
+ if(RUN&&RUN.sdtm)add("Biomedical Concepts",RUN.sdtm.bad?"fail":"pass","Simulated SDTM conforms to BC value lists",`${RUN.sdtm.nRows.toLocaleString()} TR/RS rows checked against the BC specializations: ${RUN.sdtm.bad} violations.`,"run");
+ add("Open questions","warn","Ambiguities found while writing tests",`${ESTS.reduce((s,e)=>s+e.rules.filter(r=>r.q).length,0)} spec questions: scan-schedule change vs the missed-scan rule, nodal CR, CR followed by PR.`,"estimands");
+ const n={pass:0,warn:0,fail:0};C.forEach(c=>n[c.status]++);
+ lintSum.innerHTML=[["Checks",C.length],["Pass",n.pass],["Warnings",n.warn],["Failures",n.fail]].map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+ const ord={fail:0,warn:1,pass:2};
+ lintList.innerHTML=C.sort((a,b)=>ord[a.status]-ord[b.status]).map(c=>`<div class="lint"><span class="pill ${c.status==="pass"?"p":c.status==="warn"?"w":"f"}">${c.status}</span><div><div class="cat">${c.cat}</div><b>${c.title}</b><div class="det">${c.det}${c.go?` <a href="#${c.go}" data-go="${c.go}">Open</a>`:""}</div></div></div>`).join("");
+ lintList.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();show(a.dataset.go);}));
+ return{C,n,tests:tot,fuzz:15000};}
+const LINT=runLint();
+
+/* ===================== Dependency graph ===================== */
+const COLS=[["Protocol",[["P_pfs","Primary: PFS (BICR)"],["P_os","Key secondary: OS"],["P_orr","Secondary: ORR"],["P_dor","Secondary: DoR"]]],
+ ["Estimand",[["E1","E1 PFS"],["E2","E2 OS"],["E3","E3 ORR"],["E4","E4 DoR"]]],
+ ["Biomedical Concept",[["B_LD","C96684 Longest Diameter"],["B_NT","C94535 Non-target Resp."],["B_NL","C142362 New Lesion"],["B_OR","C96613 Overall Resp."],["B_BOR","C94536 Best Overall Resp."],["B_ER","C16150 ER status"]]],
+ ["SDTM",[["S_TR","TR tumor results"],["S_RS","RS responses"],["S_DS","DS / DM death"],["S_CM","CM / PR new therapy"],["S_BIO","Biomarker status"]]],
+ ["Derivation",[["R_sld","Sum and nadir"],["R_tp","RECIST timepoint"],["R_bor","Confirmed BOR"],["R_pfs","PFS censoring"],["R_os","OS censoring"],["R_dor","DoR"],["R_strat","Strata"]]],
+ ["ADaM",[["A_RS","ADRS"],["A_PFS","ADTTE PFS"],["A_OS","ADTTE OS"],["A_DOR","ADTTE DoR"],["A_SL","ADSL strata"]]],
+ ["Output",[["O_pfs","PFS KM + HR"],["O_os","OS KM + HR"],["O_orr","ORR table"],["O_dor","DoR KM"],["O_wf","Waterfall"],["O_forest","Subgroup forest"]]]];
+const EDGES=`P_pfs>E1 P_os>E2 P_orr>E3 P_dor>E4 E1>R_pfs E2>R_os E3>R_bor E4>R_dor
+B_LD>S_TR B_NT>S_RS B_NL>S_RS B_OR>S_RS B_BOR>S_RS B_ER>S_BIO
+S_TR>R_sld R_sld>R_tp S_RS>R_tp R_tp>R_bor R_tp>R_pfs S_DS>R_pfs S_CM>R_pfs S_DS>R_os S_BIO>R_strat
+R_bor>R_dor R_pfs>R_dor R_tp>A_RS R_bor>A_RS R_pfs>A_PFS R_os>A_OS R_dor>A_DOR R_strat>A_SL R_sld>O_wf
+A_RS>O_orr A_PFS>O_pfs A_PFS>O_forest A_OS>O_os A_DOR>O_dor A_SL>O_pfs A_SL>O_os A_SL>O_orr A_SL>O_forest`.trim().split(/\s+/).map(e=>e.split(">"));
+const LABEL=Object.fromEntries(COLS.flatMap(([,n])=>n));
+function walk(starts,dir){const seen=new Set(),q=[...starts];while(q.length){const n=q.shift();for(const [a,b] of EDGES){const nx=dir==="down"?(a===n?b:null):(b===n?a:null);if(nx&&!seen.has(nx)&&!starts.includes(nx)){seen.add(nx);q.push(nx);}}}return[...seen];}
+const WHATIF=[
+ {v:"What-if",t:"Primary assessor switched from BICR to investigator",roots:["E1"],why:"Only the PFS estimand and what it feeds change; the RECIST engine itself is reader-agnostic."},
+ {v:"What-if",t:"Scans move from 6-weekly to 8-weekly after month 12",roots:["R_pfs"],why:"The two-missed-scans threshold depends on the schedule, so PFS, DoR and every output using them must be re-derived."},
+ {v:"What-if",t:"CDISC publishes a RECIST 1.1 specialization for New Lesion Indicator",roots:["B_NL"],why:"New-lesion rows become standard, which touches RS, every RECIST derivation and all four efficacy outputs."},
+ {v:"What-if",t:"Confirmation window changed from 28 to 35 days",roots:["R_bor"],why:"Best response and duration of response change; PFS does not, because confirmation isn't needed for progression."},
+ {v:"What-if",t:"Hormone receptor status redefined (e.g. ER-only)",roots:["B_ER"],why:"Changes strata, so every stratified analysis and the forest plot move."},
+ {v:"Protocol v6.0",t:"Withdrawal-of-consent procedure clarified",roots:["S_DS"],why:"From the v6.0 amendment summary. Death and disposition data feed both PFS and OS censoring."}];
+let curA=0,selNode=null;
+function renderGraph(){
+ amendList.innerHTML=WHATIF.map((x,i)=>`<button aria-pressed="${selNode===null&&i===curA}" data-i="${i}"><span class="v">${x.v}</span>${x.t}</button>`).join("");
+ amendList.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{curA=+b.dataset.i;selNode=null;renderGraph();}));
+ let roots=[],down=[],up=[];if(selNode){down=walk([selNode],"down");up=walk([selNode],"up");}else{roots=WHATIF[curA].roots;down=walk(roots,"down");}
+ trace.innerHTML=COLS.map(([h,nodes])=>`<div class="col"><div class="colh">${h}</div>${nodes.map(([id,l])=>`<button class="node ${roots.includes(id)?"root":down.includes(id)?"hit":up.includes(id)?"up":""} ${selNode===id?"sel":""}" data-id="${id}">${l}</button>`).join("")}</div>`).join("");
+ trace.querySelectorAll(".node").forEach(b=>b.addEventListener("click",()=>{selNode=selNode===b.dataset.id?null:b.dataset.id;renderGraph();}));
+ if(selNode){impTitle.textContent=`${LABEL[selNode]}: ${up.length} upstream, ${down.length} downstream`;impWhy.textContent=down.length?`Changing this would reach: ${down.map(n=>LABEL[n]).join(", ")}.`:"Nothing depends on this node.";}
+ else{impTitle.textContent=`${roots.length} changed directly, ${down.length} affected downstream`;impWhy.textContent=WHATIF[curA].why;}}
+renderGraph();
+
+/* ===================== Overview ===================== */
+const CAPS=[["Objectives, endpoints, arms, eligibility","yes","yes","design"],["Schedule of activities and timelines","yes","no",null],
+ ["Biomedical Concepts linked to derivations","part","yes","bcs"],["Library coverage gaps reported","no","yes","bcs"],
+ ["RECIST 1.1 as executable, tested code","no","yes","recist"],["Response confirmation and BOR","no","yes","recist"],
+ ["PFS censoring rules with stress tests","no","yes","estimands"],["Group-sequential boundaries recomputed","no","yes","alpha"],
+ ["Eligibility evaluated from concept values","no","yes","elig"],["Scan-level trial simulation to hazard ratio","no","yes","run"],
+ ["Generated SDTM validated against concepts","no","yes","run"],["Change impact down to outputs","part","yes","graph"],["Regulatory exchange format","yes","part",null]];
+const mark=v=>v==="yes"?'<span class="yes">Yes</span>':v==="part"?'<span class="part">Partial</span>':'<span class="no">No</span>';
+capTable.innerHTML=CAPS.map(([c,u,m,g])=>`<tr><td>${c}</td><td>${mark(u)}</td><td>${mark(m)}</td><td>${g?`<a href="#${g}" data-go="${g}">Open</a>`:"–"}</td></tr>`).join("");
+capGrid.innerHTML=[[BC.length,"CDISC Biomedical Concepts wired in","bcs"],[LINT.tests,"rule unit tests","estimands"],[LINT.fuzz.toLocaleString(),"stress-test cases","lint"],
+ [RUN?RUN.sdtm.nRows.toLocaleString():"–","simulated SDTM rows validated","run"],[LINT.C.length,"automated spec checks","lint"],[LINT.n.warn+LINT.n.fail,"issues flagged","lint"]]
+ .map(([v,l,g])=>`<button data-go="${g}"><span class="big">${v}</span><span class="lbl">${l}</span></button>`).join("");
+document.querySelectorAll("#overview [data-go]").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();show(a.dataset.go);}));
+
+</script>

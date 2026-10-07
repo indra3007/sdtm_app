@@ -1,0 +1,1005 @@
+[
+    {
+        "id": "C63321",
+        "name": "Absolute Neutrophil Count",
+        "def": "The real number of white blood cells (WBC) that are neutrophils. It is derived by multiplying the WBC count by the percent of neutrophils in the differential WBC count. The normal range for ANC is 1.5 to 8.0 (1,500 to 8,000/mm3).",
+        "pkg": "2025-07-01",
+        "cat": "Laboratory Tests;Hematology Tests;Blood Cell Counts;Leukocyte Counts;Neutrophil Counts",
+        "decs": [
+            "Biospecimen Type",
+            "Collection Date Time",
+            "Fasting Status Indicator",
+            "Observation Result",
+            "Unit of Number Concentration"
+        ],
+        "specs": [
+            {
+                "vlm": "NEUTBLD",
+                "domain": "LB",
+                "vars": [
+                    [
+                        "LBTESTCD",
+                        "NEUT",
+                        "Topic"
+                    ],
+                    [
+                        "LBTEST",
+                        "Neutrophils",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBCAT",
+                        "HEMATOLOGY",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRES",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRESU",
+                        "10^9/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESC",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESN",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESU",
+                        "10^9/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBLOINC",
+                        "26499-4",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSPEC",
+                        "BLOOD",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBFAST",
+                        "N;Y",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C117786",
+        "name": "Aggregate QTCF Interval",
+        "def": "A QT aggregate interval corrected for heart rate using Fridericia's formula.",
+        "pkg": "2025-11-18",
+        "cat": "Electrocardiogram Findings;Electrocardiogram Measurements;ECG Measurements",
+        "decs": [
+            "Body Position",
+            "Category",
+            "Collection Date Time",
+            "Duration",
+            "Evaluator",
+            "Lead Device",
+            "Observation End Date Time",
+            "Test Method",
+            "Unit of Time"
+        ],
+        "specs": [
+            {
+                "vlm": "QTCFAG",
+                "domain": "EG",
+                "vars": [
+                    [
+                        "EGTESTCD",
+                        "QTCFAG",
+                        "Topic"
+                    ],
+                    [
+                        "EGTEST",
+                        "QTcF Interval, Aggregate",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGORRES",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGORRESU",
+                        "ms;s",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGSTRESC",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGSTRESN",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGSTRESU",
+                        "ms",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGCAT",
+                        "INTERVAL",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGPOS",
+                        "POSITION",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGMETHOD",
+                        "EGMETHOD",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGEVAL",
+                        "ADJUDICATION COMMITTEE;INDEPENDENT ASSESSOR;INVESTIGATOR;VENDOR",
+                        "Qualifier"
+                    ],
+                    [
+                        "EGDTC",
+                        "",
+                        "Timing"
+                    ],
+                    [
+                        "EGENDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C64433",
+        "name": "Alanine Aminotransferase Measurement",
+        "def": "A quantitative measurement of alanine aminotransferase present in a sample.",
+        "pkg": "2025-07-01",
+        "cat": "Laboratory Tests;Chemistry Tests;Liver Function Tests;Drug-Induced Liver Injury;DILI",
+        "decs": [
+            "Biospecimen Type",
+            "Collection Date Time",
+            "Fasting Status Indicator",
+            "Observation Result",
+            "Unit of Catalytic Activity Concentration"
+        ],
+        "specs": [
+            {
+                "vlm": "ALTSERPL",
+                "domain": "LB",
+                "vars": [
+                    [
+                        "LBTESTCD",
+                        "ALT",
+                        "Topic"
+                    ],
+                    [
+                        "LBTEST",
+                        "Alanine Aminotransferase",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBCAT",
+                        "CHEMISTRY",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRES",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRESU",
+                        "U/L;ukat/L;IU/L;nkat/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESC",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESN",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESU",
+                        "nkat/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBLOINC",
+                        "1742-6",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSPEC",
+                        "SERUM OR PLASMA",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBFAST",
+                        "N;Y",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C94536",
+        "name": "Best Overall Response",
+        "def": "The most clinically favorable response recorded from the start of the study treatment until the end of treatment.",
+        "pkg": "2024-06-27",
+        "cat": "Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST",
+        "decs": [
+            "Category",
+            "Clinical Trial Epoch",
+            "Collection Date Time",
+            "Disease Response Link Group",
+            "Evaluator",
+            "Evaluator Identifier",
+            "Observation Result"
+        ],
+        "specs": [
+            {
+                "vlm": "BESTRESP",
+                "domain": "RS",
+                "vars": [
+                    [
+                        "RSLNKGRP",
+                        "",
+                        "Identifier"
+                    ],
+                    [
+                        "RSTESTCD",
+                        "BESTRESP",
+                        "Topic"
+                    ],
+                    [
+                        "RSTEST",
+                        "Best Overall Response",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSCAT",
+                        "RECIST 1.1",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSORRES",
+                        "CR;NE;PD;PR;SD;NED;NON-CR/NON-PD",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSSTRESC",
+                        "CR;NE;PD;PR;SD;NED;NON-CR/NON-PD",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVAL",
+                        "INVESTIGATOR;INDEPENDENT ASSESSOR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVALID",
+                        "RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C81328",
+        "name": "Body Weight",
+        "def": "The weight of a subject.",
+        "pkg": "2025-11-18",
+        "cat": "Vital Signs;Body Measurements",
+        "decs": [
+            "Collection Date Time",
+            "Observation Result",
+            "Unit of Weight"
+        ],
+        "specs": [
+            {
+                "vlm": "WEIGHT",
+                "domain": "VS",
+                "vars": [
+                    [
+                        "VSTESTCD",
+                        "WEIGHT",
+                        "Topic"
+                    ],
+                    [
+                        "VSTEST",
+                        "Weight",
+                        "Qualifier"
+                    ],
+                    [
+                        "VSORRES",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "VSORRESU",
+                        "LB;g;kg",
+                        "Qualifier"
+                    ],
+                    [
+                        "VSSTRESC",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "VSSTRESN",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "VSSTRESU",
+                        "VSRESU",
+                        "Qualifier"
+                    ],
+                    [
+                        "VSDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C102408",
+        "name": "ECOG - Performance Status",
+        "def": "Eastern Cooperative Oncology Group (ECOG) Performance status.",
+        "pkg": "2025-09-23",
+        "cat": "QRS;Clinical or Research Assessment Classification;Eastern Cooperative Oncology Group Performance Status Clinical Classification;ECOG;ECOG1;ECOG Clinical Classification Question",
+        "decs": [
+            "Category",
+            "Clinical or Research Assessment Answer",
+            "Collection Date Time",
+            "Ordinal Position"
+        ],
+        "specs": [
+            {
+                "vlm": "ECOG101",
+                "domain": "RS",
+                "vars": [
+                    [
+                        "RSTESTCD",
+                        "ECOG101",
+                        "Topic"
+                    ],
+                    [
+                        "RSTEST",
+                        "ECOG1-Performance Status",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSCAT",
+                        "ECOG",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSORRES",
+                        "ECOG101OR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSSTRESC",
+                        "ECOG101STR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSSTRESN",
+                        "ECOG101STR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C16150",
+        "name": "Estrogen Receptor Status",
+        "def": "The estrogen receptor level measured in a primary tumor or in metastases.  There are essentially two distinct forms of breast cancer, one that tends to have an early onset and is characterized by an ER- status, and one that tends to have a late onset and is ch",
+        "pkg": "2025-09-23",
+        "cat": "Laboratory Tests;Chemistry Tests;Protein or Enzyme Type Measurements;Endocrine Tests;Hormone Measurements",
+        "decs": [
+            "Biospecimen Type",
+            "Category",
+            "Collection Date Time",
+            "Measurement, Test or Examination Detail",
+            "Observation Result",
+            "Specimen Anatomic Site",
+            "Subcategory"
+        ],
+        "specs": []
+    },
+    {
+        "id": "C16152",
+        "name": "HER2/Neu Status",
+        "def": "The presence or absence of Her2/Neu on a tissue sample.",
+        "pkg": "2025-09-23",
+        "cat": "Genetic Testing;Gene Expression Analysis;Gene Products;Genetic Variation;Genetic Variation Analysis;Cancer Biomarkers",
+        "decs": [
+            "Biospecimen Type",
+            "Category",
+            "Collection Date Time",
+            "Measurement, Test or Examination Detail",
+            "Observation Result",
+            "Specimen Anatomic Site",
+            "Subcategory"
+        ],
+        "specs": []
+    },
+    {
+        "id": "C94189",
+        "name": "Lesion Identification",
+        "def": "The identification of a non-neoplastic or neoplastic pathologic process during the diagnostic work-up of a disease.",
+        "pkg": "2023-07-06",
+        "cat": "Findings;Identification;Work-ups",
+        "decs": [],
+        "specs": []
+    },
+    {
+        "id": "C96684",
+        "name": "Longest Diameter",
+        "def": "The longest possible length of a straight line passing through the center of a circular or spheroid object that connects two points on the circumference.",
+        "pkg": "2026-05-26",
+        "cat": "Oncology Standards;Tumor/Lesion Results;TR;RECIST 1.1",
+        "decs": [
+            "Collection Date Time",
+            "Evaluator",
+            "Evaluator Identifier",
+            "Observation Result",
+            "Test Method",
+            "Tumor Results Group Identifier",
+            "Tumor Results Link Group",
+            "Tumor Results Link Identifier",
+            "Tumor Results Reference Identifier",
+            "Unit of Length"
+        ],
+        "specs": [
+            {
+                "vlm": "LDIAM_RECIST1_1",
+                "domain": "TR",
+                "vars": [
+                    [
+                        "TRTESTCD",
+                        "LDIAM",
+                        "Topic"
+                    ],
+                    [
+                        "TRTEST",
+                        "Longest Diameter",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRORRES",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRORRESU",
+                        "mm",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRSTRESC",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRSTRESN",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRSTRESU",
+                        "mm",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRMETHOD",
+                        "CT SCAN;CALIPER MEASUREMENT METHOD;ENDOSCOPY;LYMPHANGIOGRAPHY;MAMMOGRAPHY;MRI;NUCLEAR RADIOLOGY;PET SCAN;PET/CT SCAN;PET/MRI SCAN;PHOTOGRAPHY;SCINTIGRAPHY;TOTAL BODY RADIOGRAPHY;ULTRASOUND;X-RAY",
+                        "Qualifier"
+                    ],
+                    [
+                        "TREVAL",
+                        "INVESTIGATOR;INDEPENDENT ASSESSOR;RADIOLOGIST",
+                        "Qualifier"
+                    ],
+                    [
+                        "TREVALID",
+                        "RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRGRPID",
+                        "",
+                        "Identifier"
+                    ],
+                    [
+                        "TRREFID",
+                        "",
+                        "Identifier"
+                    ],
+                    [
+                        "TRLNKID",
+                        "",
+                        "Identifier"
+                    ],
+                    [
+                        "TRLNKGRP",
+                        "",
+                        "Identifier"
+                    ],
+                    [
+                        "TRSTAT",
+                        "NOT DONE",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRREASND",
+                        "NOT EVALUABLE",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRREASNE",
+                        "POOR SCAN QUALITY;NON-COMPATIBLE TECHNIQUE;OBSCURING DUE TO PHYSICAL CHANGES;RESECTION OR FOCAL THERAPY PERFORMED",
+                        "Qualifier"
+                    ],
+                    [
+                        "TRDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C142362",
+        "name": "New Lesion Indicator",
+        "def": "An indication as to whether a lesion is newly identified, in comparison to a previous timepoint.",
+        "pkg": "2026-05-26",
+        "cat": "Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;iRECIST;LUGANO CLASSIFICATION;RANO;IRANO 2015",
+        "decs": [
+            "Category",
+            "Collection Date Time",
+            "Evaluator",
+            "Evaluator Identifier",
+            "Observation Result"
+        ],
+        "specs": []
+    },
+    {
+        "id": "C96613",
+        "name": "Overall Response",
+        "def": "An assessment of the overall response of the disease to the therapy.",
+        "pkg": "2024-06-27",
+        "cat": "Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST;LUGANO CLASSIFICATION;RANO;IRANO 2015;PONTE-DI-LEGNO CONSORTIUM 2022;RAJKUMAR MYELOMA 2011",
+        "decs": [
+            "Category",
+            "Collection Date Time",
+            "Disease Response Link Group",
+            "Evaluator",
+            "Evaluator Identifier",
+            "Observation Result"
+        ],
+        "specs": [
+            {
+                "vlm": "OVRLRESP",
+                "domain": "RS",
+                "vars": [
+                    [
+                        "RSLNKGRP",
+                        "",
+                        "Identifier"
+                    ],
+                    [
+                        "RSTESTCD",
+                        "OVRLRESP",
+                        "Topic"
+                    ],
+                    [
+                        "RSTEST",
+                        "Overall Response",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSCAT",
+                        "RECIST 1.1",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSORRES",
+                        "CR;NE;PD;PR;SD;NED;NON-CR/NON-PD",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSSTRESC",
+                        "CR;NE;PD;PR;SD;NED;NON-CR/NON-PD",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVAL",
+                        "INVESTIGATOR;INDEPENDENT ASSESSOR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVALID",
+                        "RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C51951",
+        "name": "Platelet Count",
+        "def": "The determination of the number of platelets in a biospecimen.",
+        "pkg": "2025-07-01",
+        "cat": "Laboratory Tests;Hematology Tests",
+        "decs": [
+            "Biospecimen Type",
+            "Collection Date Time",
+            "Fasting Status Indicator",
+            "Observation Result",
+            "Unit of Number Concentration"
+        ],
+        "specs": [
+            {
+                "vlm": "PLATBLD",
+                "domain": "LB",
+                "vars": [
+                    [
+                        "LBTESTCD",
+                        "PLAT",
+                        "Topic"
+                    ],
+                    [
+                        "LBTEST",
+                        "Platelets",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBCAT",
+                        "HEMATOLOGY",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRES",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRESU",
+                        "10^9/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESC",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESN",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESU",
+                        "10^9/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBLOINC",
+                        "26515-7",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSPEC",
+                        "BLOOD",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBFAST",
+                        "N;Y",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C16149",
+        "name": "Progesterone Receptor Status",
+        "def": "Indicates the progesterone receptor level measured in a primary tumor or in metastases. (>=10 is positive if measured in fmols/mg cytosol protein; Otherwise use institutional standards)",
+        "pkg": "2025-09-23",
+        "cat": "Laboratory Tests;Chemistry Tests;Endocrine Tests;Hormone Measurements;Protein or Enzyme Type Measurement",
+        "decs": [
+            "Biospecimen Type",
+            "Category",
+            "Collection Date Time",
+            "Measurement, Test or Examination Detail",
+            "Observation Result",
+            "Specimen Anatomic Site",
+            "Subcategory"
+        ],
+        "specs": []
+    },
+    {
+        "id": "C28234",
+        "name": "Progression-free Survival",
+        "def": "The length of time during and after treatment in which a patient is living with a disease that does not get worse. Progression-free survival may be used in a clinical study or trial to help find out how well a new treatment works.",
+        "pkg": "2025-09-23",
+        "cat": "Disease Response;Disease Response Criteria;Survival",
+        "decs": [
+            "Category",
+            "Collection Date Time",
+            "Observation Result",
+            "Subcategory",
+            "Unit of Time"
+        ],
+        "specs": []
+    },
+    {
+        "id": "C94535",
+        "name": "Response in Non-Target Lesion",
+        "def": "A qualitative or quantitative measurement of the response of a non-target lesion(s) to the therapy.",
+        "pkg": "2024-06-27",
+        "cat": "Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST;LUGANO CLASSIFICATION",
+        "decs": [
+            "Category",
+            "Collection Date Time",
+            "Evaluator",
+            "Evaluator Identifier",
+            "Observation Result"
+        ],
+        "specs": [
+            {
+                "vlm": "NTRGRESP",
+                "domain": "RS",
+                "vars": [
+                    [
+                        "RSTESTCD",
+                        "NTRGRESP",
+                        "Topic"
+                    ],
+                    [
+                        "RSTEST",
+                        "Non-target Response",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSCAT",
+                        "RECIST 1.1",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSORRES",
+                        "NON-CR/NON-PD;PD;NE;CR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSSTRESC",
+                        "NON-CR/NON-PD;PD;NE;CR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVAL",
+                        "INVESTIGATOR;INDEPENDENT ASSESSOR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVALID",
+                        "RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C94534",
+        "name": "Response in Target Lesion",
+        "def": "A qualitative or quantitative measurement of the response of a target lesion(s) to the therapy.",
+        "pkg": "2024-06-27",
+        "cat": "Oncology Standards;Disease Response;Disease Response Criteria;Disease Response and Clinical Classification;RS;RECIST 1.1;iRECIST;LUGANO CLASSIFICATION;RANO;IRANO 2015",
+        "decs": [
+            "Category",
+            "Collection Date Time",
+            "Evaluator",
+            "Evaluator Identifier",
+            "Observation Result"
+        ],
+        "specs": [
+            {
+                "vlm": "TRGRESP",
+                "domain": "RS",
+                "vars": [
+                    [
+                        "RSTESTCD",
+                        "TRGRESP",
+                        "Topic"
+                    ],
+                    [
+                        "RSTEST",
+                        "Target Response",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSCAT",
+                        "RECIST 1.1",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSORRES",
+                        "CR;NE;PD;PR;SD",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSSTRESC",
+                        "CR;NE;PD;PR;SD",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVAL",
+                        "INVESTIGATOR;INDEPENDENT ASSESSOR",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSEVALID",
+                        "RADIOLOGIST 1;RADIOLOGIST 2;RADIOLOGIST 3",
+                        "Qualifier"
+                    ],
+                    [
+                        "RSDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "id": "C38037",
+        "name": "Total Bilirubin Measurement",
+        "def": "The measurement of the total amount of bilirubin present in a particular substrate. The substrate most often tested is blood, but other fluids extracted from the body may be used periodically depending on the purpose of the test.",
+        "pkg": "2025-07-01",
+        "cat": "Laboratory Tests;Chemistry Tests;Liver Function Tests;Drug-Induced Liver Injury;DILI",
+        "decs": [
+            "Biospecimen Type",
+            "Collection Date Time",
+            "Fasting Status Indicator",
+            "Observation Result",
+            "Unit of Concentration"
+        ],
+        "specs": [
+            {
+                "vlm": "BILISERPL",
+                "domain": "LB",
+                "vars": [
+                    [
+                        "LBTESTCD",
+                        "BILI",
+                        "Topic"
+                    ],
+                    [
+                        "LBTEST",
+                        "Bilirubin",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBCAT",
+                        "CHEMISTRY",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRES",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBORRESU",
+                        "mg/dL;mg/L;mmol/L;umol/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESC",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESN",
+                        "",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSTRESU",
+                        "umol/L",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBLOINC",
+                        "1975-2;14631-6",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBSPEC",
+                        "SERUM OR PLASMA",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBFAST",
+                        "N;Y",
+                        "Qualifier"
+                    ],
+                    [
+                        "LBDTC",
+                        "",
+                        "Timing"
+                    ]
+                ]
+            }
+        ]
+    }
+]

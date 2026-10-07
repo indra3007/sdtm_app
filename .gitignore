@@ -15,3 +15,5 @@ lib64
 *.xlsx
 *.html
 *.pyc
+# Protocol spec pages are self-contained HTML deliverables
+!protocol_specs/*.html
